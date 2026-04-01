@@ -1,0 +1,363 @@
+import { useState } from 'react';
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Eye,
+  Edit,
+  MoreVertical,
+  Calendar as CalendarIcon,
+  History as HistoryIcon,
+  MapPin,
+} from 'lucide-react';
+import { Badge } from './ui/badge';
+import { Button } from './ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from './ui/table';
+import { format, differenceInDays } from 'date-fns';
+
+export interface VehicleData {
+  id: string;
+  model: string;
+  cvNumber: string;
+  plateNumber: string;
+  color: string;
+  year: number;
+  receivedDate: Date;
+  poNumber: string;
+  vinNumber: string;
+  dealer: string;
+  status: 'On Process' | 'Pending' | 'Completed' | 'Overdue' | 'HELD' | 'SOLD' | 'PAID WITH LTO' | 'FOR LTO PROCESSING' | 'ON HOLD' | 'ON TRACK' | 'IN TRANSIT' | 'AVAILABLE';
+  remarks: string;
+  location: string;
+  unit: string;
+  pullOut: Date | null;
+  overdue: boolean;
+  category?: 'DEMO' | 'SALES' | 'ALLOCATION' | 'AVAILABLE' | 'IN TRANSIT' | 'PULL OUT MONITORING';
+  serdis?: string;
+  atOrUnit?: string;
+  
+  // Extended fields for comprehensive tracking
+  chassisNo?: string;
+  engineNo?: string;
+  pullOutDate?: Date | null;
+  csNo?: string;
+  bodyType?: string;
+  bodorCsnStatus?: string;
+  dateOfDelivery?: Date | null;
+  allocation?: string;
+  pnNumber?: string;
+  poAmount?: string;
+  plateNoAtReceipt?: string;
+  madeBySent?: string;
+  invoiceDate?: Date | null;
+  invoiceNumber?: string;
+  releaseDate?: Date | null;
+  jc?: string;
+  
+  // Financial tracking
+  rc?: string;
+  bank?: string;
+  arm?: string;
+  terms?: string;
+  sp?: string; // Selling Price
+  invoiceAmount?: string;
+  up?: string;
+  statementGuaranty?: string;
+  statementDeposit?: Date | null;
+  ltoBankTransmittal?: Date | null;
+  
+  // Client information
+  nameOfClient?: string;
+  
+  // Status tracking
+  statusOfClient?: string;
+  colorCode?: string;
+  declinedUnits?: string;
+  
+  // Additional tracking
+  plAmount?: string;
+  niAccount?: string;
+  dealerAtNo?: string;
+}
+
+interface VehicleTableProps {
+  data: VehicleData[];
+  onViewHistory: (vehicle: VehicleData) => void;
+}
+
+type SortField = keyof VehicleData;
+type SortDirection = 'asc' | 'desc' | null;
+
+export function VehicleTable({ data, onViewHistory }: VehicleTableProps) {
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedData = [...data].sort((a, b) => {
+    if (!sortField || !sortDirection) return 0;
+
+    const aValue = a[sortField];
+    const bValue = b[sortField];
+
+    if (aValue === null || aValue === undefined) return 1;
+    if (bValue === null || bValue === undefined) return -1;
+
+    if (aValue instanceof Date && bValue instanceof Date) {
+      return sortDirection === 'asc'
+        ? aValue.getTime() - bValue.getTime()
+        : bValue.getTime() - aValue.getTime();
+    }
+
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortDirection === 'asc'
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
+
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+    }
+
+    return 0;
+  });
+
+  const getStatusBadge = (status: VehicleData['status']) => {
+    const variants: Record<VehicleData['status'], { className: string }> = {
+      'On Process': { className: 'bg-blue-100 text-blue-700 border-blue-200' },
+      Pending: { className: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
+      Completed: { className: 'bg-green-100 text-green-700 border-green-200' },
+      Overdue: { className: 'bg-red-100 text-red-700 border-red-200' },
+      HELD: { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+      SOLD: { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+      'PAID WITH LTO': { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+      'FOR LTO PROCESSING': { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+      'ON HOLD': { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+      'ON TRACK': { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+      'IN TRANSIT': { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+      'AVAILABLE': { className: 'bg-gray-100 text-gray-700 border-gray-200' },
+    };
+
+    return (
+      <Badge variant="outline" className={variants[status].className}>
+        {status}
+      </Badge>
+    );
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="size-4 text-gray-400" />;
+    }
+    return sortDirection === 'asc' ? (
+      <ArrowUp className="size-4 text-blue-600" />
+    ) : (
+      <ArrowDown className="size-4 text-blue-600" />
+    );
+  };
+
+  const getDaysInService = (receivedDate: Date) => {
+    return differenceInDays(new Date(), receivedDate);
+  };
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50">
+              <TableHead className="w-[50px]">#</TableHead>
+              <TableHead>
+                <button
+                  className="flex items-center gap-2 hover:text-gray-900"
+                  onClick={() => handleSort('model')}
+                >
+                  Model
+                  <SortIcon field="model" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  className="flex items-center gap-2 hover:text-gray-900"
+                  onClick={() => handleSort('cvNumber')}
+                >
+                  CV Number
+                  <SortIcon field="cvNumber" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  className="flex items-center gap-2 hover:text-gray-900"
+                  onClick={() => handleSort('plateNumber')}
+                >
+                  Plate Number
+                  <SortIcon field="plateNumber" />
+                </button>
+              </TableHead>
+              <TableHead>Color</TableHead>
+              <TableHead>
+                <button
+                  className="flex items-center gap-2 hover:text-gray-900"
+                  onClick={() => handleSort('year')}
+                >
+                  Year
+                  <SortIcon field="year" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  className="flex items-center gap-2 hover:text-gray-900"
+                  onClick={() => handleSort('receivedDate')}
+                >
+                  Received Date
+                  <SortIcon field="receivedDate" />
+                </button>
+              </TableHead>
+              <TableHead>PO Number</TableHead>
+              <TableHead>VIN Number</TableHead>
+              <TableHead>
+                <button
+                  className="flex items-center gap-2 hover:text-gray-900"
+                  onClick={() => handleSort('dealer')}
+                >
+                  Dealer
+                  <SortIcon field="dealer" />
+                </button>
+              </TableHead>
+              <TableHead>
+                <button
+                  className="flex items-center gap-2 hover:text-gray-900"
+                  onClick={() => handleSort('status')}
+                >
+                  Status
+                  <SortIcon field="status" />
+                </button>
+              </TableHead>
+              <TableHead>Remarks</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Unit</TableHead>
+              <TableHead>Pull Out</TableHead>
+              <TableHead>Days</TableHead>
+              <TableHead className="w-[80px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sortedData.map((vehicle, index) => (
+              <TableRow
+                key={vehicle.id}
+                className={vehicle.overdue ? 'bg-red-50' : undefined}
+              >
+                <TableCell className="text-gray-500">{index + 1}</TableCell>
+                <TableCell className="font-medium">{vehicle.model}</TableCell>
+                <TableCell className="font-mono text-sm">{vehicle.cvNumber}</TableCell>
+                <TableCell className="font-mono text-sm">{vehicle.plateNumber}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="size-4 rounded-full border border-gray-300"
+                      style={{ backgroundColor: vehicle.color.toLowerCase() }}
+                    />
+                    {vehicle.color}
+                  </div>
+                </TableCell>
+                <TableCell>{vehicle.year}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1 text-sm">
+                    <CalendarIcon className="size-3 text-gray-400" />
+                    {format(vehicle.receivedDate, 'MMM dd, yyyy')}
+                  </div>
+                </TableCell>
+                <TableCell className="font-mono text-sm">{vehicle.poNumber}</TableCell>
+                <TableCell className="font-mono text-sm">{vehicle.vinNumber}</TableCell>
+                <TableCell className="text-sm">{vehicle.dealer}</TableCell>
+                <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
+                <TableCell className="max-w-[200px]">
+                  <div className="text-sm text-gray-600 truncate" title={vehicle.remarks}>
+                    {vehicle.remarks}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1 text-sm">
+                    <MapPin className="size-3 text-gray-400" />
+                    {vehicle.location}
+                  </div>
+                </TableCell>
+                <TableCell className="text-sm">{vehicle.unit}</TableCell>
+                <TableCell>
+                  {vehicle.pullOut ? (
+                    <div className="flex items-center gap-1 text-sm">
+                      <CalendarIcon className="size-3 text-gray-400" />
+                      {format(vehicle.pullOut, 'MMM dd, yyyy')}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className={
+                      getDaysInService(vehicle.receivedDate) > 7
+                        ? 'bg-orange-50 text-orange-700 border-orange-200'
+                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                    }
+                  >
+                    {getDaysInService(vehicle.receivedDate)}d
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm">
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem>
+                        <Eye className="size-4 mr-2" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem>
+                        <Edit className="size-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onViewHistory(vehicle)}>
+                        <HistoryIcon className="size-4 mr-2" />
+                        View History
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
