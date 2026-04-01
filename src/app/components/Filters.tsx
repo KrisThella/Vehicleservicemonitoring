@@ -156,11 +156,11 @@ export function Filters({
           <SelectContent className="max-h-[400px]">
             <SelectItem value="all">All Models</SelectItem>
             <SelectItem value="APV 1.6 GA MT">APV 1.6 GA MT</SelectItem>
-            <SelectItem value="APV 1.6 GA AT">APV 1.6 GA AT</SelectItem>
+            <SelectItem value="APV 1.6 GLX MT">APV 1.6 GLX MT</SelectItem>
             <SelectItem value="CARRY CAB & CHASSIS">CARRY CAB & CHASSIS</SelectItem>
             <SelectItem value="CARRY CARGO VAN">CARRY CARGO VAN</SelectItem>
             <SelectItem value="CARRY DROPSIDE">CARRY DROPSIDE</SelectItem>
-            <SelectItem value="CARRY LINYMAN'S VEHICLE">CARRY LINYMAN'S VEHICLE</SelectItem>
+            <SelectItem value="CARRY LINEMAN'S VEHICLE">CARRY LINEMAN'S VEHICLE</SelectItem>
             <SelectItem value="CARRY UTILITY VAN">CARRY UTILITY VAN</SelectItem>
             <SelectItem value="CELERIO GL AGS">CELERIO GL AGS</SelectItem>
             <SelectItem value="CELERIO GL CVT">CELERIO GL CVT</SelectItem>
@@ -179,16 +179,17 @@ export function Filters({
             <SelectItem value="ERTIGA 1.5 GLX AT - HYBRID">ERTIGA 1.5 GLX AT - HYBRID</SelectItem>
             <SelectItem value="JIMNY 1.5 GL MT">JIMNY 1.5 GL MT</SelectItem>
             <SelectItem value="JIMNY 1.5 GL AT">JIMNY 1.5 GL AT</SelectItem>
-            <SelectItem value="JIMNY SDR GL MT">JIMNY SDR GL MT</SelectItem>
-            <SelectItem value="JIMNY SDR GL AT">JIMNY SDR GL AT</SelectItem>
-            <SelectItem value="JIMNY SDR GLX MT">JIMNY SDR GLX MT</SelectItem>
-            <SelectItem value="JIMNY SDR GLX AT">JIMNY SDR GLX AT</SelectItem>
+            <SelectItem value="JIMNY 5DR GL MT">JIMNY 5DR GL MT</SelectItem>
+            <SelectItem value="JIMNY 5DR GL AT">JIMNY 5DR GL AT</SelectItem>
+            <SelectItem value="JIMNY 5DR GLX MT">JIMNY 5DR GLX MT</SelectItem>
+            <SelectItem value="JIMNY 5DR GLX AT">JIMNY 5DR GLX AT</SelectItem>
             <SelectItem value="S-PRESSO 1.0 GL AGS">S-PRESSO 1.0 GL AGS</SelectItem>
             <SelectItem value="S-PRESSO 1.0 GL MT">S-PRESSO 1.0 GL MT</SelectItem>
             <SelectItem value="SWIFT 1.2 GL CVT">SWIFT 1.2 GL CVT</SelectItem>
-            <SelectItem value="SWIFT 2.2 GL CVT">SWIFT 2.2 GL CVT</SelectItem>
-            <SelectItem value="XL7 1.5 GLX AT - HYBRID">XL7 1.5 GLX AT - HYBRID</SelectItem>
-            <SelectItem value="XL7 1.5 GLX MT - HYBRID">XL7 1.5 GLX MT - HYBRID</SelectItem>
+            <SelectItem value="XL7 1.5 GLX AT - HYBRID MONOTONE">XL7 1.5 GLX AT - HYBRID MONOTONE</SelectItem>
+            <SelectItem value="XL7 1.5 GLX AT - HYBRID (TWO-TONE)">XL7 1.5 GLX MT - HYBRID (TWO-TONE)</SelectItem>
+            <SelectItem value="XL7 1.5 GLX AT - HYBRID BLACK EDITION">XL7 1.5 GLX AT - HYBRID BLACK EDITION</SelectItem>
+            <SelectItem value="XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION">XL7 1.5 GLX MT - HYBRID (TWO-TONE) BLACK EDITION</SelectItem>
           </SelectContent>
         </Select>
 
@@ -199,9 +200,9 @@ export function Filters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Dealers</SelectItem>
-            <SelectItem value="TUAZON-BURIAS">TUAZON-BURIAS</SelectItem>
-            <SelectItem value="TUAZON/BURIAS">TUAZON/BURIAS</SelectItem>
-            <SelectItem value="MASEDA/BUENDIA/N.A">MASEDA/BUENDIA/N.A</SelectItem>
+            <SelectItem value="TEAM JM">TEAM JM</SelectItem>
+            <SelectItem value="TEAM AARON">TEAM AARON</SelectItem>
+            <SelectItem value="TEAM JAY-R">TEAM JAY-R</SelectItem>
           </SelectContent>
         </Select>
 

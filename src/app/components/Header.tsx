@@ -17,7 +17,7 @@ export function Header({ onOpenPricing }: HeaderProps) {
               <Car className="size-6 text-white" />
             </div>
             <div>
-              <h1 className="font-semibold text-gray-900">2026 TSMPC INVENTORY MONITORING</h1>
+              <h1 className="font-semibold text-gray-900">2026 DONNA RICCI INVENTORY MONITORING</h1>
               <p className="text-sm text-gray-500">The Shaw Motor Plaza Corp – Demo & Service Unit</p>
             </div>
           </div>

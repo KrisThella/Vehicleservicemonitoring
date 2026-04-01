@@ -48,7 +48,7 @@ export function OverdueAlerts({ vehicles }: OverdueAlertsProps) {
                         </Badge>
                       </div>
                       <div className="text-sm text-gray-600 space-y-1">
-                        <p>CV: {vehicle.cvNumber} • Plate: {vehicle.plateNumber}</p>
+                        <p>CS: {vehicle.csNo} • Plate: {vehicle.plateNumber}</p>
                         <div className="flex items-center gap-1 text-red-600">
                           <Clock className="size-3" />
                           <span>

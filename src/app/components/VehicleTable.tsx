@@ -31,7 +31,6 @@ import { format, differenceInDays } from 'date-fns';
 export interface VehicleData {
   id: string;
   model: string;
-  cvNumber: string;
   plateNumber: string;
   color: string;
   year: number;
@@ -46,6 +45,7 @@ export interface VehicleData {
   pullOut: Date | null;
   overdue: boolean;
   category?: 'DEMO' | 'SALES' | 'ALLOCATION' | 'AVAILABLE' | 'IN TRANSIT' | 'PULL OUT MONITORING';
+  //
   serdis?: string;
   atOrUnit?: string;
   
@@ -204,10 +204,10 @@ export function VehicleTable({ data, onViewHistory }: VehicleTableProps) {
               <TableHead>
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
-                  onClick={() => handleSort('cvNumber')}
+                  onClick={() => handleSort('csNo')}
                 >
-                  CV Number
-                  <SortIcon field="cvNumber" />
+                  CS Number
+                  <SortIcon field="csNo" />
                 </button>
               </TableHead>
               <TableHead>
@@ -219,13 +219,15 @@ export function VehicleTable({ data, onViewHistory }: VehicleTableProps) {
                   <SortIcon field="plateNumber" />
                 </button>
               </TableHead>
-              <TableHead>Color</TableHead>
+              <TableHead className='px-8'>
+                Color                
+                </TableHead>
               <TableHead>
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort('year')}
                 >
-                  Year
+                  Year Model
                   <SortIcon field="year" />
                 </button>
               </TableHead>
@@ -239,7 +241,7 @@ export function VehicleTable({ data, onViewHistory }: VehicleTableProps) {
                 </button>
               </TableHead>
               <TableHead>PO Number</TableHead>
-              <TableHead>VIN Number</TableHead>
+              <TableHead>Chassis Number</TableHead>
               <TableHead>
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
@@ -274,7 +276,7 @@ export function VehicleTable({ data, onViewHistory }: VehicleTableProps) {
               >
                 <TableCell className="text-gray-500">{index + 1}</TableCell>
                 <TableCell className="font-medium">{vehicle.model}</TableCell>
-                <TableCell className="font-mono text-sm">{vehicle.cvNumber}</TableCell>
+                <TableCell className="font-mono text-sm">{vehicle.csNo}</TableCell>
                 <TableCell className="font-mono text-sm">{vehicle.plateNumber}</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
@@ -293,7 +295,7 @@ export function VehicleTable({ data, onViewHistory }: VehicleTableProps) {
                   </div>
                 </TableCell>
                 <TableCell className="font-mono text-sm">{vehicle.poNumber}</TableCell>
-                <TableCell className="font-mono text-sm">{vehicle.vinNumber}</TableCell>
+                <TableCell className="font-mono text-sm">{vehicle.chassisNo}</TableCell>
                 <TableCell className="text-sm">{vehicle.dealer}</TableCell>
                 <TableCell>{getStatusBadge(vehicle.status)}</TableCell>
                 <TableCell className="max-w-[200px]">

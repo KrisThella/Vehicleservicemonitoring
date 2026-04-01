@@ -4,9 +4,10 @@ import { Button } from './ui/button';
 interface PricingData {
   model: string;
   srp: string;
-  dsp: string;
-  vvsSubsidy: string;
-  ltoMaEvfst: string;
+  dnp: string;
+  wsSubsidy: string;
+  dnpLesswsSubsidy: string;
+  ewt: string;
   poAmount: string;
   category?: string;
 }
@@ -17,62 +18,62 @@ interface PricingModalProps {
 
 const pricingData: PricingData[] = [
   // APV Models
-  { model: 'APV 1.6 GA MT', srp: '765,000.00', dsp: '712,425.00', vvsSubsidy: '32,000.00', ltoMaEvfst: '3,905.01', poAmount: '679,179.88', category: 'APV' },
-  { model: 'APV 1.6 GA AT', srp: '825,000.00', dsp: '767,625.00', vvsSubsidy: '32,000.00', ltoMaEvfst: '3,731.01', poAmount: '832,702.00', category: 'APV' },
+  { model: 'APV 1.6 GA MT', srp: '763,000.00', dnp: '717,220.00', wsSubsidy: '35,000.00', dnpLesswsSubsidy: '682,220.00', ewt: '3,045.63', poAmount: '679,179.38', category: 'APV' },
+  { model: 'APV 1.6 GLX MT', srp: '975,000.00', dnp: '916,500.00', wsSubsidy: '80,000.00', dnpLesswsSubsidy: '836,500.00', ewt: '3,734.68', poAmount: '832,765.063', category: 'APV' },
   
   // CELERIO Models
-  { model: 'CELERIO 1.0 GL AGS', srp: '758,000.00', dsp: '705,700.00', vvsSubsidy: '53,000.00', ltoMaEvfst: '2,767.50', poAmount: '652,832.50', category: 'CELERIO' },
+  { model: 'CELERIO 1.0 GL AGS', srp: '754,000.00', dnp: '708,760.00', wsSubsidy: '53,000.00', dnpLesswsSubsidy: '655,760.00', ewt: '2,927.50', poAmount: '652,832.50', category: 'CELERIO' },
   
   // DZIRE Models
-  { model: 'DZIRE GA MT', srp: '820,000.00', dsp: '763,400.00', vvsSubsidy: '60,000.00', ltoMaEvfst: '3,127.50', poAmount: '811,312.50', category: 'DZIRE' },
-  { model: 'DZIRE GL CVT', srp: '930,000.00', dsp: '865,950.00', vvsSubsidy: '60,000.00', ltoMaEvfst: '3,629.01', poAmount: '864,336.01', category: 'DZIRE' },
-  { model: 'DZIRE GLP AGS', srp: '914,000.00', dsp: '850,740.00', vvsSubsidy: '60,000.00', ltoMaEvfst: '3,529.01', poAmount: '847,996.01', category: 'DZIRE' },
-  { model: 'DZIRE GL CVT - HYBRID', srp: '956,000.00', dsp: '890,700.00', vvsSubsidy: '-', ltoMaEvfst: '4,251.99', poAmount: '905,756.01', category: 'DZIRE' },
-  { model: 'DZIRE GLP CVT - HYBRID', srp: '1,020,000.00', dsp: '949,650.00', vvsSubsidy: '-', ltoMaEvfst: '4,526.99', poAmount: '962,903.01', category: 'DZIRE' },
-  { model: 'DZIRE GLX CVT - HYBRID', srp: '1,120,000.00', dsp: '1,042,000.00', vvsSubsidy: '-', ltoMaEvfst: '4,918.47', poAmount: '1,056,726.48', category: 'DZIRE' },
-  { model: 'DZIRE GLX CVT - HYBRID', srp: '1,170,000.00', dsp: '1,089,750.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '4,811.02', poAmount: '1,014,536.02', category: 'DZIRE' },
+  { model: 'DZIRE GL CVT - HYBRID', srp: '920,000.00', dnp: '864,800.00', wsSubsidy: '50,000.00', dnpLesswsSubsidy: '814,800.00',ewt: '3,637.50', poAmount: '811,162.50', category: 'DZIRE' },
+  { model: 'DZIRE GLX CVT - HYBRID', srp: '998,000.00', dnp: '938,120.00', wsSubsidy: '60,000.', dnpLesswsSubsidy: '878,120.00', ewt: '3,920.18', poAmount: '874,199.82', category: 'DZIRE' },
   
   // ERTIGA Models
-  { model: 'ERTIGA 1.5 GA MT - HYBRID', srp: '1,108,000.00', dsp: '1,031,480.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '4,580.00', poAmount: '956,060.00', category: 'ERTIGA' },
-  { model: 'ERTIGA 1.5 GL MT - HYBRID', srp: '1,158,000.00', dsp: '1,078,590.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '4,784.01', poAmount: '1,002,305.01', category: 'ERTIGA' },
-  { model: 'ERTIGA 1.5 GL AT - HYBRID', srp: '1,208,000.00', dsp: '1,125,700.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '5,004.01', poAmount: '1,050,295.01', category: 'ERTIGA' },
-  { model: 'ERTIGA 1.5 GLX MT - HYBRID', srp: '1,278,000.00', dsp: '1,189,290.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '5,260.01', poAmount: '1,113,969.99', category: 'ERTIGA' },
-  { model: 'ERTIGA 1.5 GLX AT - HYBRID', srp: '1,328,000.00', dsp: '1,236,400.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '5,464.01', poAmount: '1,160,935.99', category: 'ERTIGA' },
+  { model: 'ERTIGA 1.5 GA MT - HYBRID', srp: '954,000.00', dnp: '896,760.00', wsSubsidy: '-', dnpLesswsSubsidy: '896,760.00',ewt: '4,003.39', poAmount: '892, 756.61', category: 'ERTIGA' },
+  { model: 'ERTIGA 1.5 GL MT - HYBRID', srp: '1,193,000.00', dnp: '1,027,420.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,027,420.00', ewt: '4,586.70', poAmount: '1,022,833.30', category: 'ERTIGA' },
+  { model: 'ERTIGA 1.5 GL AT - HYBRID', srp: '1,128,000.00', dnp: '1,060,320.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,060,320.00', ewt: '4,733.57', poAmount: '1,055,586.43', category: 'ERTIGA' },
+  { model: 'ERTIGA 1.5 GLX MT - HYBRID', srp: '1,178,000.00', dnp: '1,107,320.00', wsSubsidy: '90,000.00', dnpLesswsSubsidy: '1,017,320.00', ewt: '4,541.61', poAmount: '1,012,778.39', category: 'ERTIGA' },
+
+  //FRONX Models
+  { model: 'FRONX GL AT', srp: '1,059,000.0', dnp: '995,460.00', wsSubsidy: '20,000.00', dnpLesswsSubsidy: '975,460.00', ewt:'4,354.73' ,  poAmount: '971,105.27', category: 'FRONX' },
+  { model: 'FRONX GL AT HYBRID', srp: '1,219,000.0', dnp: '1,145,860.00', wsSubsidy: '20,000.00', dnpLesswsSubsidy: '1,125,860.00', ewt:'5,026.16' ,  poAmount: '1,120,833.84', category: 'FRONX' },
+  { model: 'FRONX GL AT HYBRID (TWO-TONE)', srp: '1,229,000.00', dnp: '1,155,260.00', wsSubsidy: '20,000.00', dnpLesswsSubsidy: '1,135,260.00', ewt:'5,068.13', poAmount:'1,055,586.43', category: 'FRONX' },
+  { model: 'FRONX GL AT HYBRID (TWO-TONE)', srp: '1,299,000.00', dnp: '1,221,060.00', wsSubsidy: '20,000.00', dnpLesswsSubsidy: '1,017,320.00', ewt:'4,541.61', poAmount:'1,012,778.39', category: 'FRONX' },
   
   // JIMNY Models
-  { model: 'JIMNY 1.5 GL MT', srp: '1,698,000.00', dsp: '1,580,490.00', vvsSubsidy: '-', ltoMaEvfst: '8,364.21', poAmount: '1,721,692.21', category: 'JIMNY' },
-  { model: 'JIMNY 1.5 GL AT', srp: '1,758,000.00', dsp: '1,638,750.00', vvsSubsidy: '20,000.00', ltoMaEvfst: '8,589.01', poAmount: '1,742,838.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GL MT (TWO-TONE)', srp: '1,848,000.00', dsp: '1,721,400.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '9,089.01', poAmount: '1,821,910.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GL AT (TWO-TONE)', srp: '1,908,000.00', dsp: '1,779,660.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '9,314.01', poAmount: '1,867,373.99', category: 'JIMNY' },
-  { model: 'JIMNY 1.5 GL MT SS', srp: '1,758,000.00', dsp: '1,638,750.00', vvsSubsidy: '-', ltoMaEvfst: '8,589.01', poAmount: '1,805,088.99', category: 'JIMNY' },
-  { model: 'JIMNY 1.5 GL AT SS', srp: '1,818,000.00', dsp: '1,696,770.00', vvsSubsidy: '-', ltoMaEvfst: '8,839.01', poAmount: '1,859,358.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GL MT (TWO-TONE) SS', srp: '1,908,000.00', dsp: '1,779,660.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '9,314.01', poAmount: '1,867,373.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GL AT (TWO-TONE) SS', srp: '1,968,000.00', dsp: '1,837,920.00', vvsSubsidy: '-', ltoMaEvfst: '9,564.01', poAmount: '1,941,923.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GLX MT', srp: '2,058,000.00', dsp: '1,921,590.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '10,039.01', poAmount: '2,009,128.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GLX AT', srp: '2,118,000.00', dsp: '1,979,850.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '10,289.01', poAmount: '2,054,638.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GLX MT (TWO-TONE)', srp: '2,118,000.00', dsp: '1,979,850.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '10,289.01', poAmount: '2,054,638.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GLX AT (TWO-TONE)', srp: '2,178,000.00', dsp: '2,038,110.00', vvsSubsidy: '-', ltoMaEvfst: '10,539.01', poAmount: '2,129,188.99', category: 'JIMNY' },
-  { model: 'JIMNY SDR GLX AT EDITION', srp: '2,218,000.00', dsp: '2,071,830.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '10,714.01', poAmount: '2,152,043.99', category: 'JIMNY' },
-  
-  // S-PRESSO Models
-  { model: 'S-PRESSO 1.0 GL MT', srp: '598,000.00', dsp: '556,660.00', vvsSubsidy: '60,000.00', ltoMaEvfst: '2,030.01', poAmount: '498,689.99', category: 'S-PRESSO' },
-  { model: 'S-PRESSO 1.0 GL AGS', srp: '638,000.00', dsp: '594,020.00', vvsSubsidy: '60,000.00', ltoMaEvfst: '2,155.01', poAmount: '531,864.99', category: 'S-PRESSO' },
+  { model: 'JIMNY 1.5 GL MT SS', srp: '1,293,000.00', dnp: '1,196,49.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,196,205.00', ewt:'5,340.20', poAmount: '1,190,864.80', category: 'JIMNY' },
+  { model: 'JIMNY 1.5 GLX AT (MONOTONE) SS', srp: '1,355,000.00', dnp: '1,231,000.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,231,000.00', ewt:'5,495.54', poAmount: '1,225,504.46', category: 'JIMNY' },
+  { model: 'JIMNY 5DR GLX AT (TWO-TONE) SS', srp: '1,365,000.00', dnp: '1,231,250.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,231,000.00',ewt:'5,496.65', poAmount: '1,225,753.35', category: 'JIMNY' },
+  { model: 'JIMNY 5DR GL MT', srp: '1,558,000.00', dnp: '1,441,150.00', wsSubsidy: '50,000.00', dnpLesswsSubsidy: '1,391,150.00',ewt:'6,210.49', poAmount: '1,384,939.51', category: 'JIMNY' },
+  { model: 'JIMNY 5DR GLX AT (MONOTONE)', srp: '1,698,000.00', dnp: '1,579,900.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,570,900.00',ewt:'7,011.83', poAmount: '1,563,638.17', category: 'JIMNY' },
+  { model: 'JIMNY 5DR GLX AT (TWO-TONE)', srp: '1,708,000.00', dnp: '1,579,900.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,579,900.00',ewt:'7,053.13', poAmount: '1,563,638.88', category: 'JIMNY' },
+  { model: 'JIMNY 3GLX AT R', srp: '1,331,000.00', dnp: '1,231,175.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,231,175.00', ewt:'5,496.32', poAmount: '1,225,678.68', category: 'JIMNY' },
+  { model: 'JIMNY 5DR GLX AT R-MONOTONE', srp: '1,739,000.00', dnp: '1,608,575.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,608,575.00', ewt:'7,181.14', poAmount: '1,601,393.86', category: 'JIMNY' },
+  { model: 'JIMNY 5DR GLX AT R-TWO-TONE', srp: '1,749,000.00', dnp: '1,617,825.00', wsSubsidy: '-', dnpLesswsSubsidy: '1,617,825.00', ewt:'7,222.43', poAmount: '1,610,602.57', category: 'JIMNY' },
+
   
   // SWIFT Models
-  { model: 'SWIFT 1.2 GL CVT', srp: '988,000.00', dsp: '920,460.00', vvsSubsidy: '83,000.00', ltoMaEvfst: '3,775.01', poAmount: '842,260.01', category: 'SWIFT' },
+  { model: 'SWIFT 1.2 GL CVT', srp: '989,000.00', dnp: '929,660.00', wsSubsidy: '83,000.00', dnpLesswsSubsidy: '846,660.00', ewt:'3,779.73', poAmount: '842,880.27', category: 'SWIFT' },
+
+  // CARRY Models
+  { model: 'CARRY CAB & CHASSIS', srp: '614,000.00', dnp: '577,160.00', wsSubsidy: '18,000.00', dnpLesswsSubsidy: '559,160.00', ewt:'2,496.25', poAmount: '556,663.75', category: 'CARRY' },
+  { model: 'CARRY DROPSIDE ', srp: '650,000.00', dnp: '611,000.00', wsSubsidy: '20,000.00', dnpLesswsSubsidy: '591,000.00', ewt:'2,638.39', poAmount: '588,361.61', category: 'CARRY' },
+  { model: 'CARRY CARGO VAN', srp: '705,000.00', dnp: '662,700.00', wsSubsidy: '23,000.00', dnpLesswsSubsidy: '639,700.00', ewt:'2,855.80', poAmount: '636,844.20', category: 'CARRY' },
+  { model: 'CARRY UTILITY VAN', srp: '754,000.00', dnp: '708,760.00', wsSubsidy: '20,000.00', dnpLesswsSubsidy: '688,760.00', ewt:'3,074.82', poAmount: '685,685.18', category: 'CARRY' },
+  { model: "CARRY LINEMAN'S VEHICLE BODY", srp: '798,000.00', dnp: '750,120.00', wsSubsidy: '20,000.00', dnpLesswsSubsidy: '730,120.00', ewt:'3,259.46', poAmount: '726,860.54', category: 'CARRY' },
+
+  // S-PRESSO Models
+  { model: 'S-PRESSO 1.0 GL MT', srp: '634,000.00', dnp: '556,660.00', wsSubsidy: '42,000.00', dnpLesswsSubsidy: '553,960.00', ewt:'2,473.04', poAmount: '551,486.96', category: 'S-PRESSO' },
+  { model: 'S-PRESSO 1.0 GL AGS', srp: '674,000.00', dnp: '633,560.00', wsSubsidy: '42,000.00', dnpLesswsSubsidy: '591,560.00', ewt:'2,640.89', poAmount: '588,919.11', category: 'S-PRESSO' },
+
   
   // XL7 Models
-  { model: 'XL7 1.5 GLX MT - HYBRID', srp: '1,418,000.00', dsp: '1,319,900.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '5,859.01', poAmount: '1,245,640.01', category: 'XL7' },
-  { model: 'XL7 1.5 GLX AT - HYBRID', srp: '1,468,000.00', dsp: '1,367,010.00', vvsSubsidy: '80,000.00', ltoMaEvfst: '6,063.01', poAmount: '1,292,610.01', category: 'XL7' },
-  
-  // CARRY Models
-  { model: 'CARRY CAB & CHASSIS', srp: '690,000.00', dsp: '643,050.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '2,338.99', poAmount: '610,362.61', category: 'CARRY' },
-  { model: 'CARRY CARGO VAN', srp: '825,000.00', dsp: '768,150.00', vvsSubsidy: '25,000.00', ltoMaEvfst: '3,052.50', poAmount: '745,886.25', category: 'CARRY' },
-  { model: 'CARRY CARGO VAN', srp: '795,000.00', dsp: '708,745.00', vvsSubsidy: '20,000.00', ltoMaEvfst: '3,031.62', poAmount: '685,485.19', category: 'CARRY' },
-  { model: 'CARRY DROPSIDE', srp: '795,000.00', dsp: '750,210.00', vvsSubsidy: '30,000.00', ltoMaEvfst: '2,999.62', poAmount: '719,880.25', category: 'CARRY' },
-  { model: 'CARRY UTILITY VAN', srp: '825,000.00', dsp: '768,150.00', vvsSubsidy: '25,000.00', ltoMaEvfst: '3,052.50', poAmount: '745,886.25', category: 'CARRY' },
-  { model: "CARRY LINYMAN'S VEHICLE (RHD)", srp: '825,000.00', dsp: '768,150.00', vvsSubsidy: '25,000.00', ltoMaEvfst: '3,052.50', poAmount: '745,886.25', category: 'CARRY' },
+  { model: 'XL7 1.5 GLX MT - HYBRID MONOTOTONE', srp: '1,252,000.00', dnp: '1,176,880.00', wsSubsidy: '90,000.00', dnpLesswsSubsidy: '1,086,880.00', ewt:'4,852.14', poAmount: '1,082,027.86', category: 'XL7' },
+  { model: 'XL7 1.5 GLX AT - HYBRID (TWO-TONE)', srp: '1,262,000.00', dnp: '1,186,280.00', wsSubsidy: '90,000.00', dnpLesswsSubsidy: '1,096,280.00', ewt:'4,894.11', poAmount: '1,091,385.89', category: 'XL7' },
+  { model: 'XL7 1.5 GLX AT - HYBRID BLACK EDITION', srp: '1,259,000.00', dnp: '1,183,460.00', wsSubsidy: '90,000.00', dnpLesswsSubsidy: '1,093,460.00', ewt:'4,881.52', poAmount: '1,088,578.58', category: 'XL7' },
+  { model: 'XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION', srp: '1,269,000.00', dnp: '1,192,860.00', wsSubsidy: '90,000.00', dnpLesswsSubsidy: '1,102,860.00', ewt:'4,923.48', poAmount: '1,097,936.52', category: 'XL7' },
 ];
+  
 
 export function PricingModal({ onClose }: PricingModalProps) {
   // Group pricing data by category
@@ -120,9 +121,10 @@ export function PricingModal({ onClose }: PricingModalProps) {
                       <tr className="bg-gray-50 border-b border-gray-200">
                         <th className="text-left text-xs font-semibold text-gray-700 px-4 py-3">MODEL</th>
                         <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">SRP</th>
-                        <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">DSP</th>
-                        <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">VVS SUBSIDY</th>
-                        <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">LTO/MA/EVFST</th>
+                        <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">DNP</th>
+                        <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">WS SUBSIDY</th>
+                        <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">DNP LESS WS SUBSIDY</th>
+                        <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3">EWT</th>
                         <th className="text-right text-xs font-semibold text-gray-700 px-4 py-3 bg-blue-50">PO AMOUNT</th>
                       </tr>
                     </thead>
@@ -132,22 +134,27 @@ export function PricingModal({ onClose }: PricingModalProps) {
                           key={index}
                           className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                         >
-                          <td className="px-4 py-3 text-sm text-gray-900">{item.model}</td>
+                          <td className="px-4 py-3 text-sm text-gray-900">
+                            {item.model}
+                          </td>
                           <td className="px-4 py-3 text-sm text-gray-700 text-right font-mono">
                             ₱{item.srp}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-700 text-right font-mono">
-                            ₱{item.dsp}
+                            ₱{item.dnp}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-700 text-right font-mono">
-                            {item.vvsSubsidy === '-' ? '-' : `₱${item.vvsSubsidy}`}
+                            {item.wsSubsidy === '-' ? '-' : `₱${item.wsSubsidy}`}
                           </td>
                           <td className="px-4 py-3 text-sm text-gray-700 text-right font-mono">
-                            ₱{item.ltoMaEvfst}
+                            ₱{item.dnpLesswsSubsidy}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-gray-700 text-right font-mono">
+                            ₱{item.ewt}
                           </td>
                           <td className="px-4 py-3 text-sm font-semibold text-blue-600 text-right font-mono bg-blue-50">
                             ₱{item.poAmount}
-                          </td>
+                          </td>      
                         </tr>
                       ))}
                     </tbody>
@@ -162,8 +169,8 @@ export function PricingModal({ onClose }: PricingModalProps) {
         <div className="flex items-center justify-between p-6 border-t border-gray-200 bg-gray-50">
           <div className="text-xs text-gray-500">
             <p className="font-semibold mb-1">Legend:</p>
-            <p><strong>SRP:</strong> Suggested Retail Price | <strong>DSP:</strong> Dealer Selling Price</p>
-            <p><strong>VVS:</strong> Vehicle Value Subsidy | <strong>LTO:</strong> Land Transportation Office fees</p>
+            <p><strong>SRP:</strong> Suggested Retail Price | <strong>DNP:</strong> Dealer Net Price</p>
+            <p><strong>WS:</strong> Whole Sale | <strong>DNP LESS WS:</strong> Dealer Net Price Less Whole Sale</p>
           </div>
           <Button onClick={onClose} className="bg-blue-600 hover:bg-blue-700">
             Close
