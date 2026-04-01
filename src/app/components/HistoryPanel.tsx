@@ -108,8 +108,8 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
-              <span className="text-gray-500">CV Number:</span>
-              <p className="font-medium text-gray-900">{vehicle.cvNumber}</p>
+              <span className="text-gray-500">CS Number:</span>
+              <p className="font-medium text-gray-900">{vehicle.csNo}</p>
             </div>
             <div>
               <span className="text-gray-500">Plate:</span>
@@ -117,7 +117,7 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
             </div>
             <div>
               <span className="text-gray-500">VIN:</span>
-              <p className="font-medium text-gray-900 font-mono text-xs">{vehicle.vinNumber}</p>
+              <p className="font-medium text-gray-900 font-mono text-xs">{vehicle.chassisNo}</p>
             </div>
             <div>
               <span className="text-gray-500">Location:</span>
@@ -128,8 +128,8 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
       </div>
 
       {/* History Timeline */}
-      <ScrollArea className="flex-1 p-6">
-        <div className="space-y-4">
+      <ScrollArea className="flex-1 overflow-hidden">
+        <div className="space-y-4 p-6">
           {history.map((entry, index) => (
             <div key={entry.id} className="relative">
               {/* Timeline Line */}
