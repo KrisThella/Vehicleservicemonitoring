@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -28,6 +28,7 @@ import {
 } from "./ui/table";
 import { format, differenceInDays } from "date-fns";
 import { getColorHex } from "./utils/colorMapping";
+import { VehicleDetailsModal } from "./VehicleDetailsModal";
 
 export interface VehicleData {
   id: string;
@@ -110,6 +111,13 @@ export interface VehicleData {
   plAmount?: string;
   niAccount?: string;
   dealerAtNo?: string;
+
+  // New fields for detailed view
+  salesClerk?: string;
+  generalManager?: string;
+  grossProfit?: string;
+  extendedWarranty?: string;
+  ltoDocumentsTransmittal?: string;
 }
 
 interface VehicleTableProps {
@@ -129,6 +137,36 @@ export function VehicleTable({
   );
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(null);
+  const [selectedVehicle, setSelectedVehicle] = useState<VehicleData | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [vehicleData, setVehicleData] = useState<VehicleData[]>(data);
+
+  // Sync vehicleData with data prop changes
+  useEffect(() => {
+    setVehicleData(data);
+  }, [data]);
+
+  const handleViewDetails = (vehicle: VehicleData) => {
+    setSelectedVehicle(vehicle);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedVehicle(null);
+  };
+
+  const handleSaveVehicle = (updatedVehicle: VehicleData) => {
+    // Update the vehicle in the data array
+    const updatedData = vehicleData.map(v =>
+      v.id === updatedVehicle.id ? updatedVehicle : v
+    );
+    setVehicleData(updatedData);
+    setSelectedVehicle(updatedVehicle);
+  };
+
+  // Use vehicleData instead of data for sorting
+  const dataToSort = vehicleData.length > 0 ? vehicleData : data;
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -144,7 +182,7 @@ export function VehicleTable({
     }
   };
 
-  const sortedData = [...data].sort((a, b) => {
+  const sortedData = [...dataToSort].sort((a, b) => {
     if (!sortField || !sortDirection) return 0;
 
     const aValue = a[sortField];
@@ -203,25 +241,25 @@ export function VehicleTable({
         className: "bg-gray-100 text-gray-700 border-gray-200",
       },
       SOLD: {
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-green-100 text-green-700 border-green-200",
       },
       "PAID WITH LTO": {
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-blue-100 text-blue-700 border-blue-200",
       },
       "FOR LTO PROCESSING": {
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-orange-100 text-orange-700 border-orange-200",
       },
       "ON HOLD": {
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-gray-100 text-teal-700 border-grey-200",
       },
       "ON TRACK": {
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-green-100 text-green-700 border-green-200",
       },
       "IN TRANSIT": {
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-purple-100 text-purple-700 border-purlpe-200",
       },
       AVAILABLE: {
-        className: "bg-gray-100 text-gray-700 border-gray-200",
+        className: "bg-teal-100 text-teal-700 border-teal-200",
       },
     };
 
@@ -338,8 +376,11 @@ export function VehicleTable({
               <TableRow
                 key={vehicle.id}
                 className={
-                  vehicle.overdue ? "bg-red-50" : undefined
+                  vehicle.overdue
+                    ? "bg-red-50 cursor-pointer hover:bg-red-100 transition-colors"
+                    : "cursor-pointer hover:bg-gray-50 transition-colors"
                 }
+                onClick={() => handleViewDetails(vehicle)}
               >
                 <TableCell className="text-gray-500">
                   {index + 1}
@@ -432,21 +473,35 @@ export function VehicleTable({
                 <TableCell>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <MoreVertical className="size-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleViewDetails(vehicle);
+                        }}
+                      >
                         <Eye className="size-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Edit className="size-4 mr-2" />
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => onViewHistory(vehicle)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewHistory(vehicle);
+                        }}
                       >
                         <HistoryIcon className="size-4 mr-2" />
                         View History
@@ -459,6 +514,12 @@ export function VehicleTable({
           </TableBody>
         </Table>
       </div>
+      <VehicleDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        vehicle={selectedVehicle}
+        onSave={handleSaveVehicle}
+      />
     </div>
   );
 }

@@ -43,6 +43,12 @@ const mockVehicles: VehicleData[] = [
     invoiceAmount: '₱248,000.00',
     statementDeposit: new Date('2024-11-18'),
     ltoBankTransmittal: new Date('2024-11-20'),
+    salesConsultant: 'JOHN SANTOS',
+    generalManager: 'MR. ROBERTO CRUZ',
+    grossProfit: '₱18,500.00',
+    extendedWarranty: 'YES - 3 YEARS',
+    ltoDocumentsTransmittal: 'TRANSMITTED - 2024-11-22',
+    poAmount: '₱229,500.00',
   },
   {
     id: 'sold-2',
@@ -75,6 +81,12 @@ const mockVehicles: VehicleData[] = [
     invoiceAmount: '₱1,088,000.00',
     statementDeposit: new Date('2024-03-04'),
     ltoBankTransmittal: new Date('2024-03-06'),
+    salesConsultant: 'MARIA RIVERA',
+    generalManager: 'MR. ROBERTO CRUZ',
+    grossProfit: '₱42,300.00',
+    extendedWarranty: 'YES - 5 YEARS',
+    ltoDocumentsTransmittal: 'TRANSMITTED - 2024-03-10',
+    poAmount: '₱1,045,700.00',
   },
   // ALLOCATION Units
   {

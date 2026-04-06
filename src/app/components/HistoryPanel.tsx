@@ -116,7 +116,7 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
               <p className="font-medium text-gray-900">{vehicle.plateNumber}</p>
             </div>
             <div>
-              <span className="text-gray-500">VIN:</span>
+              <span className="text-gray-500">Chassis:</span>
               <p className="font-medium text-gray-900 font-mono text-xs">{vehicle.chassisNo}</p>
             </div>
             <div>
