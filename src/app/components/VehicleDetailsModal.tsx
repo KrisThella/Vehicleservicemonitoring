@@ -18,6 +18,47 @@ interface VehicleDetailsModalProps {
   onSave?: (updatedVehicle: VehicleData) => void;
 }
 
+// Pricing data for SRP lookup
+const pricingData: Record<string, string> = {
+  'APV 1.6 GA MT': '763,000.00',
+  'APV 1.6 GA AT': '803,000.00',
+  'APV 1.6 GLX MT': '975,000.00',
+  'CELERIO 1.0 GL MT': '664,000.00',
+  'CELERIO 1.0 GL AGS': '754,000.00',
+  'CELERIO 1.0 GL CVT': '804,000.00',
+  'DZIRE GL CVT': '920,000.00',
+  'DZIRE GLX CVT - HYBRID': '998,000.00',
+  'ERTIGA 1.5 GA MT - HYBRID': '954,000.00',
+  'ERTIGA 1.5 GL MT - HYBRID': '1,093,000.00',
+  'ERTIGA 1.5 GL AT - HYBRID': '1,128,000.00',
+  'ERTIGA 1.5 GLX AT - HYBRID': '1,213,000.00',
+  'FRONX GL AT': '1,059,000.00',
+  'FRONX GLX AT': '1,219,000.00',
+  'FRONX GLX AT - HYBRID (TWO-TONE)': '1,229,000.00',
+  'FRONX SGX AT - HYBRID (TWO-TONE)': '1,299,000.00',
+  'JIMNY 1.5 GL MT SS': '1,293,000.00',
+  'JIMNY 1.5 GLX AT (MONOTONE) SS': '1,355,000.00',
+  'JIMNY 1.5 GLX AT (TWO-TONE) SS': '1,365,000.00',
+  'JIMNY 1.5 5DR GL MT': '1,558,000.00',
+  'JIMNY 1.5 5DR GLX AT (MONOTONE)': '1,698,000.00',
+  'JIMNY 1.5 5DR GLX AT (TWO-TONE)': '1,708,000.00',
+  'JIMNY 3GLX AT R': '1,331,000.00',
+  'JIMNY 5DR GLX AT R (MONOTONE)': '1,739,000.00',
+  'JIMNY 5DR GLX AT R (TWO-TONE)': '1,749,000.00',
+  'SWIFT 1.2 GL CVT': '989,000.00',
+  'CARRY CAB & CHASSIS': '614,000.00',
+  'CARRY DROPSIDE': '650,000.00',
+  'CARRY CARGO VAN': '705,000.00',
+  'CARRY UTILITY VAN': '754,000.00',
+  "CARRY LINEMAN'S VEHICLE": '798,000.00',
+  'S-PRESSO 1.0 GL MT': '634,000.00',
+  'S-PRESSO 1.0 GL AGS': '674,000.00',
+  'XL7 1.5 GLX AT - HYBRID MONOTONE': '1,252,000.00',
+  'XL7 1.5 GLX AT - HYBRID (TWO-TONE)': '1,262,000.00',
+  'XL7 1.5 GLX AT - HYBRID BLACK EDITION': '1,254,000.00',
+  'XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION': '1,269,000.00',
+};
+
 // Model options
 const MODEL_OPTIONS = [
   "APV 1.6 GA MT",
@@ -124,6 +165,21 @@ const GENERAL_MANAGER_OPTIONS = [
   "MR. ROGELIO MENDOZA JR.",
 ];
 
+// Bank options
+const BANK_OPTIONS = [
+  "BANK OF THE PHILIPPINE ISLANDS (BPI)",
+  "EASTWEST BANK(EWB)",
+  "MAYBANK",
+  "PHILIPPINE SAVINGS BANK (PSB)",
+  "BANCO DE ORO UNIBANK, INC. (BDO)",
+  "RIZAL COMMERCIAL BANKING CORPORATION (RCBC)",
+  "CHINA BANK SAVINGS(CBS)",
+  "UCPB LEASING AND MANAGEMENT SERVICES CORPORATION (ULMS)",
+  "SECURITY BANK CORPORATION (SBC)",
+  "LUZON DEVELOPMENT BANK (LDB)",
+  "BANK OF COMMERCE (BOC)",
+];
+
 export function VehicleDetailsModal({
   vehicle,
   isOpen,
@@ -205,6 +261,7 @@ export function VehicleDetailsModal({
           else if (field === "location") options = LOCATION_OPTIONS;
           else if (field === "salesClerk") options = SALES_CONSULTANT_OPTIONS;
           else if (field === "generalManager") options = GENERAL_MANAGER_OPTIONS;
+          else if (field === "bank") options = BANK_OPTIONS;
 
           return (
             <Select
@@ -482,6 +539,11 @@ export function VehicleDetailsModal({
                 field="chassisNo"
                 type="text"
               />
+              <DetailRow
+                label="UNIT PRICE"
+                value={pricingData[currentVehicle.model] ? `₱${pricingData[currentVehicle.model]}` : '-'}
+                type="readonly"
+              />
             </div>
           </div>
 
@@ -570,7 +632,7 @@ export function VehicleDetailsModal({
                 label="INVOICE DATE"
                 value={currentVehicle.invoiceDate}
                 field="invoiceDate"
-                type="text"
+                type="date"
               />
               <DetailRow
                 label="RELEASED DATE"
@@ -632,7 +694,7 @@ export function VehicleDetailsModal({
                 label="BANK"
                 value={currentVehicle.bank}
                 field="bank"
-                type="text"
+                type="select"
               />
               <DetailRow
                 label="INVOICE AMOUNT"
