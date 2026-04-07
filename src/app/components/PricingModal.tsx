@@ -29,16 +29,6 @@ const pricingData: PricingData[] = [
     category: 'APV' 
   },
   { 
-    model: 'APV 1.6 GA AT', 
-    srp: '803,000.00', 
-    dnp: '754,820.00', 
-    wsSubsidy: '35,000.00', 
-    dnpLesswsSubsidy: '719,820.00', 
-    ewt: '3,213.48', 
-    poAmount: '716,606.52', 
-    category: 'APV' 
-  },
-  { 
     model: 'APV 1.6 GLX MT', 
     srp: '975,000.00', 
     dnp: '916,500.00', 
@@ -50,16 +40,6 @@ const pricingData: PricingData[] = [
   },
   // CELERIO Models
   { 
-    model: 'CELERIO 1.0 GL MT', 
-    srp: '664,000.00', 
-    dnp: '624,160.00', 
-    wsSubsidy: '53,000.00', 
-    dnpLesswsSubsidy: '571,160.00', 
-    ewt: '2,550.00', 
-    poAmount: '568,610.00', 
-    category: 'CELERIO' 
-  },
-  { 
     model: 'CELERIO 1.0 GL AGS', 
     srp: '754,000.00', 
     dnp: '708,760.00', 
@@ -69,19 +49,9 @@ const pricingData: PricingData[] = [
     poAmount: '652,832.50', 
     category: 'CELERIO' 
   },
-  { 
-    model: 'CELERIO 1.0 GL CVT', 
-    srp: '804,000.00', 
-    dnp: '755,760.00', 
-    wsSubsidy: '53,000.00', 
-    dnpLesswsSubsidy: '702,760.00', 
-    ewt: '3,137.05', 
-    poAmount: '699,622.95', 
-    category: 'CELERIO' 
-  },
   // DZIRE Models
   { 
-    model: 'DZIRE GL CVT', 
+    model: 'DZIRE GL CVT - HYBRID', 
     srp: '920,000.00', 
     dnp: '864,800.00', 
     wsSubsidy: '50,000.00', 
@@ -254,7 +224,7 @@ const pricingData: PricingData[] = [
     category: 'JIMNY' 
   },
   { 
-    model: 'JIMNY 5DR GLX AT R (MONOTONE)', 
+    model: 'JIMNY 5DR GLX AT R - (MONOTONE)', 
     srp: '1,739,000.00', 
     dnp: '1,608,575.00', 
     wsSubsidy: '-', 
@@ -264,7 +234,7 @@ const pricingData: PricingData[] = [
     category: 'JIMNY' 
   },
   { 
-    model: 'JIMNY 5DR GLX AT R (TWO-TONE)', 
+    model: 'JIMNY 5DR GLX AT R - (TWO-TONE)', 
     srp: '1,749,000.00', 
     dnp: '1,617,825.00', 
     wsSubsidy: '-', 
@@ -412,7 +382,7 @@ export function PricingModal({ onClose }: PricingModalProps) {
   }, {} as Record<string, PricingData[]>);
 
   // Define proper category order
-  const categoryOrder = ['APV', 'CELERIO', 'ERTIGA HYBRID', 'FRONX HYBRID', 'JIMNY', 'SWIFT', 'CARRY', 'S-PRESSO', 'XL7'];
+  const categoryOrder = ['APV', 'CELERIO', 'DZIRE', 'ERTIGA HYBRID', 'FRONX HYBRID', 'JIMNY', 'SWIFT', 'CARRY', 'S-PRESSO', 'XL7'];
   const categories = categoryOrder.filter(cat => groupedData[cat]);
 
   return (

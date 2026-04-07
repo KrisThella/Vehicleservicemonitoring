@@ -113,11 +113,23 @@ export interface VehicleData {
   dealerAtNo?: string;
 
   // New fields for detailed view
-  salesClerk?: string;
+  salesConsultant?: string;
   generalManager?: string;
   grossProfit?: string;
   extendedWarranty?: string;
   ltoDocumentsTransmittal?: string;
+  
+  // Pricing breakdown fields
+  dnp?: string;
+  wsSubsidy?: string;
+  dnpLessWsSubsidy?: string;
+  ewt?: string;
+
+  // Allocation & Available specific fields
+  taggingAccount?: string;
+  allocationTeam?: string;
+  dateTagged?: Date | null;
+  monthDeclared?: string;
 }
 
 interface VehicleTableProps {
@@ -491,12 +503,7 @@ export function VehicleTable({
                         <Eye className="size-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Edit className="size-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
+                     
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();

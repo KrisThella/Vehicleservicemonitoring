@@ -74,105 +74,120 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-[480px] bg-white border-l border-gray-200 shadow-xl z-50 flex flex-col">
-      {/* Header */}
-      <div className="border-b border-gray-200 p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900">Service History</h2>
-            <p className="text-sm text-gray-500 mt-1">Complete timeline and actions</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-end">
+      {/* Backdrop with blur */}
+      <div 
+        className="absolute inset-0 bg-black/30 backdrop-blur-sm" 
+        onClick={onClose}
+      />
+
+      {/* Panel */}
+      <div className="relative w-[480px] h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
+        {/* Header */}
+        <div className="border-b border-gray-200 p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-gray-900">Service History</h2>
+              <p className="text-sm text-gray-500 mt-1">Complete timeline and actions</p>
+            </div>
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <X className="size-5" />
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="size-5" />
-          </Button>
+
+          {/* Vehicle Info */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium text-gray-900">{vehicle.model}</h3>
+              <Badge
+                variant="outline"
+                className={
+                  vehicle.status === 'Completed'
+                    ? 'bg-green-100 text-green-700 border-green-200'
+                    : vehicle.status === 'Overdue'
+                    ? 'bg-red-100 text-red-700 border-red-200'
+                    : vehicle.status === 'On Process'
+                    ? 'bg-blue-100 text-blue-700 border-blue-200'
+                    : vehicle.status === 'SOLD'
+                    ? 'bg-green-100 text-green-700 border-green-200'
+                    : vehicle.status === 'IN TRANSIT'
+                    ? 'bg-purple-100 text-purple-700 border-purple-200'
+                    : vehicle.status === 'ON HOLD'
+                    ? 'bg-gray-100 text-green-700 border-gray-200'
+                    : 'bg-gray-100 text-gray-700 border-gray-200'
+                }
+              >
+                {vehicle.status}
+              </Badge>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <span className="text-gray-500">CS Number:</span>
+                <p className="font-medium text-gray-900">{vehicle.csNo}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Plate:</span>
+                <p className="font-medium text-gray-900">{vehicle.plateNumber}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Chassis:</span>
+                <p className="font-medium text-gray-900 font-mono text-xs">{vehicle.chassisNo}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">Location:</span>
+                <p className="font-medium text-gray-900">{vehicle.location}</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Vehicle Info */}
-        <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="font-medium text-gray-900">{vehicle.model}</h3>
-            <Badge
-              variant="outline"
-              className={
-                vehicle.status === 'Completed'
-                  ? 'bg-green-100 text-green-700 border-green-200'
-                  : vehicle.status === 'Overdue'
-                  ? 'bg-red-100 text-red-700 border-red-200'
-                  : vehicle.status === 'On Process'
-                  ? 'bg-blue-100 text-blue-700 border-blue-200'
-                  : 'bg-yellow-100 text-yellow-700 border-yellow-200'
-              }
-            >
-              {vehicle.status}
-            </Badge>
-          </div>
-          <div className="grid grid-cols-2 gap-2 text-sm">
-            <div>
-              <span className="text-gray-500">CS Number:</span>
-              <p className="font-medium text-gray-900">{vehicle.csNo}</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Plate:</span>
-              <p className="font-medium text-gray-900">{vehicle.plateNumber}</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Chassis:</span>
-              <p className="font-medium text-gray-900 font-mono text-xs">{vehicle.chassisNo}</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Location:</span>
-              <p className="font-medium text-gray-900">{vehicle.location}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        {/* History Timeline */}
+        <ScrollArea className="flex-1 overflow-hidden">
+          <div className="space-y-4 p-6">
+            {history.map((entry, index) => (
+              <div key={entry.id} className="relative">
+                {/* Timeline Line */}
+                {index < history.length - 1 && (
+                  <div className="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-200" />
+                )}
 
-      {/* History Timeline */}
-      <ScrollArea className="flex-1 overflow-hidden">
-        <div className="space-y-4 p-6">
-          {history.map((entry, index) => (
-            <div key={entry.id} className="relative">
-              {/* Timeline Line */}
-              {index < history.length - 1 && (
-                <div className="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-200" />
-              )}
-
-              {/* Entry */}
-              <div className="flex gap-4">
-                <div className="relative flex-shrink-0 mt-1">
-                  <div className="size-6 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
-                    {getStatusIcon(entry.status)}
-                  </div>
-                </div>
-                <div className="flex-1 pb-4">
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h4 className="font-medium text-gray-900">{entry.action}</h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {format(entry.timestamp, 'MMM dd, yyyy • hh:mm a')}
-                        </p>
-                      </div>
+                {/* Entry */}
+                <div className="flex gap-4">
+                  <div className="relative flex-shrink-0 mt-1">
+                    <div className="size-6 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
+                      {getStatusIcon(entry.status)}
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{entry.details}</p>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <User className="size-3" />
-                      <span>{entry.user}</span>
+                  </div>
+                  <div className="flex-1 pb-4">
+                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div>
+                          <h4 className="font-medium text-gray-900">{entry.action}</h4>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {format(entry.timestamp, 'MMM dd, yyyy • hh:mm a')}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">{entry.details}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <User className="size-3" />
+                        <span>{entry.user}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      </ScrollArea>
+            ))}
+          </div>
+        </ScrollArea>
 
-      {/* Footer */}
-      <div className="border-t border-gray-200 p-4">
-        <Button className="w-full" variant="outline">
-          <FileText className="size-4 mr-2" />
-          Export Full History
-        </Button>
+        {/* Footer */}
+        <div className="border-t border-gray-200 p-4">
+          <Button className="w-full" variant="outline">
+            <FileText className="size-4 mr-2" />
+            Export Full History
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -44,12 +44,12 @@ export function Filters({
   onExport,
 }: FiltersProps) {
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="bg-white border-b border-gray-200 px-3 py-2">
       {/* Category Tabs */}
       <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
         <button
           onClick={() => onCategoryChange('all')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
             selectedCategory === 'all'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -59,63 +59,63 @@ export function Filters({
         </button>
         <button
           onClick={() => onCategoryChange('DEMO')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
             selectedCategory === 'DEMO'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          DEMO
+          Demo
         </button>
         <button
           onClick={() => onCategoryChange('SALES')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
             selectedCategory === 'SALES'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          SALES
+          Sales
         </button>
         <button
           onClick={() => onCategoryChange('ALLOCATION')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
             selectedCategory === 'ALLOCATION'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          ALLOCATION
+          Allocation
         </button>
         <button
           onClick={() => onCategoryChange('AVAILABLE')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
             selectedCategory === 'AVAILABLE'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          AVAILABLE
+          Available
         </button>
         <button
           onClick={() => onCategoryChange('IN TRANSIT')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
             selectedCategory === 'IN TRANSIT'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          IN TRANSIT
+          In Transit
         </button>
         <button
           onClick={() => onCategoryChange('PULL OUT MONITORING')}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+          className={`px-2 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${
             selectedCategory === 'PULL OUT MONITORING'
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
           }`}
         >
-          PULL OUT MONITORING
+          Pull Out Monitoring
         </button>
       </div>
 
@@ -145,7 +145,7 @@ export function Filters({
       <div className="flex items-center gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <Filter className="size-4 text-gray-500" />
-          <span className="text-sm font-medium text-gray-700">Filters:</span>
+          <span className="text-xs font-medium text-gray-700">Filters:</span>
         </div>
 
         {/* Model Filter */}
@@ -163,26 +163,21 @@ export function Filters({
             <SelectItem value="CARRY LINEMAN'S VEHICLE">CARRY LINEMAN'S VEHICLE</SelectItem>
             <SelectItem value="CARRY UTILITY VAN">CARRY UTILITY VAN</SelectItem>
             <SelectItem value="CELERIO GL AGS">CELERIO GL AGS</SelectItem>
-            <SelectItem value="CELERIO GL CVT">CELERIO GL CVT</SelectItem>
-            <SelectItem value="DZIRE GA MT">DZIRE GA MT</SelectItem>
-            <SelectItem value="DZIRE GL MT">DZIRE GL MT</SelectItem>
-            <SelectItem value="DZIRE GL CVT">DZIRE GL CVT</SelectItem>
-            <SelectItem value="DZIRE GLP AGS">DZIRE GLP AGS</SelectItem>
             <SelectItem value="DZIRE GL CVT - HYBRID">DZIRE GL CVT - HYBRID</SelectItem>
-            <SelectItem value="DZIRE GLP GL CVT - HYBRID">DZIRE GLP GL CVT - HYBRID</SelectItem>
             <SelectItem value="DZIRE GLX CVT - HYBRID">DZIRE GLX CVT - HYBRID</SelectItem>
             <SelectItem value="ERTIGA 1.5 GA MT">ERTIGA 1.5 GA MT</SelectItem>
             <SelectItem value="ERTIGA 1.5 GA MT - HYBRID">ERTIGA 1.5 GA MT - HYBRID</SelectItem>
             <SelectItem value="ERTIGA 1.5 GL MT - HYBRID">ERTIGA 1.5 GL MT - HYBRID</SelectItem>
             <SelectItem value="ERTIGA 1.5 GL AT - HYBRID">ERTIGA 1.5 GL AT - HYBRID</SelectItem>
-            <SelectItem value="ERTIGA 1.5 GLX MT - HYBRID">ERTIGA 1.5 GLX MT - HYBRID</SelectItem>
             <SelectItem value="ERTIGA 1.5 GLX AT - HYBRID">ERTIGA 1.5 GLX AT - HYBRID</SelectItem>
-            <SelectItem value="JIMNY 1.5 GL MT">JIMNY 1.5 GL MT</SelectItem>
-            <SelectItem value="JIMNY 1.5 GL AT">JIMNY 1.5 GL AT</SelectItem>
-            <SelectItem value="JIMNY 5DR GL MT">JIMNY 5DR GL MT</SelectItem>
-            <SelectItem value="JIMNY 5DR GL AT">JIMNY 5DR GL AT</SelectItem>
-            <SelectItem value="JIMNY 5DR GLX MT">JIMNY 5DR GLX MT</SelectItem>
-            <SelectItem value="JIMNY 5DR GLX AT">JIMNY 5DR GLX AT</SelectItem>
+            <SelectItem value="JIMNY 1.5 GL MT SS">JIMNY 1.5 GL MT SS</SelectItem>
+            <SelectItem value="JIMNY 1.5 GLX AT (MONOTONE) SS">JIMNY 1.5 GLX AT (MONOTONE) SS</SelectItem>
+            <SelectItem value="JIMNY 1.5 GLX AT (TWO-TONE) SS">JIMNY 1.5 GLX AT (TWO-TONE) SS</SelectItem>
+            <SelectItem value="JIMNY 1.5 5DR GL AT (MONOTONE)">JIMNY 1.5 5DR GL MT</SelectItem>
+            <SelectItem value="JIMNY 1.5 5DR GLX AT (TWO-TONE)">JIMNY 1.5 5DR GLX AT (TWO-TONE)</SelectItem>
+            <SelectItem value="JIMNY 3GLX AT R">JIMNY 3GLX AT R</SelectItem>
+            <SelectItem value="JIMNY 5DR GLX AT R - (MONOTONE)">JIMNY 5DR GLX AT R - (MONOTONE) </SelectItem>
+            <SelectItem value="JIMNY 5DR GLX AT R - (TWO-TONE)">JIMNY 5DR GLX AT R - (TWO-TONE)</SelectItem>       
             <SelectItem value="S-PRESSO 1.0 GL AGS">S-PRESSO 1.0 GL AGS</SelectItem>
             <SelectItem value="S-PRESSO 1.0 GL MT">S-PRESSO 1.0 GL MT</SelectItem>
             <SelectItem value="SWIFT 1.2 GL CVT">SWIFT 1.2 GL CVT</SelectItem>
@@ -231,8 +226,8 @@ export function Filters({
         {/* Date From Filter */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="w-[180px] justify-start">
-              <CalendarIcon className="size-4 mr-2" />
+            <Button variant="outline" size="sm" className="w-[130px] justify-start">
+              <CalendarIcon className="size-3 mr-2" />
               {dateFrom ? format(dateFrom, 'MMM dd, yyyy') : 'Date From'}
             </Button>
           </PopoverTrigger>
@@ -249,8 +244,8 @@ export function Filters({
         {/* Date To Filter */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm" className="w-[180px] justify-start">
-              <CalendarIcon className="size-4 mr-2" />
+            <Button variant="outline" size="sm" className="w-[130px] justify-start">
+              <CalendarIcon className="size-3 mr-2" />
               {dateTo ? format(dateTo, 'MMM dd, yyyy') : 'Date To'}
             </Button>
           </PopoverTrigger>
