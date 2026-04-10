@@ -1,18 +1,20 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Filters } from '../components/Filters';
 import { StatsCards } from '../components/StatsCards';
 import { VehicleTable, VehicleData } from '../components/VehicleTable';
-import { OverdueAlerts } from '../components/OverdueAlerts';
 import { HistoryPanel } from '../components/HistoryPanel';
 import { PricingModal } from '../components/PricingModal';
 import { AddVehicleModal } from '../components/AddVehicleModal';
+import { VehicleDetailsModal } from '../components/VehicleDetailsModal';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
 import { mockVehicles } from '../data/vehicleData';
+import { useLocation } from 'react-router';
 
 export function DashboardPage() {
+  const location = useLocation();
   const [vehicles, setVehicles] = useState<VehicleData[]>(mockVehicles);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModel, setSelectedModel] = useState('all');
@@ -22,8 +24,29 @@ export function DashboardPage() {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
   const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleData | null>(null);
+  const [detailsVehicle, setDetailsVehicle] = useState<VehicleData | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Handle navigation state from notification dropdown
+  useEffect(() => {
+    const state = location.state as { openVehicleId?: string; openHistoryId?: string } | null;
+    if (state?.openVehicleId) {
+      const vehicle = vehicles.find((v) => v.id === state.openVehicleId);
+      if (vehicle) {
+        setDetailsVehicle(vehicle);
+        setShowDetailsModal(true);
+      }
+      window.history.replaceState({}, '');
+    } else if (state?.openHistoryId) {
+      const vehicle = vehicles.find((v) => v.id === state.openHistoryId);
+      if (vehicle) {
+        setSelectedVehicle(vehicle);
+      }
+      window.history.replaceState({}, '');
+    }
+  }, [location.state, vehicles]);
 
   // Filter vehicles based on all criteria
   const filteredVehicles = vehicles.filter((vehicle) => {
@@ -116,23 +139,15 @@ export function DashboardPage() {
         {/* Stats Cards */}
         <StatsCards vehicles={filteredVehicles} />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Vehicle Table - Takes 2 columns */}
-          <div className="lg:col-span-2">
-            <VehicleTable data={filteredVehicles} onViewHistory={handleViewHistory} />
-            
-            {filteredVehicles.length === 0 && (
-              <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-                <p className="text-gray-500">No vehicles found matching your filters.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Overdue Alerts - Takes 1 column */}
-          <div className="lg:col-span-1">
-            <OverdueAlerts vehicles={filteredVehicles} />
-          </div>
+        {/* Main Content - Full Width Vehicle Table */}
+        <div>
+          <VehicleTable data={filteredVehicles} onViewHistory={handleViewHistory} />
+          
+          {filteredVehicles.length === 0 && (
+            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+              <p className="text-gray-500">No vehicles found matching your filters.</p>
+            </div>
+          )}
         </div>
       </main>
 
@@ -163,6 +178,15 @@ export function DashboardPage() {
         <AddVehicleModal
           onClose={() => setShowAddModal(false)}
           onSave={handleAddVehicle}
+        />
+      )}
+
+      {/* Vehicle Details Modal */}
+      {showDetailsModal && (
+        <VehicleDetailsModal
+          vehicle={detailsVehicle}
+          isOpen={showDetailsModal}
+          onClose={() => setShowDetailsModal(false)}
         />
       )}
     </>

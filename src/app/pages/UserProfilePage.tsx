@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Camera, Upload, Crop, Check, X, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Crop, Check, X, RotateCcw, Move } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
@@ -14,6 +14,8 @@ interface CropRect {
   w: number;
   h: number;
 }
+
+type DragHandle = 'nw' | 'ne' | 'sw' | 'se' | 'move' | null;
 
 // ─── CropModal Component ──────────────────────────────────────────────────────
 
@@ -32,22 +34,28 @@ function CropModal({
 
   const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
   const [cropRect, setCropRect] = useState<CropRect>({ x: 0, y: 0, w: 0, h: 0 });
-  const [isDragging, setIsDragging] = useState(false);
+  const [dragHandle, setDragHandle] = useState<DragHandle>(null);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [cropAtDragStart, setCropAtDragStart] = useState<CropRect>({ x: 0, y: 0, w: 0, h: 0 });
+  const [cursor, setCursor] = useState<string>('default');
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  const HANDLE_RADIUS = 8;   // half the handle square size (visual)
+  const HIT_TOL = 16;        // pixel tolerance for corner hit detection
+  const MIN_SIZE = 30;       // minimum crop dimension
 
   // Load image and initialise canvas dimensions
   useEffect(() => {
     const img = new Image();
     img.onload = () => {
       imgRef.current = img;
-      const maxW = Math.min(window.innerWidth * 0.8, 700);
-      const maxH = window.innerHeight * 0.5;
+      const maxW = Math.min(window.innerWidth * 0.82, 720);
+      const maxH = window.innerHeight * 0.52;
       const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight, 1);
       const w = Math.round(img.naturalWidth * scale);
       const h = Math.round(img.naturalHeight * scale);
       setCanvasSize({ w, h });
-      // Default crop: centred square (80 % of shortest side)
+      // Default crop: centred square (80% of shortest side)
       const side = Math.round(Math.min(w, h) * 0.8);
       setCropRect({
         x: Math.round((w - side) / 2),
@@ -63,80 +71,174 @@ function CropModal({
   // Draw image + crop overlay on every change
   useEffect(() => {
     if (!imageLoaded || !canvasRef.current || !imgRef.current) return;
-    const ctx = canvasRef.current.getContext('2d')!;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d')!;
     const { w, h } = canvasSize;
     ctx.clearRect(0, 0, w, h);
     ctx.drawImage(imgRef.current, 0, 0, w, h);
 
+    const { x, y, w: cw, h: ch } = cropRect;
+
     // Semi-transparent overlay outside the crop rect
     ctx.fillStyle = 'rgba(0,0,0,0.55)';
-    ctx.fillRect(0, 0, w, cropRect.y);                          // top
-    ctx.fillRect(0, cropRect.y + cropRect.h, w, h - cropRect.y - cropRect.h); // bottom
-    ctx.fillRect(0, cropRect.y, cropRect.x, cropRect.h);        // left
-    ctx.fillRect(cropRect.x + cropRect.w, cropRect.y, w - cropRect.x - cropRect.w, cropRect.h); // right
+    ctx.fillRect(0, 0, w, y);
+    ctx.fillRect(0, y + ch, w, h - y - ch);
+    ctx.fillRect(0, y, x, ch);
+    ctx.fillRect(x + cw, y, w - x - cw, ch);
 
     // Crop border
     ctx.strokeStyle = '#3b82f6';
     ctx.lineWidth = 2;
     ctx.setLineDash([]);
-    ctx.strokeRect(cropRect.x, cropRect.y, cropRect.w, cropRect.h);
-
-    // Corner handles
-    const handleSize = 10;
-    ctx.fillStyle = '#3b82f6';
-    const corners = [
-      [cropRect.x, cropRect.y],
-      [cropRect.x + cropRect.w - handleSize, cropRect.y],
-      [cropRect.x, cropRect.y + cropRect.h - handleSize],
-      [cropRect.x + cropRect.w - handleSize, cropRect.y + cropRect.h - handleSize],
-    ];
-    corners.forEach(([cx, cy]) => ctx.fillRect(cx, cy, handleSize, handleSize));
+    ctx.strokeRect(x, y, cw, ch);
 
     // Rule-of-thirds grid lines
     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     for (let i = 1; i < 3; i++) {
-      const gx = cropRect.x + (cropRect.w / 3) * i;
-      const gy = cropRect.y + (cropRect.h / 3) * i;
-      ctx.beginPath(); ctx.moveTo(gx, cropRect.y); ctx.lineTo(gx, cropRect.y + cropRect.h); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(cropRect.x, gy); ctx.lineTo(cropRect.x + cropRect.w, gy); ctx.stroke();
+      const gx = x + (cw / 3) * i;
+      const gy = y + (ch / 3) * i;
+      ctx.beginPath(); ctx.moveTo(gx, y); ctx.lineTo(gx, y + ch); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, gy); ctx.lineTo(x + cw, gy); ctx.stroke();
     }
     ctx.setLineDash([]);
+
+    // Corner handles — centred on each corner, white fill with blue border
+    const corners: [number, number][] = [
+      [x, y],
+      [x + cw, y],
+      [x, y + ch],
+      [x + cw, y + ch],
+    ];
+    const hr = HANDLE_RADIUS;
+    corners.forEach(([cx, cy]) => {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(cx - hr, cy - hr, hr * 2, hr * 2);
+      ctx.strokeStyle = '#3b82f6';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(cx - hr, cy - hr, hr * 2, hr * 2);
+    });
+
+    // Center move icon indicator (small cross)
+    const mx = x + cw / 2;
+    const my = y + ch / 2;
+    ctx.strokeStyle = 'rgba(255,255,255,0.6)';
+    ctx.lineWidth = 1.5;
+    const armLen = 10;
+    ctx.beginPath(); ctx.moveTo(mx - armLen, my); ctx.lineTo(mx + armLen, my); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(mx, my - armLen); ctx.lineTo(mx, my + armLen); ctx.stroke();
+    // arrowheads
+    const ah = 4;
+    [[mx - armLen, my, -1, 0], [mx + armLen, my, 1, 0], [mx, my - armLen, 0, -1], [mx, my + armLen, 0, 1]].forEach(([bx, by, dx, dy]) => {
+      ctx.beginPath();
+      ctx.moveTo(bx, by);
+      ctx.lineTo(bx + dy * ah - dx * ah, by - dx * ah - dy * ah);
+      ctx.lineTo(bx - dy * ah - dx * ah, by + dx * ah - dy * ah);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.fill();
+    });
   }, [imageLoaded, canvasSize, cropRect]);
 
   const getPos = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const rect = canvasRef.current!.getBoundingClientRect();
-    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const scaleX = canvasRef.current!.width / rect.width;
+    const scaleY = canvasRef.current!.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY,
+    };
+  };
+
+  const getHandleAtPos = useCallback(
+    (pos: { x: number; y: number }, crop: CropRect): DragHandle => {
+      const { x, y, w: cw, h: ch } = crop;
+      const tol = HIT_TOL;
+      // Corners first (priority over interior)
+      if (Math.abs(pos.x - x) <= tol && Math.abs(pos.y - y) <= tol) return 'nw';
+      if (Math.abs(pos.x - (x + cw)) <= tol && Math.abs(pos.y - y) <= tol) return 'ne';
+      if (Math.abs(pos.x - x) <= tol && Math.abs(pos.y - (y + ch)) <= tol) return 'sw';
+      if (Math.abs(pos.x - (x + cw)) <= tol && Math.abs(pos.y - (y + ch)) <= tol) return 'se';
+      // Interior → move
+      if (pos.x >= x && pos.x <= x + cw && pos.y >= y && pos.y <= y + ch) return 'move';
+      return null;
+    },
+    []
+  );
+
+  const cursorForHandle = (h: DragHandle) => {
+    if (h === 'nw' || h === 'se') return 'nw-resize';
+    if (h === 'ne' || h === 'sw') return 'ne-resize';
+    if (h === 'move') return 'move';
+    return 'default';
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const pos = getPos(e);
+    const handle = getHandleAtPos(pos, cropRect);
+    setDragHandle(handle);
     setDragStart(pos);
-    setIsDragging(true);
+    setCropAtDragStart({ ...cropRect });
   };
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!isDragging) return;
       const pos = getPos(e);
-      const rawX = Math.min(dragStart.x, pos.x);
-      const rawY = Math.min(dragStart.y, pos.y);
-      const rawW = Math.abs(pos.x - dragStart.x);
-      const rawH = Math.abs(pos.y - dragStart.y);
 
-      // Keep within canvas bounds
-      const x = Math.max(0, rawX);
-      const y = Math.max(0, rawY);
-      const w = Math.min(rawW, canvasSize.w - x);
-      const h = Math.min(rawH, canvasSize.h - y);
+      if (!dragHandle) {
+        // Hover cursor update
+        const h = getHandleAtPos(pos, cropRect);
+        setCursor(cursorForHandle(h));
+        return;
+      }
 
-      if (w > 5 && h > 5) setCropRect({ x, y, w, h });
+      const dx = pos.x - dragStart.x;
+      const dy = pos.y - dragStart.y;
+      const c = cropAtDragStart;
+      let { x: nx, y: ny, w: nw, h: nh } = c;
+
+      if (dragHandle === 'nw') {
+        nx = Math.min(c.x + dx, c.x + c.w - MIN_SIZE);
+        ny = Math.min(c.y + dy, c.y + c.h - MIN_SIZE);
+        nw = c.w - (nx - c.x);
+        nh = c.h - (ny - c.y);
+      } else if (dragHandle === 'ne') {
+        ny = Math.min(c.y + dy, c.y + c.h - MIN_SIZE);
+        nh = c.h - (ny - c.y);
+        nw = Math.max(c.w + dx, MIN_SIZE);
+      } else if (dragHandle === 'sw') {
+        nx = Math.min(c.x + dx, c.x + c.w - MIN_SIZE);
+        nw = c.w - (nx - c.x);
+        nh = Math.max(c.h + dy, MIN_SIZE);
+      } else if (dragHandle === 'se') {
+        nw = Math.max(c.w + dx, MIN_SIZE);
+        nh = Math.max(c.h + dy, MIN_SIZE);
+      } else if (dragHandle === 'move') {
+        nx = c.x + dx;
+        ny = c.y + dy;
+      }
+
+      // Clamp to canvas bounds
+      nx = Math.max(0, nx);
+      ny = Math.max(0, ny);
+      if (nx + nw > canvasSize.w) {
+        if (dragHandle === 'move') nx = canvasSize.w - nw;
+        else nw = canvasSize.w - nx;
+      }
+      if (ny + nh > canvasSize.h) {
+        if (dragHandle === 'move') ny = canvasSize.h - nh;
+        else nh = canvasSize.h - ny;
+      }
+      if (nx < 0) { nw += nx; nx = 0; }
+      if (ny < 0) { nh += ny; ny = 0; }
+
+      setCropRect({ x: nx, y: ny, w: nw, h: nh });
     },
-    [isDragging, dragStart, canvasSize]
+    [dragHandle, dragStart, cropAtDragStart, canvasSize, cropRect, getHandleAtPos]
   );
 
-  const handleMouseUp = () => setIsDragging(false);
+  const handleMouseUp = () => setDragHandle(null);
 
   const resetCrop = () => {
     if (!canvasSize.w) return;
@@ -151,7 +253,7 @@ function CropModal({
 
   const applyCrop = () => {
     if (!imgRef.current || cropRect.w === 0 || cropRect.h === 0) {
-      toast.error('Please select a crop area by dragging on the image');
+      toast.error('No crop area selected');
       return;
     }
     const scaleX = imgRef.current.naturalWidth / canvasSize.w;
@@ -184,7 +286,10 @@ function CropModal({
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Crop Profile Photo</h2>
-              <p className="text-sm text-gray-500">Click & drag on the image to select your crop area</p>
+              <p className="text-sm text-gray-500 flex items-center gap-1.5">
+                <Move className="size-3.5 inline" />
+                Drag corners to resize · drag inside to move
+              </p>
             </div>
           </div>
           <Button variant="ghost" size="sm" onClick={onCancel}>
@@ -209,7 +314,7 @@ function CropModal({
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
-              style={{ cursor: isDragging ? 'crosshair' : 'crosshair', display: 'block' }}
+              style={{ cursor, display: 'block', maxWidth: '100%' }}
             />
           )}
         </div>
@@ -222,7 +327,7 @@ function CropModal({
               Reset
             </Button>
             <span className="text-xs text-gray-400">
-              {cropRect.w > 0 && `${Math.round(cropRect.w)} × ${Math.round(cropRect.h)} px selected`}
+              {cropRect.w > 0 && `${Math.round(cropRect.w)} × ${Math.round(cropRect.h)} px`}
             </span>
           </div>
           <div className="flex gap-3">
@@ -344,7 +449,7 @@ export function UserProfilePage() {
                 <h3 className="font-semibold text-gray-900 mb-4">Profile Photo</h3>
                 <div className="flex items-start gap-6">
                   {/* Current photo preview */}
-                  <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 flex-shrink-0 shadow-sm">
+                  <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-gray-100 flex-shrink-0 shadow-sm">
                     <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                   </div>
 
@@ -353,10 +458,10 @@ export function UserProfilePage() {
                     <div
                       onDrop={handleDrop}
                       onDragOver={(e) => e.preventDefault()}
-                      className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 transition-colors cursor-pointer"
+                      className="border-2 border-border border-gray-300 rounded-lg p-3 text-center hover:border-blue-400 transition-colors cursor-pointer"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <Camera className="size-8 text-gray-400 mx-auto mb-2" />
+                      <Camera className="size-6 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-600 mb-1">
                         Drag & drop an image, or click to select
                       </p>

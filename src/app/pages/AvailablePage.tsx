@@ -1,20 +1,28 @@
 import { useState } from 'react';
 import { Header } from '../components/Header';
-import { Package, TrendingUp, Clock } from 'lucide-react';
+import { Package, TrendingUp, Clock, Plus } from 'lucide-react';
 import { VehicleData } from '../components/VehicleTable';
 import { format, differenceInDays } from 'date-fns';
 import { mockVehicles } from '../data/vehicleData';
+import { Button } from '../components/ui/button';
+import { AddAvailableVehicleModal, AvailableVehicleEntry } from '../components/AddAvailableVehicleModal';
 
 export function AvailablePage() {
   const [showPricingModal, setShowPricingModal] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addedEntries, setAddedEntries] = useState<AvailableVehicleEntry[]>([]);
 
-  // Filter only available vehicles with "ON TRACK" status
+  // Filter only available vehicles with "ON TRACK" status from mockVehicles
   const availableVehicles = mockVehicles.filter(v => v.status === 'ON TRACK');
 
-  const totalAvailable = availableVehicles.length;
+  const totalAvailable = availableVehicles.length + addedEntries.length;
   const avgAge = availableVehicles.reduce((sum, v) => {
     return sum + differenceInDays(new Date(), v.receivedDate);
-  }, 0) / (totalAvailable || 1);
+  }, 0) / (availableVehicles.length || 1);
+
+  const handleAddEntry = (entry: AvailableVehicleEntry) => {
+    setAddedEntries((prev) => [...prev, entry]);
+  };
 
   return (
     <>
@@ -70,8 +78,17 @@ export function AvailablePage() {
 
         {/* Available Table */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
+          {/* Table Header with Add Button */}
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <h2 className="font-semibold text-gray-900">Available Vehicles</h2>
+            <Button
+              onClick={() => setShowAddModal(true)}
+              className="bg-teal-600 hover:bg-teal-700 h-8 px-3 text-sm"
+              size="sm"
+            >
+              <Plus className="size-4 mr-1.5" />
+              Add Entry
+            </Button>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -99,9 +116,10 @@ export function AvailablePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
+                {/* Existing mock vehicles */}
                 {availableVehicles.map((vehicle) => {
                   const unitAge = differenceInDays(new Date(), vehicle.receivedDate);
-                  const gracePeriod = Math.max(0, 90 - unitAge); // Assuming 90 days grace period
+                  const gracePeriod = Math.max(0, 90 - unitAge);
                   
                   return (
                     <tr key={vehicle.id} className="hover:bg-gray-50">
@@ -147,11 +165,79 @@ export function AvailablePage() {
                     </tr>
                   );
                 })}
+
+                {/* Newly added entries */}
+                {addedEntries.map((entry, idx) => (
+                  <tr key={`new-${idx}`} className="hover:bg-teal-50 bg-teal-50/30">
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap font-medium">{entry.model}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.color || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap font-mono text-xs">{entry.chassisNo}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap font-mono text-xs">{entry.engineNo}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 max-w-xs truncate">{entry.remarks || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.dealer || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.csNo || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.yearModel || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.taggingAccount || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.allocationTeam || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.poNumber || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.poAmount || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+                      {entry.pullOutDate ? format(new Date(entry.pullOutDate), 'MMM dd, yyyy') : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+                      {entry.dateTagged ? format(new Date(entry.dateTagged), 'MMM dd, yyyy') : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+                      {entry.monthDeclared ? (() => {
+                        const d = new Date(entry.monthDeclared + '-01');
+                        return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                      })() : '-'}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">{entry.location || '-'}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                        entry.unitAge > 60 ? 'bg-red-100 text-red-700' : entry.unitAge > 30 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {entry.unitAge} days
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-gray-900 whitespace-nowrap">
+                      <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium ${
+                        parseInt(entry.gracePeriod || '0') < 30 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {entry.gracePeriod || '0'} days
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-sm whitespace-nowrap">
+                      {entry.status ? (
+                        <span className="inline-flex px-2 py-1 rounded-full text-xs font-medium bg-teal-100 text-teal-700">
+                          {entry.status}
+                        </span>
+                      ) : '-'}
+                    </td>
+                  </tr>
+                ))}
+
+                {availableVehicles.length === 0 && addedEntries.length === 0 && (
+                  <tr>
+                    <td colSpan={19} className="px-4 py-12 text-center text-sm text-gray-500">
+                      No available vehicles found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         </div>
       </main>
+
+      {/* Add Available Vehicle Modal */}
+      {showAddModal && (
+        <AddAvailableVehicleModal
+          onClose={() => setShowAddModal(false)}
+          onSave={handleAddEntry}
+        />
+      )}
     </>
   );
 }
