@@ -10,7 +10,8 @@ import {
   SelectValue,
 } from './ui/select';
 import { toast } from 'sonner';
-import { differenceInDays, format } from 'date-fns';
+import { differenceInDays } from 'date-fns';
+import { colorHexMap } from './utils/colorMapping';
 
 interface AddAvailableVehicleModalProps {
   onClose: () => void;
@@ -37,26 +38,6 @@ export interface AvailableVehicleEntry {
   gracePeriod: string;
   status: string;
 }
-
-const COLORS = [
-  'SOLID WHITE',
-  'SOLID FIRE RED',
-  'SOLID SIZZLING ORANGE',
-  'SOLID JUNGLE GREEN',
-  'SOLID GLISTENING GREY',
-  'METALLIC PREMIUM SILVER',
-  'METALLIC MAGMA GRAY 2',
-  'METALLIC GRANDEUR GRAY',
-  'METALLIC MINERAL GRAY',
-  'METALLIC EARTH BROWN',
-  'METALLIC SILKY SILVER',
-  'METALLIC PRIDE COPPER',
-  'PEARL METALLIC ORANGE RED',
-  'PEARL ARCTIC WHITE',
-  'TWO-TONE SOLID WHITE/SUPER BLACK',
-  'TWO-TONE PREMIUM SILVER/SUPER BLACK',
-  'OTHER',
-];
 
 const ALLOCATION_TEAMS = [
   'TEAM JM',
@@ -181,11 +162,29 @@ export function AddAvailableVehicleModal({ onClose, onSave }: AddAvailableVehicl
               <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
               <Select value={form.color} onValueChange={(v) => set('color', v)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select color" />
+                  {form.color ? (
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="inline-block w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0"
+                        style={{ backgroundColor: colorHexMap[form.color] ?? '#d1d5db' }}
+                      />
+                      {form.color}
+                    </span>
+                  ) : (
+                    <SelectValue placeholder="Select color" />
+                  )}
                 </SelectTrigger>
-                <SelectContent>
-                  {COLORS.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                <SelectContent className="max-h-[260px]">
+                  {Object.entries(colorHexMap).map(([name, hex]) => (
+                    <SelectItem key={name} value={name}>
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="inline-block w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0"
+                          style={{ backgroundColor: hex }}
+                        />
+                        {name}
+                      </span>
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -239,6 +238,7 @@ export function AddAvailableVehicleModal({ onClose, onSave }: AddAvailableVehicl
                 type="number"
               />
             </div>
+
             {/* Tagging Account */}
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">Tagging Account</label>
