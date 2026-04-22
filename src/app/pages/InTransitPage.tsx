@@ -423,7 +423,6 @@ function StatusBadge({ status }: { status: TransitStatus }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function InTransitPage() {
-  const [showPricingModal, setShowPricingModal] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [search, setSearch] = useState('');
   const [filterModel, setFilterModel] = useState('all');
@@ -495,7 +494,7 @@ export function InTransitPage() {
 
   return (
     <>
-      <Header onOpenPricing={() => setShowPricingModal(true)} />
+      <Header />
 
       <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
 

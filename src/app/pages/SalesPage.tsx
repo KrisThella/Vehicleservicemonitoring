@@ -1,15 +1,11 @@
-import { useState } from 'react';
 import { Header } from '../components/Header';
 import { TrendingUp, Package, DollarSign } from 'lucide-react';
-import { VehicleData } from '../components/VehicleTable';
 import { format } from 'date-fns';
-import { mockVehicles } from '../data/vehicleData';
+import { useVehicles } from '../../lib/api';
 
 export function SalesPage() {
-  const [showPricingModal, setShowPricingModal] = useState(false);
-
-  // Filter only sold vehicles
-  const soldVehicles = mockVehicles.filter(v => v.status === 'SOLD' || v.category === 'SALES');
+  const { vehicles } = useVehicles();
+  const soldVehicles = vehicles.filter((v: any) => v.status === 'SOLD' || v.category === 'SALES');
 
   const totalSales = soldVehicles.length;
   const totalRevenue = soldVehicles.reduce((sum, v) => {
@@ -19,7 +15,7 @@ export function SalesPage() {
 
   return (
     <>
-      <Header onOpenPricing={() => setShowPricingModal(true)} />
+      <Header />
       
       <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
         {/* Page Header */}

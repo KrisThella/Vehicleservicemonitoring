@@ -4,6 +4,7 @@ import { ArrowLeft, Camera, Upload, Crop, Check, X, RotateCcw, Move } from 'luci
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
+import { useProfile } from '../../lib/api';
 import UserPic from '../components/source/Userpic.jpg';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -351,11 +352,21 @@ function CropModal({
 export function UserProfilePage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { profile, saveProfile } = useProfile();
 
   const [profileImage, setProfileImage] = useState<string>(UserPic);
-  const [name, setName] = useState('Donna Ricci');
-  const [role, setRole] = useState('Admin User');
-  const [email, setEmail] = useState('donna.ricci@tsmpc.com');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name);
+      setRole(profile.role);
+      setEmail(profile.email);
+      if (profile.image_data_url) setProfileImage(profile.image_data_url);
+    }
+  }, [profile]);
 
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [rawImageSrc, setRawImageSrc] = useState('');
@@ -407,10 +418,15 @@ export function UserProfilePage() {
     else toast.error('Please drop an image file');
   };
 
-  const handleCropApply = (croppedDataUrl: string) => {
+  const handleCropApply = async (croppedDataUrl: string) => {
     setProfileImage(croppedDataUrl);
     setIsCropModalOpen(false);
-    toast.success('Profile photo updated successfully!');
+    try {
+      await saveProfile({ name, role, email, image_data_url: croppedDataUrl });
+      toast.success('Profile photo updated successfully!');
+    } catch (e: any) {
+      toast.error(`Failed to save photo: ${e.message}`);
+    }
   };
 
   const handleCropCancel = () => {
@@ -418,7 +434,14 @@ export function UserProfilePage() {
     setRawImageSrc('');
   };
 
-  const handleSave = () => toast.success('Profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      await saveProfile({ name, role, email, image_data_url: profileImage === UserPic ? null : profileImage });
+      toast.success('Profile updated successfully!');
+    } catch (e: any) {
+      toast.error(`Failed to save: ${e.message}`);
+    }
+  };
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 

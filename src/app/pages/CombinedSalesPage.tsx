@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { VehicleData } from '../components/VehicleTable';
 import { format } from 'date-fns';
-import { mockVehicles } from '../data/vehicleData';
+import { useVehicles } from '../../lib/api';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import {
@@ -37,7 +37,7 @@ interface CombinedSalesFilters {
 
 export function CombinedSalesPage() {
   const currentYear = new Date().getFullYear();
-  const [showPricingModal, setShowPricingModal] = useState(false);
+  const { vehicles } = useVehicles();
   const [isFiltersOpen, setIsFiltersOpen] = useState(true);
   const [filters, setFilters] = useState<CombinedSalesFilters>({
     model: 'all',
@@ -49,8 +49,8 @@ export function CombinedSalesPage() {
   });
 
   // Filter sold vehicles for combined sales
-  const soldVehicles = mockVehicles.filter(
-    (v) => v.status === 'SOLD' || v.category === 'SALES'
+  const soldVehicles = vehicles.filter(
+    (v: any) => v.status === 'SOLD' || v.category === 'SALES'
   );
 
   // Apply filters
@@ -136,7 +136,7 @@ export function CombinedSalesPage() {
 
   return (
     <>
-      <Header onOpenPricing={() => setShowPricingModal(true)} />
+      <Header />
 
       <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
         {/* Page Header */}

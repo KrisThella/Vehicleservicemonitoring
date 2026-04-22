@@ -5,7 +5,7 @@ import { Button } from "../components/ui/button";
 
 export function RootLayout() {
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
     { path: "/", label: "DASHBOARD", icon: LayoutDashboard },
