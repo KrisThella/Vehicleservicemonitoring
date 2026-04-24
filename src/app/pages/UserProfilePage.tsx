@@ -471,10 +471,19 @@ export function UserProfilePage() {
               <div className="mb-8">
                 <h3 className="font-semibold text-gray-900 mb-4">Profile Photo</h3>
                 <div className="flex items-start gap-6">
-                  {/* Current photo preview */}
-                  <div className="w-36 h-36 rounded-full overflow-hidden border-4 border-gray-100 flex-shrink-0 shadow-sm">
+                  {/* Current photo preview — click to crop */}
+                  <button
+                    type="button"
+                    onClick={() => openCropModal(profileImage)}
+                    title="Click to crop your profile photo"
+                    className="group relative w-36 h-36 rounded-full overflow-hidden border-4 border-gray-100 flex-shrink-0 shadow-sm cursor-pointer hover:border-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                  >
                     <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-                  </div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100">
+                      <Crop className="size-6 mb-1" />
+                      <span className="text-xs font-medium">Crop Photo</span>
+                    </div>
+                  </button>
 
                   {/* Upload area */}
                   <div className="flex-1">
