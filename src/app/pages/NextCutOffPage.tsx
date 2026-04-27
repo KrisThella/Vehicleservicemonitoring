@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { Header } from "../components/Header";
 import {
   useNextCutOffPayments,
+  usePayments,
   type NextCutOffRecord,
   type NextCutOffInput,
 } from "../../lib/api";
@@ -132,6 +133,17 @@ export function NextCutOffPage() {
     useNextCutOffPayments();
   const rows = useMemo(() => records.map(toRow), [records]);
 
+  // Current Month for Payment (from `payments` DB table)
+  const { rows: paymentRows, loading: payLoading } = usePayments();
+  const cmTotalUnits = paymentRows.reduce(
+    (s, r) => s + r.number_of_units,
+    0,
+  );
+  const cmTotalAmount = paymentRows.reduce(
+    (s, r) => s + r.total_amount,
+    0,
+  );
+
   const [showModal, setShowModal] = useState(false);
   const [editRow, setEditRow] = useState<PaymentRow | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -242,6 +254,99 @@ export function NextCutOffPage() {
             }
             iconBg="bg-green-50"
           />
+        </div>
+
+        {/* ── Current Month for Payment ─────────────────────────────── */}
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-green-50 flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-emerald-900">
+                Current Month for Payment
+              </h2>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                {paymentRows.length} payment record(s) for the
+                current month
+              </p>
+            </div>
+            <span className="text-sm font-semibold text-emerald-800">
+              {formatPhp(cmTotalAmount)} total
+            </span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 border-b border-gray-200">
+                  <Th>Description</Th>
+                  <Th right>Number of Units</Th>
+                  <Th right>Total Amount</Th>
+                  <Th>Date of Payment</Th>
+                  <Th>Remarks</Th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {payLoading && paymentRows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-4 py-6 text-center text-sm text-gray-400"
+                    >
+                      Loading…
+                    </td>
+                  </tr>
+                ) : paymentRows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      className="px-4 py-6 text-center text-sm text-gray-400"
+                    >
+                      No payments recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  paymentRows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className="hover:bg-emerald-50/30 transition-colors"
+                    >
+                      <td className="px-4 py-3 text-gray-800 whitespace-nowrap">
+                        {row.description}
+                      </td>
+                      <td className="px-4 py-3 text-right text-gray-800">
+                        {row.number_of_units}
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">
+                        {formatPhp(row.total_amount)}
+                      </td>
+                      <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                        {row.date_of_payment}
+                      </td>
+                      <td
+                        className={`px-4 py-3 text-xs ${row.remarks ? "text-gray-600" : "text-gray-400"}`}
+                      >
+                        {row.remarks || "–"}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+              {paymentRows.length > 0 && (
+                <tfoot>
+                  <tr className="bg-emerald-50 border-t-2 border-emerald-200">
+                    <td className="px-4 py-3 text-sm font-bold text-emerald-800">
+                      Total
+                    </td>
+                    <td className="px-4 py-3 text-sm font-bold text-emerald-800 text-right">
+                      {cmTotalUnits}
+                    </td>
+                    <td className="px-4 py-3 text-sm font-bold text-emerald-800 text-right whitespace-nowrap">
+                      {formatPhp(cmTotalAmount)}
+                    </td>
+                    <td className="px-4 py-3" colSpan={2} />
+                  </tr>
+                </tfoot>
+              )}
+            </table>
+          </div>
         </div>
 
         {/* ── Payment Table ─────────────────────────────────────────── */}

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Header } from '../components/Header';
-import { usePullOuts, usePayments, useInventory } from '../../lib/api';
+import { usePullOuts, useInventory } from '../../lib/api';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -18,9 +18,6 @@ const MONTHS = [
 ];
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
-
-const formatCurrency = (n: number) =>
-  `₱${n.toLocaleString('en-PH', { minimumFractionDigits: 2 })}`;
 
 const displayNum = (n: number | null) =>
   n === null || n === undefined ? <span className="text-gray-300">–</span> : n;
@@ -85,7 +82,6 @@ export function PullOutMonitoringPage() {
   const [inventoryYear, setInventoryYear] = useState(currentYear);
 
   const { rows: pullOutRows, loading: poLoading } = usePullOuts();
-  const { rows: paymentRows, loading: payLoading } = usePayments();
   const { rows: inventoryDbRows, loading: invLoading } = useInventory(inventoryYear);
 
   // Build display rows for all 12 months, filling in DB values when present
@@ -108,10 +104,6 @@ export function PullOutMonitoringPage() {
     (s, r) => s + Math.max(0, r.confirmed_units - r.pulled_out),
     0
   );
-
-  // Current month payment totals
-  const cmTotalUnits = paymentRows.reduce((s, r) => s + r.number_of_units, 0);
-  const cmTotalAmount = paymentRows.reduce((s, r) => s + r.total_amount, 0);
 
   // Year selector: 2016 .. currentYear + 2
   const yearOptions: number[] = [];
@@ -201,60 +193,6 @@ export function PullOutMonitoringPage() {
                     <td className="px-4 py-3 text-sm font-bold text-orange-700 text-right">
                       {poTotalRemaining}
                     </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </SectionCard>
-
-        {/* ── Current Month for Payment ─────────────────────────────────── */}
-        <SectionCard title="Current Month for Payment">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr>
-                  <Th>Description</Th>
-                  <Th right>Number of Units</Th>
-                  <Th right>Total Amount</Th>
-                  <Th>Date of Payment</Th>
-                  <Th>Remarks</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {payLoading && paymentRows.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-400">
-                      Loading…
-                    </td>
-                  </tr>
-                ) : paymentRows.length === 0 ? (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-400">
-                      No payments recorded yet.
-                    </td>
-                  </tr>
-                ) : (
-                  paymentRows.map((row) => (
-                    <tr key={row.id} className="hover:bg-gray-50 transition-colors">
-                      <Td>{row.description}</Td>
-                      <Td right>{row.number_of_units}</Td>
-                      <Td right>{formatCurrency(row.total_amount)}</Td>
-                      <Td>{row.date_of_payment}</Td>
-                      <Td muted={!row.remarks}>{row.remarks || '–'}</Td>
-                    </tr>
-                  ))
-                )}
-                {paymentRows.length > 0 && (
-                  <tr className="bg-green-50 border-t-2 border-green-200">
-                    <td className="px-4 py-3 text-sm font-bold text-green-800">Total</td>
-                    <td className="px-4 py-3 text-sm font-bold text-green-800 text-right">
-                      {cmTotalUnits}
-                    </td>
-                    <td className="px-4 py-3 text-sm font-bold text-green-800 text-right">
-                      {formatCurrency(cmTotalAmount)}
-                    </td>
-                    <td className="px-4 py-3" colSpan={2}></td>
                   </tr>
                 )}
               </tbody>
