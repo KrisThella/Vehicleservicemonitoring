@@ -75,6 +75,14 @@ db.exec(`
     UNIQUE(year, month_index)
   );
 
+  CREATE TABLE IF NOT EXISTS colors (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    hex TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+  );
+
   CREATE TABLE IF NOT EXISTS next_cut_off_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     description TEXT NOT NULL,

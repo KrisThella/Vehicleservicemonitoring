@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft, User, DollarSign, Palette, ChevronRight, Moon, Sun } from 'lucide-react';
+import { ArrowLeft, User, Palette, ChevronRight, Moon, Sun, Paintbrush } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Switch } from '../components/ui/switch';
 import { useEffect, useState } from 'react';
@@ -21,7 +21,7 @@ export function SettingsPage() {
 
   const settingsOptions = [
     { icon: User, title: 'User Profile', description: 'Update your profile photo and personal information', path: '/settings/profile' },
-    { icon: DollarSign, title: 'Price List', description: 'Manage vehicle pricing and add new units', path: '/settings/price-list' },
+    { icon: Paintbrush, title: 'List of Colors', description: 'Manage vehicle colors used across the inventory', path: '/settings/colors' },
   ];
 
   return (

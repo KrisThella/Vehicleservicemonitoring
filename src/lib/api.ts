@@ -309,6 +309,52 @@ export function useInventory(year: number) {
   return { rows, loading, refetch };
 }
 
+// ── Colors ────────────────────────────────────────────────────────────────
+
+export interface ColorRecord {
+  id: number;
+  name: string;
+  hex: string;
+  sort_order: number;
+}
+
+export interface ColorInput {
+  name: string;
+  hex: string;
+}
+
+export function useColors() {
+  const [colors, setColors] = useState<ColorRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try { setColors(await get<ColorRecord[]>('/colors')); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { refetch(); }, [refetch]);
+
+  const addColor = useCallback(async (input: ColorInput) => {
+    const created = await send<ColorRecord>('/colors', 'POST', input);
+    setColors((p) => [...p, created]);
+    return created;
+  }, []);
+
+  const updateColor = useCallback(async (id: number, input: ColorInput) => {
+    const updated = await send<ColorRecord>(`/colors/${id}`, 'PUT', input);
+    setColors((p) => p.map((c) => (c.id === id ? updated : c)));
+    return updated;
+  }, []);
+
+  const removeColor = useCallback(async (id: number) => {
+    await send(`/colors/${id}`, 'DELETE');
+    setColors((p) => p.filter((c) => c.id !== id));
+  }, []);
+
+  return { colors, loading, refetch, addColor, updateColor, removeColor };
+}
+
 export function useProfile() {
   const [profile, setProfile] = useState<ProfileRecord | null>(null);
   const [loading, setLoading] = useState(true);

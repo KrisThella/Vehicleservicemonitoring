@@ -108,6 +108,44 @@ app.put('/api/settings/:key', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Colors ────────────────────────────────────────────────────────────────
+app.get('/api/colors', (_req, res) => {
+  const rows = db.prepare('SELECT * FROM colors ORDER BY sort_order, id').all();
+  res.json(rows);
+});
+
+app.post('/api/colors', (req, res) => {
+  const { name, hex } = req.body || {};
+  if (!name || !hex) return res.status(400).json({ error: 'name and hex required' });
+  try {
+    const maxOrder = (db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM colors').get() as { m: number }).m;
+    const r = db.prepare('INSERT INTO colors (name, hex, sort_order) VALUES (?,?,?)').run(name, hex, maxOrder + 1);
+    res.status(201).json(db.prepare('SELECT * FROM colors WHERE id = ?').get(r.lastInsertRowid));
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/colors/:id', (req, res) => {
+  const { name, hex } = req.body || {};
+  if (!name || !hex) return res.status(400).json({ error: 'name and hex required' });
+  try {
+    const r = db.prepare(
+      "UPDATE colors SET name=?, hex=?, updated_at=strftime('%s','now') WHERE id = ?"
+    ).run(name, hex, req.params.id);
+    if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(db.prepare('SELECT * FROM colors WHERE id = ?').get(req.params.id));
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/colors/:id', (req, res) => {
+  const r = db.prepare('DELETE FROM colors WHERE id = ?').run(req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
 // ── Pull-out rows ─────────────────────────────────────────────────────────
 app.get('/api/pull-outs', (_req, res) => {
   const rows = db.prepare('SELECT * FROM pull_outs ORDER BY sort_order, id').all();

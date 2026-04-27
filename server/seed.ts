@@ -101,6 +101,17 @@ const SEED_PRICES = [
   { category: 'XL7', model: 'XL7 1.5 GLX AT - HYBRID (TWO-TONE)', srp: '1,262,000.00', dnp: '1,186,280.00', ws_subsidy: '90,000.00', dnp_less_ws_subsidy: '1,096,280.00', ewt: '4,894.11', po_amount: '1,091,385.89' },
 ];
 
+const SEED_COLORS = [
+  { name: 'Midnight Black',       hex: '#000000' },
+  { name: 'Pearl Super Black 2',  hex: '#1a1a1a' },
+  { name: 'Solid Fire Red',       hex: '#e53935' },
+  { name: 'Metallic Magma Gray',  hex: '#5a5a5a' },
+  { name: 'Pearl Arctic White',   hex: '#f5f5f5' },
+  { name: 'Splash Blue',          hex: '#2196f3' },
+  { name: 'Premium Silver',       hex: '#c0c0c0' },
+  { name: 'Sizzling Red',         hex: '#d32f2f' },
+];
+
 const SEED_PULL_OUTS = [
   { description: 'Suzuki Ertiga 1.5 GA MT',  sph_allocation: 10, date_of_confirmation: 'Mar 05, 2026', confirmed_units: 8, pulled_out: 6 },
   { description: 'Suzuki Dzire GL MT',       sph_allocation: 8,  date_of_confirmation: 'Mar 10, 2026', confirmed_units: 6, pulled_out: 4 },
@@ -161,6 +172,16 @@ export function seedDatabase() {
     db.prepare('INSERT INTO profile (id, name, role, email, image_data_url) VALUES (1, ?, ?, ?, NULL)')
       .run('Donna Ricci', 'Admin User', 'donna.ricci@tsmpc.com');
     console.log('[seed] Inserted profile');
+  }
+
+  const colorCount = (db.prepare('SELECT COUNT(*) AS c FROM colors').get() as { c: number }).c;
+  if (colorCount === 0) {
+    const insert = db.prepare('INSERT INTO colors (name, hex, sort_order) VALUES (?,?,?)');
+    const txn = db.transaction((rows: { name: string; hex: string }[]) => {
+      rows.forEach((r, i) => insert.run(r.name, r.hex, i));
+    });
+    txn(SEED_COLORS);
+    console.log(`[seed] Inserted ${SEED_COLORS.length} colors`);
   }
 
   const poCount = (db.prepare('SELECT COUNT(*) AS c FROM pull_outs').get() as { c: number }).c;

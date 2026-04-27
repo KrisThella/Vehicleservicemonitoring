@@ -59,7 +59,7 @@ export function Header() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/settings/price-list')}
+              onClick={() => navigate('/price-list')}
               className="flex items-center gap-2 text-blue-600 border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950"
             >
               <DollarSign className="size-4" />
