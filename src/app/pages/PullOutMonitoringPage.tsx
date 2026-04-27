@@ -269,6 +269,7 @@ function Td({
 export function PullOutMonitoringPage() {
   const currentYear = new Date().getFullYear();
   const [inventoryYear, setInventoryYear] = useState(currentYear);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   
   const inventoryData = buildInventoryData(inventoryYear);
   
@@ -289,13 +290,11 @@ export function PullOutMonitoringPage() {
   const overallTotalUnits = cmTotalUnits + ncTotalUnits;
   const overallTotalAmount = cmTotalAmount + ncTotalAmount;
 
-  const startYear = 2016;
-  const endYear = currentYear + 2;
-  const yearOptions = Array.from({ length: endYear - startYear + 1 }, (_, i) => startYear + i);
+  const yearOptions = Array.from({ length: 20 }, (_, i) => currentYear - 3 + i);
 
   return (
     <>
-      <Header />
+      <Header onOpenPricing={() => setShowPricingModal(true)} />
 
       <main className="flex-1 overflow-auto px-6 py-6 space-y-8">
         {/* Page Header */}

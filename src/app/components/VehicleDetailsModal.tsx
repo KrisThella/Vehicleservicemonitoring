@@ -31,7 +31,7 @@ const pricingData: Record<string, string> = {
   'ERTIGA 1.5 GL AT - HYBRID': '1,128,000.00',
   'ERTIGA 1.5 GLX AT - HYBRID': '1,213,000.00',
   'FRONX GL AT': '1,059,000.00',
-  'FRONX GLX AT': '1,219,000.00',
+  'FRONX GLX AT HYBRID': '1,219,000.00',
   'FRONX GLX AT - HYBRID (TWO-TONE)': '1,229,000.00',
   'FRONX SGX AT - HYBRID (TWO-TONE)': '1,299,000.00',
   'JIMNY 1.5 GL MT SS': '1,293,000.00',

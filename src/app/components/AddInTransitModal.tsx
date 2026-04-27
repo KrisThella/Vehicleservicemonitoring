@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { X, CalendarIcon, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import {
@@ -11,11 +12,7 @@ import {
 } from './ui/select';
 import { toast } from 'sonner';
 import { colorHexMap } from './utils/colorMapping';
-
-interface AddInTransitModalProps {
-  onClose: () => void;
-  onSave: (data: InTransitEntry) => void;
-}
+import { SUZUKI_MODELS, MODEL_CATEGORIES } from '../data/suzukiModels';
 
 export interface InTransitEntry {
   model: string;
@@ -39,11 +36,12 @@ export interface InTransitEntry {
   remarks: string;
 }
 
-const DEALERS = [
-  'TEAM JM',
-  'TEAM AARON',
-  'TEAM JAY-R',
-];
+interface AddInTransitModalProps {
+  onClose: () => void;
+  onSave: (data: InTransitEntry) => void;
+}
+
+const DEALERS = ['TEAM JM', 'TEAM AARON', 'TEAM JAY-R'];
 
 const STATUSES = [
   'IN TRANSIT',
@@ -53,59 +51,212 @@ const STATUSES = [
   'DELAYED',
 ];
 
+const EMPTY_FORM: InTransitEntry = {
+  model: '',
+  color: '',
+  chassisNo: '',
+  engineNo: '',
+  pullOutLocation: '',
+  csNo: '',
+  yearModel: '',
+  clientName: '',
+  dealer: '',
+  poNumber: '',
+  poAmount: '',
+  pullOutDate: '',
+  colorCode: '',
+  declaredMonth: '',
+  currentLocation: '',
+  dpReservation: '',
+  status: '',
+  targetRelease: '',
+  remarks: '',
+};
+
+// ── Color Dropdown with search ─────────────────────────────────────────────
+
+function ColorSelectDropdown({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+
+  // Calculate fixed position from trigger's bounding rect
+  useEffect(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const dropHeight = 260;
+
+      if (spaceBelow >= dropHeight || spaceBelow >= spaceAbove) {
+        setDropdownStyle({
+          position: 'fixed',
+          top: rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 99999,
+        });
+      } else {
+        setDropdownStyle({
+          position: 'fixed',
+          bottom: window.innerHeight - rect.top + 4,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 99999,
+        });
+      }
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+        triggerRef.current && !triggerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    if (open) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Close on scroll
+  useEffect(() => {
+    if (!open) return;
+    const handler = () => setOpen(false);
+    window.addEventListener('scroll', handler, true);
+    return () => window.removeEventListener('scroll', handler, true);
+  }, [open]);
+
+  const filtered = Object.entries(colorHexMap).filter(([name]) =>
+    name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const hex = value ? (colorHexMap[value] ?? '#d1d5db') : null;
+
+  return (
+    <div className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+      >
+        <span className="flex items-center gap-2 min-w-0">
+          {hex ? (
+            <>
+              <span
+                className="inline-block w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0 shadow-sm"
+                style={{ backgroundColor: hex }}
+              />
+              <span className="truncate text-gray-800">{value}</span>
+            </>
+          ) : (
+            <span className="text-gray-400">Select color…</span>
+          )}
+        </span>
+        <ChevronDown className={`size-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && createPortal(
+        <div
+          ref={dropdownRef}
+          style={dropdownStyle}
+          className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden"
+        >
+          <div className="p-2 border-b border-gray-100">
+            <input
+              autoFocus
+              className="w-full text-sm px-3 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Search color…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="text-sm text-gray-400 text-center py-4">No match</p>
+            ) : (
+              filtered.map(([name, h]) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => { onChange(name); setOpen(false); setSearch(''); }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-blue-50 transition-colors ${value === name ? 'bg-blue-50 font-medium' : ''}`}
+                >
+                  <span
+                    className="inline-block w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0 shadow-sm"
+                    style={{ backgroundColor: h }}
+                  />
+                  <span className="truncate">{name}</span>
+                  {value === name && <span className="ml-auto text-blue-600 text-xs">✓</span>}
+                </button>
+              ))
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+
 export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
-  const [form, setForm] = useState<InTransitEntry>({
-    model: '',
-    color: '',
-    chassisNo: '',
-    engineNo: '',
-    pullOutLocation: '',
-    csNo: '',
-    yearModel: '',
-    clientName: '',
-    dealer: '',
-    poNumber: '',
-    poAmount: '',
-    pullOutDate: '',
-    colorCode: '',
-    declaredMonth: '',
-    currentLocation: '',
-    dpReservation: '',
-    status: '',
-    targetRelease: '',
-    remarks: '',
-  });
+  const [form, setForm] = useState<InTransitEntry>({ ...EMPTY_FORM });
+  const [errors, setErrors] = useState<Partial<Record<keyof InTransitEntry, string>>>({});
+  const [categoryFilter, setCategoryFilter] = useState('ALL');
 
   const set = (field: keyof InTransitEntry, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
+
+  const validate = (): boolean => {
+    const e: Partial<Record<keyof InTransitEntry, string>> = {};
+    if (!form.model)       e.model  = 'Model is required';
+    if (!form.dealer)      e.dealer = 'Dealer is required';
+    if (!form.status)      e.status = 'Status is required';
+    if (!form.pullOutDate) e.pullOutDate = 'Pull Out Date is required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = () => {
-    if (!form.model.trim()) {
-      toast.error('Model is required');
-      return;
-    }
+    if (!validate()) { toast.error('Please fill in all required fields'); return; }
     onSave(form);
-    toast.success('In Transit entry added successfully!');
+    toast.success('In Transit unit added successfully!');
     onClose();
   };
+
+  const filteredModels = categoryFilter === 'ALL'
+    ? SUZUKI_MODELS
+    : SUZUKI_MODELS.filter((m) => m.category === categoryFilter);
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
       {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-3xl mx-4 max-h-[90vh] flex flex-col">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[92vh] flex flex-col">
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-blue-50 rounded-t-xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-blue-50 rounded-t-2xl">
           <div>
-            <h2 className="font-semibold text-blue-900">Add In Transit Unit</h2>
+            <h2 className="font-semibold text-blue-900">Add In-Transit Unit</h2>
             <p className="text-xs text-blue-600 mt-0.5">
-              Fill in the details for the new transit entry
+              Fields marked <span className="text-red-500">*</span> are required
             </p>
           </div>
           <button
@@ -117,251 +268,312 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
 
-            {/* Model */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Model <span className="text-red-500">*</span>
-              </label>
-              <Input
-                value={form.model}
-                onChange={(e) => set('model', e.target.value)}
-                placeholder="e.g. ERTIGA 1.5 GL MT"
-              />
+          {/* ── Section 1: Unit Details ─────────────────────────────── */}
+          <div>
+            <SectionLabel>Unit Details</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Model */}
+              <div className="md:col-span-2">
+                <FieldLabel required>Model</FieldLabel>
+                <div className="flex gap-2">
+                  {/* Category filter */}
+                  <select
+                    value={categoryFilter}
+                    onChange={(e) => setCategoryFilter(e.target.value)}
+                    className="border border-gray-300 rounded-md px-2 py-2 text-xs text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+                  >
+                    <option value="ALL">All</option>
+                    {MODEL_CATEGORIES.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  <Select value={form.model} onValueChange={(v) => set('model', v)}>
+                    <SelectTrigger className={`flex-1 ${errors.model ? 'border-red-400' : ''}`}>
+                      <SelectValue placeholder="Select model…" />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[280px]">
+                      {filteredModels.map((m) => (
+                        <SelectItem key={m.name} value={m.name}>
+                          <span className="flex items-center justify-between gap-4 w-full">
+                            <span>{m.name}</span>
+                            <span className="text-gray-400 text-xs">
+                              ₱{m.basePrice.toLocaleString('en-PH')}
+                            </span>
+                          </span>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {errors.model && <ErrMsg>{errors.model}</ErrMsg>}
+              </div>
+
+              {/* Color */}
+              <div>
+                <FieldLabel>Color</FieldLabel>
+                <ColorSelectDropdown value={form.color} onChange={(v) => set('color', v)} />
+              </div>
+
+              {/* Color Code */}
+              <div>
+                <FieldLabel>Color Code</FieldLabel>
+                <Input
+                  value={form.colorCode}
+                  onChange={(e) => set('colorCode', e.target.value)}
+                  placeholder="e.g. ZMC"
+                />
+              </div>
+
+              {/* Year Model */}
+              <div>
+                <FieldLabel>Year Model</FieldLabel>
+                <Input
+                  type="number"
+                  value={form.yearModel}
+                  onChange={(e) => set('yearModel', e.target.value)}
+                  placeholder="e.g. 2026"
+                />
+              </div>
+
+              {/* CS No. */}
+              <div>
+                <FieldLabel>CS No.</FieldLabel>
+                <Input
+                  value={form.csNo}
+                  onChange={(e) => set('csNo', e.target.value)}
+                  placeholder="e.g. UE00112"
+                />
+              </div>
+
+              {/* Chassis No. */}
+              <div>
+                <FieldLabel>Chassis No.</FieldLabel>
+                <Input
+                  value={form.chassisNo}
+                  onChange={(e) => set('chassisNo', e.target.value)}
+                  placeholder="e.g. MAFHA21SXM7100221"
+                  className="font-mono text-xs"
+                />
+              </div>
+
+              {/* Engine No. */}
+              <div>
+                <FieldLabel>Engine No.</FieldLabel>
+                <Input
+                  value={form.engineNo}
+                  onChange={(e) => set('engineNo', e.target.value)}
+                  placeholder="e.g. G15B-ZA1002211"
+                  className="font-mono text-xs"
+                />
+              </div>
+
             </div>
-
-            {/* Color */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Color</label>
-              <Select value={form.color} onValueChange={(v) => set('color', v)}>
-                <SelectTrigger>
-                  {form.color ? (
-                    <span className="flex items-center gap-2">
-                      <span
-                        className="inline-block w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0"
-                        style={{ backgroundColor: colorHexMap[form.color] ?? '#d1d5db' }}
-                      />
-                      {form.color}
-                    </span>
-                  ) : (
-                    <SelectValue placeholder="Select color" />
-                  )}
-                </SelectTrigger>
-                <SelectContent className="max-h-[260px]">
-                  {Object.entries(colorHexMap).map(([name, hex]) => (
-                    <SelectItem key={name} value={name}>
-                      <span className="flex items-center gap-2">
-                        <span
-                          className="inline-block w-3 h-3 rounded-sm border border-gray-300 flex-shrink-0"
-                          style={{ backgroundColor: hex }}
-                        />
-                        {name}
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Color Code */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Color Code</label>
-              <Input
-                value={form.colorCode}
-                onChange={(e) => set('colorCode', e.target.value)}
-                placeholder="e.g. ZMC"
-              />
-            </div>
-
-            {/* Chassis No. */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Chassis No.</label>
-              <Input
-                value={form.chassisNo}
-                onChange={(e) => set('chassisNo', e.target.value)}
-                placeholder="e.g. MAFHA21SXM7100221"
-                className="font-mono text-xs"
-              />
-            </div>
-
-            {/* Engine No. */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Engine No.</label>
-              <Input
-                value={form.engineNo}
-                onChange={(e) => set('engineNo', e.target.value)}
-                placeholder="e.g. G15B-ZA1002211"
-                className="font-mono text-xs"
-              />
-            </div>
-
-            {/* CS No. */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">CS No.</label>
-              <Input
-                value={form.csNo}
-                onChange={(e) => set('csNo', e.target.value)}
-                placeholder="e.g. UE00112"
-              />
-            </div>
-
-            {/* Year Model */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Year Model</label>
-              <Input
-                value={form.yearModel}
-                onChange={(e) => set('yearModel', e.target.value)}
-                placeholder="e.g. 2026"
-                type="number"
-              />
-            </div>
-
-            {/* Client Name */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Client Name</label>
-              <Input
-                value={form.clientName}
-                onChange={(e) => set('clientName', e.target.value)}
-                placeholder="e.g. MR. JUAN DELA CRUZ"
-              />
-            </div>
-
-            {/* Dealer */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Dealer</label>
-              <Select value={form.dealer} onValueChange={(v) => set('dealer', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select dealer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DEALERS.map((d) => (
-                    <SelectItem key={d} value={d}>{d}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Pull Out Location */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Pull Out Location</label>
-              <Input
-                value={form.pullOutLocation}
-                onChange={(e) => set('pullOutLocation', e.target.value)}
-                placeholder="e.g. SPH LAGUNA WAREHOUSE"
-              />
-            </div>
-
-            {/* Current Location */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Current Location</label>
-              <Input
-                value={form.currentLocation}
-                onChange={(e) => set('currentLocation', e.target.value)}
-                placeholder="e.g. EN ROUTE – SLEX"
-              />
-            </div>
-
-            {/* PO Number */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">PO Number</label>
-              <Input
-                value={form.poNumber}
-                onChange={(e) => set('poNumber', e.target.value)}
-                placeholder="e.g. PO30112"
-              />
-            </div>
-
-            {/* PO Amount */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">PO Amount</label>
-              <Input
-                value={form.poAmount}
-                onChange={(e) => set('poAmount', e.target.value)}
-                placeholder="e.g. 880000"
-              />
-            </div>
-
-            {/* Pull Out Date */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Pull Out Date</label>
-              <Input
-                type="date"
-                value={form.pullOutDate}
-                onChange={(e) => set('pullOutDate', e.target.value)}
-              />
-            </div>
-
-            {/* Declared Month */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Declared Month</label>
-              <Input
-                type="month"
-                value={form.declaredMonth}
-                onChange={(e) => set('declaredMonth', e.target.value)}
-              />
-            </div>
-
-            {/* DP / Reservation */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">DP / Reservation</label>
-              <Input
-                value={form.dpReservation}
-                onChange={(e) => set('dpReservation', e.target.value)}
-                placeholder="e.g. ₱88,000"
-              />
-            </div>
-
-            {/* Status */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Status</label>
-              <Select value={form.status} onValueChange={(v) => set('status', v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Target Release */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">Target Release</label>
-              <Input
-                type="date"
-                value={form.targetRelease}
-                onChange={(e) => set('targetRelease', e.target.value)}
-              />
-            </div>
-
-            {/* Remarks */}
-            <div className="md:col-span-2">
-              <label className="block text-xs font-medium text-gray-700 mb-1">Remarks</label>
-              <Input
-                value={form.remarks}
-                onChange={(e) => set('remarks', e.target.value)}
-                placeholder="Additional notes about this transit unit..."
-              />
-            </div>
-
           </div>
+
+          {/* ── Section 2: Dealer & Client ────────────────────────────── */}
+          <div>
+            <SectionLabel>Dealer & Client</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Dealer */}
+              <div>
+                <FieldLabel required>Dealer</FieldLabel>
+                <Select value={form.dealer} onValueChange={(v) => set('dealer', v)}>
+                  <SelectTrigger className={errors.dealer ? 'border-red-400' : ''}>
+                    <SelectValue placeholder="Select dealer…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEALERS.map((d) => (
+                      <SelectItem key={d} value={d}>{d}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.dealer && <ErrMsg>{errors.dealer}</ErrMsg>}
+              </div>
+
+              {/* Client Name */}
+              <div>
+                <FieldLabel>Client Name</FieldLabel>
+                <Input
+                  value={form.clientName}
+                  onChange={(e) => set('clientName', e.target.value)}
+                  placeholder="e.g. MR. JUAN DELA CRUZ"
+                />
+              </div>
+
+              {/* PO Number */}
+              <div>
+                <FieldLabel>PO Number</FieldLabel>
+                <Input
+                  value={form.poNumber}
+                  onChange={(e) => set('poNumber', e.target.value)}
+                  placeholder="e.g. PO30112"
+                />
+              </div>
+
+              {/* PO Amount */}
+              <div>
+                <FieldLabel>PO Amount (₱)</FieldLabel>
+                <Input
+                  value={form.poAmount}
+                  onChange={(e) => set('poAmount', e.target.value)}
+                  placeholder="e.g. 880,000"
+                />
+              </div>
+
+              {/* DP / Reservation */}
+              <div>
+                <FieldLabel>DP / Reservation</FieldLabel>
+                <Input
+                  value={form.dpReservation}
+                  onChange={(e) => set('dpReservation', e.target.value)}
+                  placeholder="e.g. ₱88,000"
+                />
+              </div>
+
+            </div>
+          </div>
+
+          {/* ── Section 3: Location & Status ─────────────────────────── */}
+          <div>
+            <SectionLabel>Location & Status</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Status */}
+              <div>
+                <FieldLabel required>Status</FieldLabel>
+                <Select value={form.status} onValueChange={(v) => set('status', v)}>
+                  <SelectTrigger className={errors.status ? 'border-red-400' : ''}>
+                    <SelectValue placeholder="Select status…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {STATUSES.map((s) => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.status && <ErrMsg>{errors.status}</ErrMsg>}
+              </div>
+
+              {/* Pull Out Location */}
+              <div>
+                <FieldLabel>Pull Out Location</FieldLabel>
+                <Input
+                  value={form.pullOutLocation}
+                  onChange={(e) => set('pullOutLocation', e.target.value)}
+                  placeholder="e.g. SPH LAGUNA WAREHOUSE"
+                />
+              </div>
+
+              {/* Current Location */}
+              <div>
+                <FieldLabel>Current Location</FieldLabel>
+                <Input
+                  value={form.currentLocation}
+                  onChange={(e) => set('currentLocation', e.target.value)}
+                  placeholder="e.g. EN ROUTE – SLEX"
+                />
+              </div>
+
+            </div>
+          </div>
+
+          {/* ── Section 4: Dates ──────────────────────────────────────── */}
+          <div>
+            <SectionLabel>Dates</SectionLabel>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+              {/* Pull Out Date */}
+              <div>
+                <FieldLabel required>Pull Out Date</FieldLabel>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    value={form.pullOutDate}
+                    onChange={(e) => set('pullOutDate', e.target.value)}
+                    className={`pl-9 ${errors.pullOutDate ? 'border-red-400' : ''}`}
+                  />
+                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                </div>
+                {errors.pullOutDate && <ErrMsg>{errors.pullOutDate}</ErrMsg>}
+              </div>
+
+              {/* Target Release */}
+              <div>
+                <FieldLabel>Target Release Date</FieldLabel>
+                <div className="relative">
+                  <Input
+                    type="date"
+                    value={form.targetRelease}
+                    onChange={(e) => set('targetRelease', e.target.value)}
+                    className="pl-9"
+                  />
+                  <CalendarIcon className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* Declared Month */}
+              <div>
+                <FieldLabel>Declared Month</FieldLabel>
+                <Input
+                  type="month"
+                  value={form.declaredMonth}
+                  onChange={(e) => set('declaredMonth', e.target.value)}
+                />
+              </div>
+
+            </div>
+          </div>
+
+          {/* ── Section 5: Remarks ────────────────────────��──────────── */}
+          <div>
+            <SectionLabel>Remarks</SectionLabel>
+            <Input
+              value={form.remarks}
+              onChange={(e) => set('remarks', e.target.value)}
+              placeholder="Additional notes about this transit unit…"
+            />
+          </div>
+
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button
-            onClick={handleSubmit}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Add Unit
-          </Button>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+          <p className="text-xs text-gray-400">New unit will appear in the In-Transit table immediately.</p>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" onClick={onClose}>Cancel</Button>
+            <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700">
+              Add Unit
+            </Button>
+          </div>
         </div>
       </div>
     </div>
   );
+}
+
+// ── Tiny helpers ──────────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{children}</span>
+      <div className="flex-1 h-px bg-gray-100" />
+    </div>
+  );
+}
+
+function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
+  return (
+    <label className="block text-xs font-medium text-gray-700 mb-1">
+      {children}{required && <span className="text-red-500 ml-0.5">*</span>}
+    </label>
+  );
+}
+
+function ErrMsg({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs text-red-500 mt-1">{children}</p>;
 }
