@@ -157,7 +157,7 @@ export function DashboardPage() {
         onExport={handleExport}
       />
 
-      <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
+      <main className="flex-1 overflow-auto px-6 py-6 space-y-6 bg-gray-50 dark:bg-gray-950">
         {/* Stats Cards */}
         <StatsCards vehicles={filteredVehicles} />
 
@@ -166,8 +166,8 @@ export function DashboardPage() {
           <VehicleTable data={filteredVehicles} onViewHistory={handleViewHistory} />
           
           {filteredVehicles.length === 0 && (
-            <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
-              <p className="text-gray-500">No vehicles found matching your filters.</p>
+            <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-12 text-center">
+              <p className="text-gray-500 dark:text-gray-400">No vehicles found matching your filters.</p>
             </div>
           )}
         </div>

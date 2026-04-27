@@ -149,34 +149,34 @@ function ColorSelectDropdown({
         ref={triggerRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-gray-300 rounded-md bg-white text-sm hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-sm hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
       >
         <span className="flex items-center gap-2 min-w-0">
           {hex ? (
             <>
               <span
-                className="inline-block w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0 shadow-sm"
+                className="inline-block w-4 h-4 rounded-sm border border-gray-300 dark:border-gray-600 flex-shrink-0 shadow-sm"
                 style={{ backgroundColor: hex }}
               />
-              <span className="truncate text-gray-800">{value}</span>
+              <span className="truncate text-gray-800 dark:text-gray-200">{value}</span>
             </>
           ) : (
-            <span className="text-gray-400">Select color…</span>
+            <span className="text-gray-400 dark:text-gray-500">Select color…</span>
           )}
         </span>
-        <ChevronDown className={`size-4 text-gray-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`size-4 text-gray-400 dark:text-gray-600 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
 
       {open && createPortal(
         <div
           ref={dropdownRef}
           style={dropdownStyle}
-          className="bg-white border border-gray-200 rounded-lg shadow-xl overflow-hidden"
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden"
         >
-          <div className="p-2 border-b border-gray-100">
+          <div className="p-2 border-b border-gray-100 dark:border-gray-700">
             <input
               autoFocus
-              className="w-full text-sm px-3 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full text-sm px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               placeholder="Search color…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -184,21 +184,21 @@ function ColorSelectDropdown({
           </div>
           <div className="max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
-              <p className="text-sm text-gray-400 text-center py-4">No match</p>
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No match</p>
             ) : (
               filtered.map(([name, h]) => (
                 <button
                   key={name}
                   type="button"
                   onClick={() => { onChange(name); setOpen(false); setSearch(''); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-blue-50 transition-colors ${value === name ? 'bg-blue-50 font-medium' : ''}`}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors ${value === name ? 'bg-blue-50 dark:bg-gray-700 font-medium' : ''}`}
                 >
                   <span
-                    className="inline-block w-4 h-4 rounded-sm border border-gray-300 flex-shrink-0 shadow-sm"
+                    className="inline-block w-4 h-4 rounded-sm border border-gray-300 dark:border-gray-600 flex-shrink-0 shadow-sm"
                     style={{ backgroundColor: h }}
                   />
-                  <span className="truncate">{name}</span>
-                  {value === name && <span className="ml-auto text-blue-600 text-xs">✓</span>}
+                  <span className="truncate text-gray-900 dark:text-gray-100">{name}</span>
+                  {value === name && <span className="ml-auto text-blue-600 dark:text-blue-400 text-xs">✓</span>}
                 </button>
               ))
             )}
@@ -249,26 +249,26 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[92vh] flex flex-col">
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-3xl mx-4 max-h-[92vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-blue-50 rounded-t-2xl">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-blue-50 dark:bg-blue-950 rounded-t-2xl">
           <div>
-            <h2 className="font-semibold text-blue-900">Add In-Transit Unit</h2>
-            <p className="text-xs text-blue-600 mt-0.5">
+            <h2 className="font-semibold text-blue-900 dark:text-blue-100">Add In-Transit Unit</h2>
+            <p className="text-xs text-blue-600 dark:text-blue-300 mt-0.5">
               Fields marked <span className="text-red-500">*</span> are required
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg hover:bg-blue-100 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
           >
-            <X className="size-5 text-blue-700" />
+            <X className="size-5 text-blue-700 dark:text-blue-400" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6">
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-6 dark:bg-gray-900">
 
           {/* ── Section 1: Unit Details ─────────────────────────────── */}
           <div>
@@ -283,7 +283,7 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                   <select
                     value={categoryFilter}
                     onChange={(e) => setCategoryFilter(e.target.value)}
-                    className="border border-gray-300 rounded-md px-2 py-2 text-xs text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 flex-shrink-0"
+                    className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 flex-shrink-0"
                   >
                     <option value="ALL">All</option>
                     {MODEL_CATEGORIES.map((c) => (
@@ -541,11 +541,11 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-          <p className="text-xs text-gray-400">New unit will appear in the In-Transit table immediately.</p>
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 rounded-b-2xl">
+          <p className="text-xs text-gray-400 dark:text-gray-500">New unit will appear in the In-Transit table immediately.</p>
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose}>Cancel</Button>
-            <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700">
+            <Button variant="outline" onClick={onClose} className="dark:bg-gray-900 dark:border-gray-600 dark:hover:bg-gray-800 dark:text-gray-200">Cancel</Button>
+            <Button onClick={handleSubmit} className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700">
               Add Unit
             </Button>
           </div>

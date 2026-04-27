@@ -266,8 +266,8 @@ function FormField({
   };
 
   return (
-    <div className="flex py-3 border-b border-gray-100 last:border-0">
-      <div className="w-1/3 text-sm font-medium text-gray-700 flex items-center">
+    <div className="flex py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+      <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
         {label}
         {required && <span className="text-red-500 ml-1">*</span>}
       </div>
@@ -366,12 +366,12 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden mx-4">
+      <div className="relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-50 dark:from-blue-950 to-white dark:to-gray-900">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Add New Vehicle</h2>
-            <p className="text-sm text-gray-600">Fill in the vehicle details</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Add New Vehicle</h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Fill in the vehicle details</p>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -397,11 +397,11 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
         <div className="overflow-y-auto max-h-[calc(90vh-80px)] px-6 py-4">
           {/* Basic Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Basic Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <FormField label="CATEGORY" field="category" type="select" required formData={formData} updateField={updateField} />
               <FormField label="MODEL" field="model" type="select" required formData={formData} updateField={updateField} />
               <FormField label="CS NUMBER" field="csNo" type="text" required formData={formData} updateField={updateField} />
@@ -418,11 +418,11 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
 
           {/* Dealer & Status Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Dealer & Status Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <FormField label="DEALER" field="dealer" type="select" formData={formData} updateField={updateField} />
               <FormField label="STATUS" field="status" type="select" formData={formData} updateField={updateField} />
               <FormField label="REMARKS" field="remarks" type="text" formData={formData} updateField={updateField} />
@@ -433,11 +433,11 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
 
           {/* Timeline Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Timeline Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <FormField label="PULL OUT DATE" field="pullOut" type="date" formData={formData} updateField={updateField} />
               <FormField label="INVOICE DATE" field="invoiceDate" type="date" formData={formData} updateField={updateField} />
               <FormField label="RELEASED DATE" field="releaseDate" type="date" formData={formData} updateField={updateField} />
@@ -446,11 +446,11 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
 
           {/* Client & Sales Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Client & Sales Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <FormField label="NAME OF CLIENT" field="nameOfClient" type="text" formData={formData} updateField={updateField} />
               <FormField label="INVOICE NUMBER" field="invoiceNumber" type="text" formData={formData} updateField={updateField} />
               <FormField label="SALES CONSULTANT" field="salesConsultant" type="select" formData={formData} updateField={updateField} />
@@ -460,11 +460,11 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
 
           {/* Financial Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Financial Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <FormField label="TERMS" field="terms" type="text" formData={formData} updateField={updateField} />
               <FormField label="BANK" field="bank" type="select" formData={formData} updateField={updateField} />
               <FormField label="INVOICE AMOUNT (₱)" field="invoiceAmount" type="text" formData={formData} updateField={updateField} />
@@ -480,11 +480,11 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
           {/* Allocation Information (if category is ALLOCATION or AVAILABLE) */}
           {(formData.category === "ALLOCATION" || formData.category === "AVAILABLE") && (
             <div className="mb-6">
-              <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 <div className="h-1 w-8 bg-blue-600 rounded" />
                 Allocation Information
               </h3>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <FormField label="TAGGING ACCOUNT" field="taggingAccount" type="text" formData={formData} updateField={updateField} />
                 <FormField label="ALLOCATION TEAM" field="allocationTeam" type="text" formData={formData} updateField={updateField} />
                 <FormField label="DATE TAGGED" field="dateTagged" type="date" formData={formData} updateField={updateField} />

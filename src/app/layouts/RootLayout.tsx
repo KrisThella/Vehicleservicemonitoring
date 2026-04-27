@@ -25,18 +25,18 @@ export function RootLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
       {/* Left Sidebar */}
-      <aside className={`bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ${
+      <aside className={`bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col transition-all duration-300 ${
         isSidebarOpen ? "w-64" : "w-20"
       }`}>
-        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200">
-          {isSidebarOpen && <h1 className="font-bold text-lg text-blue-600">TSMPC</h1>}
+        <div className="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-800">
+          {isSidebarOpen && <h1 className="font-bold text-lg text-blue-600 dark:text-blue-400">TSMPC</h1>}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="hover:bg-gray-100"
+            className="hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             {isSidebarOpen ? <X className="size-5" /> : <Menu className="size-5" />}
           </Button>
@@ -50,8 +50,8 @@ export function RootLayout() {
                 to={item.path}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   isActive(item.path)
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : "text-gray-600 hover:bg-gray-50"
+                    ? "bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 font-medium"
+                    : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800"
                 }`}
                 title={!isSidebarOpen ? item.label : undefined}
               >
@@ -62,8 +62,8 @@ export function RootLayout() {
           })}
         </nav>
         {isSidebarOpen && (
-          <div className="p-4 border-t border-gray-200">
-            <div className="text-xs text-gray-500 text-center">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-800">
+            <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
               Shaw Motor Plaza Corp
             </div>
           </div>

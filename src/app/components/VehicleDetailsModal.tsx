@@ -295,11 +295,11 @@ function DetailRow({
   };
 
   return (
-    <div className="flex py-3 border-b border-gray-100 last:border-0">
-      <div className="w-1/3 text-sm font-medium text-gray-700 flex items-center">
+    <div className="flex py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+      <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
         {label}
       </div>
-      <div className="w-2/3 text-sm text-gray-900">{renderValue()}</div>
+      <div className="w-2/3 text-sm text-gray-900 dark:text-gray-100">{renderValue()}</div>
     </div>
   );
 }
@@ -396,13 +396,13 @@ export function VehicleDetailsModal({
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden mx-4">
+      <div className="relative bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden mx-4">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-50 dark:from-blue-950 to-white dark:to-gray-900">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Vehicle Details</h2>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Vehicle Details</h2>
             <div className="flex flex-2 items-center">
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
                 {currentVehicle.model} • {currentVehicle.plateNumber} •
               </div>
               <div className="text-sm px-1">{setStatusColor(currentVehicle.status)}</div>
@@ -426,7 +426,7 @@ export function VehicleDetailsModal({
                 Edit
               </Button>
             )}
-            <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-gray-100">
+            <Button variant="ghost" size="sm" onClick={onClose} className="hover:bg-gray-100 dark:hover:bg-gray-800">
               <X className="size-5" />
             </Button>
           </div>
@@ -437,11 +437,11 @@ export function VehicleDetailsModal({
 
           {/* Basic Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Basic Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <DetailRow label="MODEL" value={currentVehicle.model} field="model" type="select" {...rowProps} />
               <DetailRow label="CS NUMBER" value={currentVehicle.csNo} field="csNo" type="text" {...rowProps} />
               <DetailRow label="PLATE NUMBER" value={currentVehicle.plateNumber} field="plateNumber" type="text" {...rowProps} />
@@ -475,17 +475,17 @@ export function VehicleDetailsModal({
 
           {/* Dealer & Status Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Dealer & Status Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <DetailRow label="DEALER" value={currentVehicle.dealer} field="dealer" type="select" {...rowProps} />
               {isEditMode ? (
                 <DetailRow label="STATUS" value={currentVehicle.status} field="status" type="select" {...rowProps} />
               ) : (
-                <div className="flex py-3 border-b border-gray-100">
-                  <div className="w-1/3 text-sm font-medium text-gray-700">STATUS</div>
+                <div className="flex py-3 border-b border-gray-100 dark:border-gray-700">
+                  <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300">STATUS</div>
                   <div className="w-2/3 text-sm">{getStatusBadge(currentVehicle.status)}</div>
                 </div>
               )}
@@ -497,21 +497,21 @@ export function VehicleDetailsModal({
 
           {/* Pull Out & Timeline Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Timeline Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <DetailRow label="PULL OUT" value={currentVehicle.pullOut} field="pullOut" type="date" {...rowProps} />
-              <div className="flex py-3 border-b border-gray-100">
-                <div className="w-1/3 text-sm font-medium text-gray-700">DAYS</div>
+              <div className="flex py-3 border-b border-gray-100 dark:border-gray-700">
+                <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300">DAYS</div>
                 <div className="w-2/3 text-sm">
                   <Badge
                     variant="outline"
                     className={
                       calculateDays() > 7
-                        ? "bg-orange-50 text-orange-700 border-orange-200"
-                        : "bg-gray-50 text-gray-700 border-gray-200"
+                        ? "bg-orange-50 dark:bg-orange-950 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800"
+                        : "bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700"
                     }
                   >
                     {calculateDays()} days
@@ -525,11 +525,11 @@ export function VehicleDetailsModal({
 
           {/* Client & Sales Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Client & Sales Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <DetailRow label="NAME OF CLIENT" value={currentVehicle.nameOfClient} field="nameOfClient" type="text" {...rowProps} />
               <DetailRow label="INVOICE NUMBER" value={currentVehicle.invoiceNumber} field="invoiceNumber" type="text" {...rowProps} />
               <DetailRow label="SALES CONSULTANT" value={currentVehicle.salesConsultant} field="salesConsultant" type="select" {...rowProps} />
@@ -539,11 +539,11 @@ export function VehicleDetailsModal({
 
           {/* Financial Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Financial Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <DetailRow label="TERMS" value={currentVehicle.terms} field="terms" type="text" {...rowProps} />
               <DetailRow label="BANK" value={currentVehicle.bank} field="bank" type="select" {...rowProps} />
               <DetailRow label="INVOICE AMOUNT (₱)" value={currentVehicle.invoiceAmount} field="invoiceAmount" type="text" {...rowProps} />
@@ -559,11 +559,11 @@ export function VehicleDetailsModal({
           {/* Allocation & Available Information Section */}
           {(currentVehicle.category === "ALLOCATION" || currentVehicle.category === "AVAILABLE") && (
             <div className="mb-6">
-              <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 <div className="h-1 w-8 bg-blue-600 rounded" />
                 Allocation & Available Information
               </h3>
-              <div className="bg-gray-50 rounded-lg p-4">
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <DetailRow label="ENGINE NUMBER" value={currentVehicle.engineNo} field="engineNo" type="text" {...rowProps} />
                 <DetailRow label="REMARKS" value={currentVehicle.remarks} field="remarks" type="text" {...rowProps} />
                 <DetailRow label="DEALER" value={currentVehicle.dealer} field="dealer" type="select" {...rowProps} />
@@ -577,11 +577,11 @@ export function VehicleDetailsModal({
 
           {/* Additional Information Section */}
           <div className="mb-6">
-            <h3 className="text-base font-semibold text-gray-900 mb-3 flex items-center gap-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
               <div className="h-1 w-8 bg-blue-600 rounded" />
               Additional Information
             </h3>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <DetailRow label="EXTENDED WARRANTY" value={currentVehicle.extendedWarranty} field="extendedWarranty" type="text" {...rowProps} />
               <DetailRow label="LTO DOCUMENTS TRANSMITTAL" value={currentVehicle.ltoDocumentsTransmittal} field="ltoDocumentsTransmittal" type="text" {...rowProps} />
               <DetailRow label="VIN NUMBER" value={currentVehicle.vinNumber} field="vinNumber" type="text" {...rowProps} />
@@ -591,7 +591,7 @@ export function VehicleDetailsModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
           <Button variant="outline" onClick={onClose} className="min-w-[100px]">
             Close
           </Button>

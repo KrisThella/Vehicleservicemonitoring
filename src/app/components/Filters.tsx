@@ -49,14 +49,14 @@ export function Filters({
   const hasActiveFilters = selectedModel !== 'all' || selectedDealer !== 'all' || selectedStatus !== 'all' || !!dateFrom || !!dateTo || !!searchTerm;
 
   return (
-    <div className="bg-white border-b border-gray-200">
+    <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       {/* Collapsible Header Bar */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 dark:border-gray-800">
         <button
           onClick={() => setIsExpanded((v) => !v)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors group"
+          className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors group"
         >
-          <SlidersHorizontal className="size-4 text-gray-500 group-hover:text-blue-500" />
+          <SlidersHorizontal className="size-4 text-gray-500 dark:text-gray-400 group-hover:text-blue-500" />
           <span>Filters & Search</span>
           {hasActiveFilters && (
             <span className="inline-flex items-center justify-center size-4 rounded-full bg-blue-600 text-white text-[10px] font-bold">
@@ -64,19 +64,19 @@ export function Filters({
             </span>
           )}
           {isExpanded
-            ? <ChevronUp className="size-4 text-gray-400" />
-            : <ChevronDown className="size-4 text-gray-400" />}
+            ? <ChevronUp className="size-4 text-gray-400 dark:text-gray-500" />
+            : <ChevronDown className="size-4 text-gray-400 dark:text-gray-500" />}
         </button>
 
         {/* Always-visible compact search when collapsed */}
         {!isExpanded && (
           <div className="flex items-center gap-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-gray-500" />
               <input
                 type="text"
                 placeholder="Quick search..."
-                className="pl-9 pr-3 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 w-56"
+                className="pl-9 pr-3 py-1.5 text-sm border border-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 w-56"
                 value={searchTerm}
                 onChange={(e) => onSearchChange(e.target.value)}
               />
@@ -91,7 +91,7 @@ export function Filters({
                   onDateFromChange(undefined);
                   onDateToChange(undefined);
                 }}
-                className="text-xs text-blue-600 hover:text-blue-700 font-medium px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
               >
                 Clear All
               </button>
@@ -110,7 +110,7 @@ export function Filters({
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'all'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               All Inventory
@@ -120,7 +120,7 @@ export function Filters({
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'DEMO'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Demo
@@ -130,7 +130,7 @@ export function Filters({
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'SALES'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Sales
@@ -140,7 +140,7 @@ export function Filters({
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'ALLOCATION'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Allocation
@@ -150,7 +150,7 @@ export function Filters({
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'AVAILABLE'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-sm00'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Available
@@ -160,7 +160,7 @@ export function Filters({
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'IN TRANSIT'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               In Transit
@@ -170,7 +170,7 @@ export function Filters({
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'PULL OUT MONITORING'
                   ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
               }`}
             >
               Pull Out Monitoring
@@ -202,8 +202,8 @@ export function Filters({
           {/* Filters Row */}
           <div className="flex items-center gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <Filter className="size-4 text-gray-500" />
-              <span className="text-xs font-medium text-gray-700">Filters:</span>
+              <Filter className="size-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Filters:</span>
             </div>
 
             {/* Model Filter */}

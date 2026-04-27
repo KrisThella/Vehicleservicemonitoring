@@ -82,13 +82,13 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
       />
 
       {/* Panel */}
-      <div className="relative w-[480px] h-full bg-white border-l border-gray-200 shadow-xl flex flex-col">
+      <div className="relative w-[480px] h-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-800 shadow-xl flex flex-col">
         {/* Header */}
-        <div className="border-b border-gray-200 p-6">
+        <div className="border-b border-gray-200 dark:border-gray-800 p-6">
           <div className="flex items-start justify-between mb-4">
             <div className="flex-1">
-              <h2 className="text-lg font-semibold text-gray-900">Service History</h2>
-              <p className="text-sm text-gray-500 mt-1">Complete timeline and actions</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Service History</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Complete timeline and actions</p>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="size-5" />
@@ -96,9 +96,9 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
           </div>
 
           {/* Vehicle Info */}
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium text-gray-900">{vehicle.model}</h3>
+              <h3 className="font-medium text-gray-900 dark:text-gray-100">{vehicle.model}</h3>
               <Badge
                 variant="outline"
                 className={
@@ -122,20 +122,20 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
             </div>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
-                <span className="text-gray-500">CS Number:</span>
-                <p className="font-medium text-gray-900">{vehicle.csNo}</p>
+                <span className="text-gray-500 dark:text-gray-400">CS Number:</span>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{vehicle.csNo}</p>
               </div>
               <div>
-                <span className="text-gray-500">Plate:</span>
-                <p className="font-medium text-gray-900">{vehicle.plateNumber}</p>
+                <span className="text-gray-500 dark:text-gray-400">Plate:</span>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{vehicle.plateNumber}</p>
               </div>
               <div>
-                <span className="text-gray-500">Chassis:</span>
-                <p className="font-medium text-gray-900 font-mono text-xs">{vehicle.chassisNo}</p>
+                <span className="text-gray-500 dark:text-gray-400">Chassis:</span>
+                <p className="font-medium text-gray-900 dark:text-gray-100 font-mono text-xs">{vehicle.chassisNo}</p>
               </div>
               <div>
-                <span className="text-gray-500">Location:</span>
-                <p className="font-medium text-gray-900">{vehicle.location}</p>
+                <span className="text-gray-500 dark:text-gray-400">Location:</span>
+                <p className="font-medium text-gray-900 dark:text-gray-100">{vehicle.location}</p>
               </div>
             </div>
           </div>
@@ -148,28 +148,28 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
               <div key={entry.id} className="relative">
                 {/* Timeline Line */}
                 {index < history.length - 1 && (
-                  <div className="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-200" />
+                  <div className="absolute left-[11px] top-8 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-700" />
                 )}
 
                 {/* Entry */}
                 <div className="flex gap-4">
                   <div className="relative flex-shrink-0 mt-1">
-                    <div className="size-6 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center">
+                    <div className="size-6 rounded-full bg-white dark:bg-gray-900 border-2 border-gray-200 dark:border-gray-700 flex items-center justify-center">
                       {getStatusIcon(entry.status)}
                     </div>
                   </div>
                   <div className="flex-1 pb-4">
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-gray-300 transition-colors">
+                    <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
                       <div className="flex items-start justify-between mb-2">
                         <div>
-                          <h4 className="font-medium text-gray-900">{entry.action}</h4>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <h4 className="font-medium text-gray-900 dark:text-gray-100">{entry.action}</h4>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                             {format(entry.timestamp, 'MMM dd, yyyy • hh:mm a')}
                           </p>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">{entry.details}</p>
-                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mb-3">{entry.details}</p>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                         <User className="size-3" />
                         <span>{entry.user}</span>
                       </div>

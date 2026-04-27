@@ -301,11 +301,11 @@ export function VehicleTable({
   };
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
               <TableHead className="w-[50px]">#</TableHead>
               <TableHead>
                 <button
@@ -389,12 +389,12 @@ export function VehicleTable({
                 key={vehicle.id}
                 className={
                   vehicle.overdue
-                    ? "bg-red-50 cursor-pointer hover:bg-red-100 transition-colors"
-                    : "cursor-pointer hover:bg-gray-50 transition-colors"
+                    ? "bg-red-50 dark:bg-red-950/40 cursor-pointer hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
+                    : "cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 }
                 onClick={() => handleViewDetails(vehicle)}
               >
-                <TableCell className="text-gray-500">
+                <TableCell className="text-gray-500 dark:text-gray-400">
                   {index + 1}
                 </TableCell>
                 <TableCell className="font-medium">
