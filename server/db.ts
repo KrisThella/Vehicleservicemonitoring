@@ -1,0 +1,77 @@
+import Database from 'better-sqlite3';
+import path from 'path';
+import fs from 'fs';
+
+const DATA_DIR = path.resolve(process.cwd(), 'data');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+const DB_PATH = path.join(DATA_DIR, 'tsmpc.db');
+export const db = new Database(DB_PATH);
+
+db.pragma('journal_mode = WAL');
+db.pragma('foreign_keys = ON');
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS vehicles (
+    id TEXT PRIMARY KEY,
+    data TEXT NOT NULL,
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS prices (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    category TEXT NOT NULL,
+    model TEXT NOT NULL UNIQUE,
+    srp TEXT NOT NULL DEFAULT '',
+    dnp TEXT NOT NULL DEFAULT '',
+    ws_subsidy TEXT NOT NULL DEFAULT '',
+    dnp_less_ws_subsidy TEXT NOT NULL DEFAULT '',
+    ewt TEXT NOT NULL DEFAULT '',
+    po_amount TEXT NOT NULL DEFAULT '',
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS profile (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    name TEXT NOT NULL,
+    role TEXT NOT NULL,
+    email TEXT NOT NULL,
+    image_data_url TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS pull_outs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    description TEXT NOT NULL,
+    sph_allocation INTEGER NOT NULL DEFAULT 0,
+    date_of_confirmation TEXT NOT NULL DEFAULT '',
+    confirmed_units INTEGER NOT NULL DEFAULT 0,
+    pulled_out INTEGER NOT NULL DEFAULT 0,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    description TEXT NOT NULL,
+    number_of_units INTEGER NOT NULL DEFAULT 0,
+    total_amount REAL NOT NULL DEFAULT 0,
+    date_of_payment TEXT NOT NULL DEFAULT '',
+    remarks TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS inventory_rows (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    year INTEGER NOT NULL,
+    month_index INTEGER NOT NULL,
+    beginning INTEGER,
+    wholesale INTEGER,
+    retail_sales INTEGER,
+    actual_wholesales INTEGER,
+    UNIQUE(year, month_index)
+  );
+`);

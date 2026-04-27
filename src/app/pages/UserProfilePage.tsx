@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Camera, Upload, Crop, Check, X, RotateCcw, Move } from 'lucide-react';
+import { ArrowLeft, Camera, Upload, Crop, Check, X, RotateCcw, Move, Pencil } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
+import { useProfile } from '../../lib/api';
 import UserPic from '../components/source/Userpic.jpg';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -351,11 +352,21 @@ function CropModal({
 export function UserProfilePage() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { profile, saveProfile } = useProfile();
 
   const [profileImage, setProfileImage] = useState<string>(UserPic);
-  const [name, setName] = useState('Donna Ricci');
-  const [role, setRole] = useState('Admin User');
-  const [email, setEmail] = useState('donna.ricci@tsmpc.com');
+  const [name, setName] = useState('');
+  const [role, setRole] = useState('');
+  const [email, setEmail] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name);
+      setRole(profile.role);
+      setEmail(profile.email);
+      if (profile.image_data_url) setProfileImage(profile.image_data_url);
+    }
+  }, [profile]);
 
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [rawImageSrc, setRawImageSrc] = useState('');
@@ -407,10 +418,15 @@ export function UserProfilePage() {
     else toast.error('Please drop an image file');
   };
 
-  const handleCropApply = (croppedDataUrl: string) => {
+  const handleCropApply = async (croppedDataUrl: string) => {
     setProfileImage(croppedDataUrl);
     setIsCropModalOpen(false);
-    toast.success('Profile photo updated successfully!');
+    try {
+      await saveProfile({ name, role, email, image_data_url: croppedDataUrl });
+      toast.success('Profile photo updated successfully!');
+    } catch (e: any) {
+      toast.error(`Failed to save photo: ${e.message}`);
+    }
   };
 
   const handleCropCancel = () => {
@@ -418,7 +434,14 @@ export function UserProfilePage() {
     setRawImageSrc('');
   };
 
-  const handleSave = () => toast.success('Profile updated successfully!');
+  const handleSave = async () => {
+    try {
+      await saveProfile({ name, role, email, image_data_url: profileImage === UserPic ? null : profileImage });
+      toast.success('Profile updated successfully!');
+    } catch (e: any) {
+      toast.error(`Failed to save: ${e.message}`);
+    }
+  };
 
   // ─── Render ──────────────────────────────────────────────────────────────────
 
@@ -453,13 +476,22 @@ export function UserProfilePage() {
                     type="button"
                     onClick={() => openCropModal(profileImage)}
                     title="Click to crop your profile photo"
-                    className="group relative w-36 h-36 rounded-full overflow-hidden border-4 border-gray-100 flex-shrink-0 shadow-sm cursor-pointer hover:border-blue-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2"
+                    className="group relative w-36 h-36 flex-shrink-0 cursor-pointer focus:outline-none"
                   >
-                    <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100">
-                      <Crop className="size-6 mb-1" />
-                      <span className="text-xs font-medium">Crop Photo</span>
+                    <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-gray-100 shadow-sm group-hover:border-blue-300 group-focus:ring-2 group-focus:ring-blue-400 group-focus:ring-offset-2 transition-colors">
+                      <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 pointer-events-none">
+                        <Crop className="size-6 mb-1" />
+                        <span className="text-xs font-medium">Crop Photo</span>
+                      </div>
                     </div>
+                    {/* Pencil edit badge */}
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-1 right-1 inline-flex items-center justify-center size-9 rounded-full bg-blue-600 text-white border-2 border-white shadow-md group-hover:bg-blue-700 transition-colors"
+                    >
+                      <Pencil className="size-4" />
+                    </span>
                   </button>
 
                   {/* Upload area */}

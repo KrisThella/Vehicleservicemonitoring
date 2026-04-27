@@ -177,7 +177,7 @@ export function NextCutOffPage() {
 
   return (
     <>
-      <Header onOpenPricing={() => {}} />
+      <Header />
 
       <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
         {/* ── Page Header ───────────────────────────────────────────── */}
