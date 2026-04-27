@@ -1,4 +1,4 @@
-import { X, Clock, User, CheckCircle, AlertCircle } from 'lucide-react';
+import { X, Clock, User, FileText, CheckCircle, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
@@ -181,6 +181,13 @@ export function HistoryPanel({ vehicle, onClose }: HistoryPanelProps) {
           </div>
         </ScrollArea>
 
+        {/* Footer */}
+        <div className="border-t border-gray-200 p-4">
+          <Button className="w-full" variant="outline">
+            <FileText className="size-4 mr-2" />
+            Export Full History
+          </Button>
+        </div>
       </div>
     </div>
   );

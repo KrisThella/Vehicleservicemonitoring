@@ -75,7 +75,7 @@ const today = new Date('2026-04-10');
 const mockTransitUnits: InTransitUnit[] = [
   {
     id: 'it-001',
-    model: 'ERTIGA 1.5 GL MT',
+    model: 'ERTIGA 1.5 GL MT HYBRID',
     color: 'METALLIC PREMIUM SILVER',
     chassisNo: 'MAFHA21SXM7100221',
     engineNo: 'G15B-ZA1002211',
@@ -86,7 +86,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'LBC EXPRESS INC.',
     dealer: 'TEAM AARON',
     poNumber: 'PO30112',
-    poAmount: 880_000,
+    poAmount: 1_022_833.30,
     pullOutDate: 'Apr 02, 2026',
     pullOutDateRaw: new Date('2026-04-02'),
     colorCode: 'ZMC',
@@ -100,7 +100,7 @@ const mockTransitUnits: InTransitUnit[] = [
   },
   {
     id: 'it-002',
-    model: 'DZIRE GL MT',
+    model: 'DZIRE GL CVT HYBRID',
     color: 'SOLID FIRE RED',
     chassisNo: 'MAFMG22SXM7200445',
     engineNo: 'K14B-ZA2004451',
@@ -111,7 +111,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'MS. ANNA REYES',
     dealer: 'TEAM JAY-R',
     poNumber: 'PO30234',
-    poAmount: 695_000,
+    poAmount: 811_162.50,
     pullOutDate: 'Apr 03, 2026',
     pullOutDateRaw: new Date('2026-04-03'),
     colorCode: 'ZHH',
@@ -125,7 +125,7 @@ const mockTransitUnits: InTransitUnit[] = [
   },
   {
     id: 'it-003',
-    model: 'SWIFT GL MT',
+    model: 'SWIFT GL CVT',
     color: 'METALLIC MAGMA GRAY 2',
     chassisNo: 'MAFZD51SXM7300678',
     engineNo: 'Z12E-ZA3006781',
@@ -136,7 +136,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'MR. CARLOS DELA CRUZ',
     dealer: 'TEAM JM',
     poNumber: 'PO30345',
-    poAmount: 850_000,
+    poAmount: 842_880.27,
     pullOutDate: 'Apr 01, 2026',
     pullOutDateRaw: new Date('2026-04-01'),
     colorCode: 'ZJJ',
@@ -161,7 +161,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: '— (DEMO)',
     dealer: 'TEAM AARON',
     poNumber: 'PO30056',
-    poAmount: 648_000,
+    poAmount: 588_919.11,
     pullOutDate: 'Mar 28, 2026',
     pullOutDateRaw: new Date('2026-03-28'),
     colorCode: 'ZQF',
@@ -175,7 +175,7 @@ const mockTransitUnits: InTransitUnit[] = [
   },
   {
     id: 'it-005',
-    model: 'FRONX GL HYBRID',
+    model: 'FRONX GLX AT HYBRID',
     color: 'METALLIC GRANDEUR GRAY',
     chassisNo: 'MAFFY22SXM7500339',
     engineNo: 'Z12E-ZA5003391',
@@ -186,7 +186,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'ATTY. JOSE MIRANDA',
     dealer: 'TEAM JM',
     poNumber: 'PO30489',
-    poAmount: 1_165_000,
+    poAmount: 1_120_833.84,
     pullOutDate: 'Apr 05, 2026',
     pullOutDateRaw: new Date('2026-04-05'),
     colorCode: 'ZLH',
@@ -200,7 +200,7 @@ const mockTransitUnits: InTransitUnit[] = [
   },
   {
     id: 'it-006',
-    model: 'CELERIO 1.0 GL MT',
+    model: 'CELERIO 1.0 GL AGS',
     color: 'PEARL METALLIC ORANGE RED',
     chassisNo: 'MAFLA31SXM7600554',
     engineNo: 'Z10A-ZA6005541',
@@ -211,7 +211,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'MR. RODEL BAUTISTA',
     dealer: 'TEAM JAY-R',
     poNumber: 'PO30200',
-    poAmount: 598_000,
+    poAmount: 652_832.50,
     pullOutDate: 'Mar 25, 2026',
     pullOutDateRaw: new Date('2026-03-25'),
     colorCode: 'ZQQ',
@@ -225,7 +225,7 @@ const mockTransitUnits: InTransitUnit[] = [
   },
   {
     id: 'it-007',
-    model: 'ERTIGA 1.5 GA MT',
+    model: 'ERTIGA 1.5 GA MT HYBRID',
     color: 'SOLID WHITE',
     chassisNo: 'MAFHA21SXM7700788',
     engineNo: 'G15B-ZA7007881',
@@ -236,7 +236,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'MAKATI CITY LGU',
     dealer: 'TEAM AARON',
     poNumber: 'PO30560',
-    poAmount: 855_000,
+    poAmount: 892_756.61,
     pullOutDate: 'Apr 04, 2026',
     pullOutDateRaw: new Date('2026-04-04'),
     colorCode: 'ZW4',
@@ -261,7 +261,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'SECURITY BANK',
     dealer: 'TEAM JM',
     poNumber: 'PO30622',
-    poAmount: 1_045_000,
+    poAmount: 874_199.82,
     pullOutDate: 'Apr 06, 2026',
     pullOutDateRaw: new Date('2026-04-06'),
     colorCode: 'ZMC',
@@ -275,7 +275,7 @@ const mockTransitUnits: InTransitUnit[] = [
   },
   {
     id: 'it-009',
-    model: 'JIMNY 1.5 GL AT',
+    model: 'JIMNY 1.5 GL MT SS',
     color: 'SOLID JUNGLE GREEN',
     chassisNo: 'MAFSN51SXM7901234',
     engineNo: 'M15A-ZA9012341',
@@ -286,7 +286,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'MR. DIEGO SANTOS',
     dealer: 'TEAM JAY-R',
     poNumber: 'PO30710',
-    poAmount: 1_398_000,
+    poAmount: 1_190_864.80,
     pullOutDate: 'Apr 07, 2026',
     pullOutDateRaw: new Date('2026-04-07'),
     colorCode: 'Z6S',
@@ -299,33 +299,8 @@ const mockTransitUnits: InTransitUnit[] = [
     remarks2: 'Waiting for OR/CR – PSB',
   },
   {
-    id: 'it-011',
-    model: 'SWIFT GL CVT',
-    color: 'SOLID PEARL WHITE',
-    chassisNo: 'MAFZD51SXM8100667',
-    engineNo: 'Z12E-ZA1006671',
-    remarks: 'Cash buyer – urgent',
-    pullOutLocation: 'SPH LAGUNA WAREHOUSE',
-    csNo: 'UE00899',
-    yearModel: 2026,
-    clientName: 'MS. KATHLEEN TAN',
-    dealer: 'TEAM JM',
-    poNumber: 'PO30900',
-    poAmount: 930_000,
-    pullOutDate: 'Apr 09, 2026',
-    pullOutDateRaw: new Date('2026-04-09'),
-    colorCode: 'YK9',
-    declaredMonth: 'April 2026',
-    currentLocation: 'TSMPC SHAW – PARKING A',
-    dpReservation: '₱93,000',
-    status: 'ARRIVED – FOR INSPECTION',
-    targetReleaseDate: 'Apr 12, 2026',
-    targetReleaseDateRaw: new Date('2026-04-12'),
-    remarks2: 'Inspection scheduled – Apr 10',
-  },
-  {
     id: 'it-012',
-    model: 'FRONX GL+ HYBRID',
+    model: 'FRONX GLX HYBRID (TWO-TONW)',
     color: 'METALLIC MINERAL GRAY',
     chassisNo: 'MAFFY22SXM8200780',
     engineNo: 'Z12E-ZA2007801',
@@ -336,7 +311,7 @@ const mockTransitUnits: InTransitUnit[] = [
     clientName: 'MRS. ELENA QUISUMBING',
     dealer: 'TEAM JAY-R',
     poNumber: 'PO30950',
-    poAmount: 1_230_000,
+    poAmount: 1_130_191.88,
     pullOutDate: 'Mar 30, 2026',
     pullOutDateRaw: new Date('2026-03-30'),
     colorCode: 'ZLG',
@@ -423,6 +398,7 @@ function StatusBadge({ status }: { status: TransitStatus }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function InTransitPage() {
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [search, setSearch] = useState('');
   const [filterModel, setFilterModel] = useState('all');
@@ -494,7 +470,7 @@ export function InTransitPage() {
 
   return (
     <>
-      <Header />
+      <Header onOpenPricing={() => setShowPricingModal(true)} />
 
       <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
 

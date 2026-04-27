@@ -9,6 +9,7 @@ import { PriceListPage } from "./pages/PriceListPage";
 import { CombinedSalesPage } from "./pages/CombinedSalesPage";
 import { PullOutMonitoringPage } from "./pages/PullOutMonitoringPage";
 import { InTransitPage } from "./pages/InTransitPage";
+import { NextCutOffPage } from "./pages/NextCutOffPage";
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { path: "available", Component: AvailablePage },
       { path: "in-transit", Component: InTransitPage },
       { path: "pull-out-monitoring", Component: PullOutMonitoringPage },
+      { path: "next-cut-off", Component: NextCutOffPage },
       { path: "combined-sales", Component: CombinedSalesPage },
       { path: "settings", Component: SettingsPage },
       { path: "settings/profile", Component: UserProfilePage },

@@ -5,16 +5,17 @@ import { Filters } from '../components/Filters';
 import { StatsCards } from '../components/StatsCards';
 import { VehicleTable, VehicleData } from '../components/VehicleTable';
 import { HistoryPanel } from '../components/HistoryPanel';
+import { PricingModal } from '../components/PricingModal';
 import { AddVehicleModal } from '../components/AddVehicleModal';
 import { VehicleDetailsModal } from '../components/VehicleDetailsModal';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
-import { useVehicles } from '../../lib/api';
+import { mockVehicles } from '../data/vehicleData';
 import { useLocation } from 'react-router';
 
 export function DashboardPage() {
   const location = useLocation();
-  const { vehicles, addVehicle } = useVehicles();
+  const [vehicles, setVehicles] = useState<VehicleData[]>(mockVehicles);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModel, setSelectedModel] = useState('all');
   const [selectedDealer, setSelectedDealer] = useState('all');
@@ -25,6 +26,7 @@ export function DashboardPage() {
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleData | null>(null);
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleData | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showPricingModal, setShowPricingModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
   // Handle navigation state from notification dropdown
@@ -105,18 +107,14 @@ export function DashboardPage() {
     setSelectedVehicle(vehicle);
   };
 
-  const handleAddVehicle = async (newVehicle: VehicleData) => {
-    try {
-      await addVehicle(newVehicle);
-      toast.success('Vehicle added successfully!');
-    } catch (e: any) {
-      toast.error(`Failed to add vehicle: ${e.message}`);
-    }
+  const handleAddVehicle = (newVehicle: VehicleData) => {
+    setVehicles([...vehicles, newVehicle]);
+    toast.success('Vehicle added successfully!');
   };
 
   return (
     <>
-      <Header />
+      <Header onOpenPricing={() => setShowPricingModal(true)} />
       
       <Filters
         searchTerm={searchTerm}
@@ -168,6 +166,11 @@ export function DashboardPage() {
           vehicle={selectedVehicle}
           onClose={() => setSelectedVehicle(null)}
         />
+      )}
+
+      {/* Pricing Modal */}
+      {showPricingModal && (
+        <PricingModal onClose={() => setShowPricingModal(false)} />
       )}
 
       {/* Add Vehicle Modal */}
