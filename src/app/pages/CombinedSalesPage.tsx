@@ -14,7 +14,9 @@ import {
 } from 'lucide-react';
 import { VehicleData } from '../components/VehicleTable';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 import { useVehicles } from '../../lib/api';
+import { exportToExcel, todayStamp } from '../../lib/exportExcel';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import {
@@ -129,9 +131,26 @@ export function CombinedSalesPage() {
   };
 
   const handleExportData = () => {
-    // Mock export functionality
-    console.log('Exporting data...', filteredVehicles);
-    alert('Export functionality would be implemented here');
+    const rows = filteredVehicles.map((v) => ({
+      'Model': v.model,
+      'Category': v.category,
+      'Chassis No.': v.chassisNo,
+      'Engine No.': v.engineNo,
+      'Color': v.color,
+      'Year Model': v.yearModel,
+      'Client Name': v.clientName,
+      'Dealer': v.dealer,
+      'Status': v.status,
+      'PO Number': v.poNumber,
+      'PO Amount': v.poAmount,
+      'CS No.': v.csNo,
+      'Declared Month': v.declaredMonth,
+      'Pull-Out Date': v.pullOutDate,
+      'Current Location': v.currentLocation,
+      'Remarks': v.remarks,
+    }));
+    exportToExcel(rows, `combined-sales-${currentYear}-${todayStamp()}`, 'Combined Sales');
+    toast.success(`Exported ${rows.length} record(s) to Excel`);
   };
 
   return (

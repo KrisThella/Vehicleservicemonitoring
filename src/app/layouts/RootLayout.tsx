@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router";
-import { LayoutDashboard, TrendingUp, Package, Menu, X, FileBarChart, ArrowDownToLine, Truck, CreditCard } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Package, Menu, X, FileBarChart, ArrowDownToLine, Truck, CalendarClock } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 
@@ -13,7 +13,7 @@ export function RootLayout() {
     { path: "/available", label: "AVAILABLE", icon: Package },
     { path: "/in-transit", label: "IN TRANSIT", icon: Truck },
     { path: "/pull-out-monitoring", label: "PULL OUT MONITORING", icon: ArrowDownToLine },
-    { path: "/next-cut-off", label: "NEXT CUT-OFF", icon: CreditCard },
+    { path: "/next-cut-off", label: "NEXT CUT-OFF", icon: CalendarClock },
     { path: "/combined-sales", label: "COMBINED SALES", icon: FileBarChart },
   ];
 

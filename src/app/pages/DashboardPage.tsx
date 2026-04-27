@@ -9,6 +9,7 @@ import { AddVehicleModal } from '../components/AddVehicleModal';
 import { VehicleDetailsModal } from '../components/VehicleDetailsModal';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
+import { exportToExcel, todayStamp } from '../../lib/exportExcel';
 import { useVehicles } from '../../lib/api';
 import { useLocation } from 'react-router';
 
@@ -98,7 +99,26 @@ export function DashboardPage() {
   };
 
   const handleExport = () => {
-    toast.success('Exporting data to CSV...');
+    const rows = filteredVehicles.map((v) => ({
+      'Model': v.model,
+      'Category': v.category,
+      'Chassis No.': v.chassisNo,
+      'Engine No.': v.engineNo,
+      'Color': v.color,
+      'Year Model': v.yearModel,
+      'Client Name': v.clientName,
+      'Dealer': v.dealer,
+      'Status': v.status,
+      'PO Number': v.poNumber,
+      'PO Amount': v.poAmount,
+      'CS No.': v.csNo,
+      'Declared Month': v.declaredMonth,
+      'Pull-Out Date': v.pullOutDate,
+      'Current Location': v.currentLocation,
+      'Remarks': v.remarks,
+    }));
+    exportToExcel(rows, `dashboard-vehicles-${todayStamp()}`, 'Vehicles');
+    toast.success(`Exported ${rows.length} vehicle(s) to Excel`);
   };
 
   const handleViewHistory = (vehicle: VehicleData) => {

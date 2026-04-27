@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from '../components/ui/select';
 import { AddInTransitModal, InTransitEntry } from '../components/AddInTransitModal';
+import { toast } from 'sonner';
+import { exportToExcel, todayStamp } from '../../lib/exportExcel';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -446,6 +448,30 @@ export function InTransitPage() {
     setFilterStatus('all');
   };
 
+  const handleExport = () => {
+    const rows = filtered.map((u) => ({
+      'Model': u.model,
+      'Color': u.color,
+      'Color Code': u.colorCode,
+      'Chassis No.': u.chassisNo,
+      'Engine No.': u.engineNo,
+      'Year Model': u.yearModel,
+      'Client Name': u.clientName,
+      'Dealer': u.dealer,
+      'PO Number': u.poNumber,
+      'PO Amount': u.poAmount,
+      'CS No.': u.csNo,
+      'Pull-Out Location': u.pullOutLocation,
+      'Pull-Out Date': u.pullOutDate,
+      'Declared Month': u.declaredMonth,
+      'Current Location': u.currentLocation,
+      'Status': u.status,
+      'Remarks': u.remarks,
+    }));
+    exportToExcel(rows, `in-transit-${todayStamp()}`, 'In Transit');
+    toast.success(`Exported ${rows.length} unit(s) to Excel`);
+  };
+
   // Summary counts
   const totalUnits = mockTransitUnits.length;
   const inTransitCount = mockTransitUnits.filter((u) => u.status === 'IN TRANSIT').length;
@@ -487,7 +513,7 @@ export function InTransitPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={handleExport}>
               <Download className="size-4 mr-1.5" />
               Export
             </Button>
