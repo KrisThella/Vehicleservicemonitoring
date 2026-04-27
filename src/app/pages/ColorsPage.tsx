@@ -5,6 +5,7 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { useColors, type ColorRecord } from '../../lib/api';
+import { colorHexMap } from '../components/utils/colorMapping';
 
 // ── Color conversion helpers (HSV ↔ HEX) ─────────────────────────────────
 
@@ -303,6 +304,36 @@ function ColorFormModal({
         </div>
 
         <div className="overflow-y-auto px-6 py-5 space-y-5">
+          {/* Predefined Colors Dropdown */}
+          <div>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Select from Predefined Colors <span className="text-gray-400">(optional)</span>
+            </label>
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  const selectedName = e.target.value;
+                  const selectedHex = colorHexMap[selectedName];
+                  if (selectedHex) {
+                    setName(selectedName);
+                    setHex(selectedHex.toLowerCase());
+                  }
+                  e.target.value = ''; // Reset dropdown
+                }
+              }}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">-- Choose a vehicle color --</option>
+              {Object.keys(colorHexMap)
+                .sort()
+                .map((colorName) => (
+                  <option key={colorName} value={colorName}>
+                    {colorName}
+                  </option>
+                ))}
+            </select>
+          </div>
+
           {/* Name */}
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">

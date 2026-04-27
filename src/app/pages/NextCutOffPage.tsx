@@ -86,30 +86,30 @@ const STATUS_CFG: Record<
 > = {
   PENDING: {
     label: "Pending",
-    bg: "bg-yellow-50",
-    text: "text-yellow-700",
-    border: "border-yellow-200",
+    bg: "bg-yellow-50 dark:bg-yellow-900/20",
+    text: "text-yellow-700 dark:text-yellow-300",
+    border: "border-yellow-200 dark:border-yellow-800",
     dot: "bg-yellow-400",
   },
   PROCESSING: {
     label: "Processing",
-    bg: "bg-blue-50",
-    text: "text-blue-700",
-    border: "border-blue-200",
+    bg: "bg-blue-50 dark:bg-blue-900/20",
+    text: "text-blue-700 dark:text-blue-300",
+    border: "border-blue-200 dark:border-blue-800",
     dot: "bg-blue-500",
   },
   PAID: {
     label: "Paid",
-    bg: "bg-green-50",
-    text: "text-green-700",
-    border: "border-green-200",
+    bg: "bg-green-50 dark:bg-green-900/20",
+    text: "text-green-700 dark:text-green-300",
+    border: "border-green-200 dark:border-green-800",
     dot: "bg-green-500",
   },
   OVERDUE: {
     label: "Overdue",
-    bg: "bg-red-50",
-    text: "text-red-700",
-    border: "border-red-200",
+    bg: "bg-red-50 dark:bg-red-900/20",
+    text: "text-red-700 dark:text-red-300",
+    border: "border-red-200 dark:border-red-800",
     dot: "bg-red-500",
   },
 };
@@ -196,10 +196,10 @@ export function NextCutOffPage() {
               <CreditCard className="size-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
+              <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
                 Next Cut-Off for Payment
               </h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 Manage upcoming payment schedules for vehicle
                 pull-out batches
               </p>
@@ -226,7 +226,7 @@ export function NextCutOffPage() {
             icon={
               <Calculator className="size-5 text-indigo-600" />
             }
-            iconBg="bg-indigo-50"
+            iconBg="bg-indigo-50 dark:bg-indigo-950"
           />
           <SummaryCard
             label="Total Units"
@@ -235,14 +235,14 @@ export function NextCutOffPage() {
             icon={
               <CreditCard className="size-5 text-blue-600" />
             }
-            iconBg="bg-blue-50"
+            iconBg="bg-blue-50 dark:bg-blue-950"
           />
           <SummaryCard
             label="Total Amount Due"
             value={formatPhp(totals.amount)}
             sub="all batches combined"
             icon={<Clock className="size-5 text-amber-600" />}
-            iconBg="bg-amber-50"
+            iconBg="bg-amber-50 dark:bg-amber-950"
             wide
           />
           <SummaryCard
@@ -252,30 +252,30 @@ export function NextCutOffPage() {
             icon={
               <CheckCircle2 className="size-5 text-green-600" />
             }
-            iconBg="bg-green-50"
+            iconBg="bg-green-50 dark:bg-green-950"
           />
         </div>
 
         {/* ── Current Month for Payment ─────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-green-50 flex items-center justify-between">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-emerald-50 dark:from-emerald-950 to-green-50 dark:to-green-950 flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-emerald-900">
+              <h2 className="font-semibold text-emerald-900 dark:text-emerald-100">
                 Current Month for Payment
               </h2>
-              <p className="text-xs text-emerald-700 mt-0.5">
+              <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
                 {paymentRows.length} payment record(s) for the
                 current month
               </p>
             </div>
-            <span className="text-sm font-semibold text-emerald-800">
+            <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
               {formatPhp(cmTotalAmount)} total
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                   <Th>Description</Th>
                   <Th right>Number of Units</Th>
                   <Th right>Total Amount</Th>
@@ -288,7 +288,7 @@ export function NextCutOffPage() {
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-4 py-6 text-center text-sm text-gray-400"
+                      className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500"
                     >
                       Loading…
                     </td>
@@ -297,7 +297,7 @@ export function NextCutOffPage() {
                   <tr>
                     <td
                       colSpan={5}
-                      className="px-4 py-6 text-center text-sm text-gray-400"
+                      className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500"
                     >
                       No payments recorded yet.
                     </td>
@@ -331,14 +331,14 @@ export function NextCutOffPage() {
               </tbody>
               {paymentRows.length > 0 && (
                 <tfoot>
-                  <tr className="bg-emerald-50 border-t-2 border-emerald-200">
-                    <td className="px-4 py-3 text-sm font-bold text-emerald-800">
+                  <tr className="bg-emerald-50 dark:bg-emerald-950 border-t-2 border-emerald-200 dark:border-emerald-800">
+                    <td className="px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200">
                       Total
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-emerald-800 text-right">
+                    <td className="px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 text-right">
                       {cmTotalUnits}
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-emerald-800 text-right whitespace-nowrap">
+                    <td className="px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 text-right whitespace-nowrap">
                       {formatPhp(cmTotalAmount)}
                     </td>
                     <td className="px-4 py-3" colSpan={2} />
@@ -350,18 +350,18 @@ export function NextCutOffPage() {
         </div>
 
         {/* ── Payment Table ─────────────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-blue-50">
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-indigo-50 dark:from-indigo-950 to-blue-50 dark:to-blue-950">
             <div>
-              <h2 className="font-semibold text-indigo-900">
+              <h2 className="font-semibold text-indigo-900 dark:text-indigo-100">
                 Payment Schedule
               </h2>
-              <p className="text-xs text-indigo-600 mt-0.5">
+              <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-0.5">
                 {rows.length} entries · Click a row to edit
                 inline
               </p>
             </div>
-            <span className="text-sm font-semibold text-indigo-700">
+            <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-200">
               {formatPhp(totals.amount)} total
             </span>
           </div>
@@ -369,7 +369,7 @@ export function NextCutOffPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
+                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                   <Th>#</Th>
                   <Th>Description / Model</Th>
                   <Th center>Units</Th>
@@ -386,7 +386,7 @@ export function NextCutOffPage() {
                   <tr>
                     <td
                       colSpan={9}
-                      className="py-16 text-center text-gray-400 text-sm"
+                      className="py-16 text-center text-gray-400 dark:text-gray-500 text-sm"
                     >
                       Loading…
                     </td>
@@ -395,7 +395,7 @@ export function NextCutOffPage() {
                   <tr>
                     <td
                       colSpan={9}
-                      className="py-16 text-center text-gray-400 text-sm"
+                      className="py-16 text-center text-gray-400 dark:text-gray-500 text-sm"
                     >
                       <AlertCircle className="size-8 mx-auto mb-2 opacity-30" />
                       No payment entries yet. Click "Add Payment
@@ -410,26 +410,26 @@ export function NextCutOffPage() {
                         key={row.id}
                         className="hover:bg-indigo-50/30 transition-colors group"
                       >
-                        <td className="px-4 py-3 text-gray-400 text-xs">
+                        <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs">
                           {idx + 1}
                         </td>
-                        <td className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
                           {row.description}
                         </td>
                         <td className="px-4 py-3 text-center">
-                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
                             {row.numberOfUnits}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right text-gray-700 whitespace-nowrap">
+                        <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {formatPhp(row.unitPrice)}
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold text-gray-900 whitespace-nowrap">
+                        <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
                           {formatPhp(row.totalAmount)}
                         </td>
-                        <td className="px-4 py-3 text-center whitespace-nowrap text-gray-700">
+                        <td className="px-4 py-3 text-center whitespace-nowrap text-gray-700 dark:text-gray-300">
                           <span className="flex items-center justify-center gap-1.5">
-                            <CalendarIcon className="size-3.5 text-gray-400" />
+                            <CalendarIcon className="size-3.5 text-gray-400 dark:text-gray-500" />
                             {row.dateOfPayment
                               ? new Date(
                                   row.dateOfPayment,
@@ -441,7 +441,7 @@ export function NextCutOffPage() {
                               : "—"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-500 max-w-[200px] truncate text-xs">
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 max-w-[200px] truncate text-xs">
                           {row.remarks || "—"}
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -454,14 +454,14 @@ export function NextCutOffPage() {
                             {cfg.label}
                           </span>
                         </td>
-                        <td className="px-4 py-3 whitespace-nowrap sticky right-0 bg-white group-hover:bg-indigo-50/30 border-l border-gray-100 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap sticky right-0 bg-white dark:bg-gray-900 group-hover:bg-indigo-50/30 dark:group-hover:bg-indigo-900/20 border-l border-gray-100 dark:border-gray-800 transition-colors">
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => {
                                 setEditRow(row);
                                 setShowModal(true);
                               }}
-                              className="p-1.5 rounded-md text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
                               title="Edit"
                             >
                               <Pencil className="size-3.5" />
@@ -470,7 +470,7 @@ export function NextCutOffPage() {
                               onClick={() =>
                                 setDeleteId(row.id)
                               }
-                              className="p-1.5 rounded-md text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
                               title="Delete"
                             >
                               <Trash2 className="size-3.5" />
@@ -484,20 +484,20 @@ export function NextCutOffPage() {
               </tbody>
               {rows.length > 0 && (
                 <tfoot>
-                  <tr className="bg-indigo-50 border-t-2 border-indigo-200">
+                  <tr className="bg-indigo-50 dark:bg-indigo-950 border-t-2 border-indigo-200 dark:border-indigo-800">
                     <td
                       colSpan={2}
-                      className="px-4 py-3 font-semibold text-indigo-900 text-sm"
+                      className="px-4 py-3 font-semibold text-indigo-900 dark:text-indigo-100 text-sm"
                     >
                       TOTAL
                     </td>
-                    <td className="px-4 py-3 text-center font-bold text-indigo-900">
+                    <td className="px-4 py-3 text-center font-bold text-indigo-900 dark:text-indigo-100">
                       {totals.units}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-400 text-xs">
+                    <td className="px-4 py-3 text-right text-gray-400 dark:text-gray-500 text-xs">
                       —
                     </td>
-                    <td className="px-4 py-3 text-right font-bold text-indigo-900 text-base">
+                    <td className="px-4 py-3 text-right font-bold text-indigo-900 dark:text-indigo-100 text-base">
                       {formatPhp(totals.amount)}
                     </td>
                     <td colSpan={4} />

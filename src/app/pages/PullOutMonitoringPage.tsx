@@ -20,7 +20,7 @@ const MONTHS = [
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const displayNum = (n: number | null) =>
-  n === null || n === undefined ? <span className="text-gray-300">–</span> : n;
+  n === null || n === undefined ? <span className="text-gray-300 dark:text-gray-600">–</span> : n;
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -32,9 +32,9 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-      <div className="px-6 py-4 border-b border-gray-200 bg-blue-50">
-        <h2 className="font-semibold text-blue-800 text-base">{title}</h2>
+    <div className="bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-blue-50 dark:bg-slate-800">
+        <h2 className="font-semibold text-blue-800 dark:text-blue-300 text-base">{title}</h2>
       </div>
       {children}
     </div>
@@ -44,7 +44,7 @@ function SectionCard({
 function Th({ children, right }: { children: React.ReactNode; right?: boolean }) {
   return (
     <th
-      className={`px-4 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wide bg-gray-50 border-b border-gray-200 whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}
+      className={`px-4 py-3 text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide bg-gray-50 dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 whitespace-nowrap ${right ? 'text-right' : 'text-left'}`}
     >
       {children}
     </th>
@@ -64,10 +64,10 @@ function Td({
 }) {
   return (
     <td
-      className={`px-4 py-3 text-sm border-b border-gray-100 whitespace-nowrap
+      className={`px-4 py-3 text-sm border-b border-gray-100 dark:border-slate-700 whitespace-nowrap
         ${right ? 'text-right' : ''}
         ${bold ? 'font-semibold' : ''}
-        ${muted ? 'text-gray-400' : 'text-gray-800'}
+        ${muted ? 'text-gray-400 dark:text-gray-500' : 'text-gray-800 dark:text-gray-200'}
       `}
     >
       {children}
@@ -113,13 +113,13 @@ export function PullOutMonitoringPage() {
     <>
       <Header />
 
-      <main className="flex-1 overflow-auto px-6 py-6 space-y-8">
+      <main className="flex-1 overflow-auto px-6 py-6 space-y-8 bg-gray-50 dark:bg-slate-950">
         {/* Page Header */}
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
             Pull Out Monitoring
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
             Track SPH allocation pull-outs, payment schedules, and inventory summary
           </p>
         </div>
@@ -141,13 +141,13 @@ export function PullOutMonitoringPage() {
               <tbody>
                 {poLoading && pullOutRows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400">
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
                       Loading…
                     </td>
                   </tr>
                 ) : pullOutRows.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400">
+                    <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
                       No pull-out records yet.
                     </td>
                   </tr>
@@ -155,7 +155,7 @@ export function PullOutMonitoringPage() {
                   pullOutRows.map((row) => {
                     const remaining = Math.max(0, row.confirmed_units - row.pulled_out);
                     return (
-                      <tr key={row.id} className="hover:bg-gray-50 transition-colors">
+                      <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                         <Td>{row.description}</Td>
                         <Td right>{row.sph_allocation}</Td>
                         <Td>{row.date_of_confirmation}</Td>
@@ -165,8 +165,8 @@ export function PullOutMonitoringPage() {
                           <span
                             className={
                               remaining > 0
-                                ? 'text-orange-600 font-medium'
-                                : 'text-green-600 font-medium'
+                                ? 'text-orange-600 dark:text-orange-500 font-medium'
+                                : 'text-green-600 dark:text-green-500 font-medium'
                             }
                           >
                             {remaining}
@@ -178,19 +178,19 @@ export function PullOutMonitoringPage() {
                 )}
                 {/* Totals row */}
                 {pullOutRows.length > 0 && (
-                  <tr className="bg-blue-50 border-t-2 border-blue-200">
-                    <td className="px-4 py-3 text-sm font-bold text-blue-800">Total</td>
-                    <td className="px-4 py-3 text-sm font-bold text-blue-800 text-right">
+                  <tr className="bg-blue-50 dark:bg-slate-800 border-t-2 border-blue-200 dark:border-slate-700">
+                    <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300">Total</td>
+                    <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">
                       {poTotalSphAllocation}
                     </td>
                     <td className="px-4 py-3"></td>
-                    <td className="px-4 py-3 text-sm font-bold text-blue-800 text-right">
+                    <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">
                       {poTotalConfirmed}
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-blue-800 text-right">
+                    <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">
                       {poTotalPulledOut}
                     </td>
-                    <td className="px-4 py-3 text-sm font-bold text-orange-700 text-right">
+                    <td className="px-4 py-3 text-sm font-bold text-orange-700 dark:text-orange-500 text-right">
                       {poTotalRemaining}
                     </td>
                   </tr>
@@ -210,7 +210,7 @@ export function PullOutMonitoringPage() {
                 <select
                   value={inventoryYear}
                   onChange={(e) => setInventoryYear(Number(e.target.value))}
-                  className="bg-white border border-blue-200 text-blue-800 text-sm rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
+                  className="bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-sm rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 cursor-pointer"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {yearOptions.map((y) => (
@@ -238,7 +238,7 @@ export function PullOutMonitoringPage() {
               <tbody>
                 {invLoading && inventoryDbRows.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-400">
+                    <td colSpan={5} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
                       Loading…
                     </td>
                   </tr>
@@ -250,44 +250,44 @@ export function PullOutMonitoringPage() {
                       row.retailSales === null &&
                       row.actualWholesales === null;
                     return (
-                      <tr
-                        key={row.month}
-                        className={`transition-colors ${allNull ? 'opacity-50' : 'hover:bg-gray-50'}`}
-                      >
-                        <td className="px-4 py-3 text-sm font-medium text-gray-800 border-b border-gray-100">
-                          {row.month}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right border-b border-gray-100 text-gray-700">
-                          {displayNum(row.beginning)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right border-b border-gray-100 text-gray-700">
-                          {displayNum(row.wholesale)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right border-b border-gray-100 text-gray-700">
-                          {displayNum(row.retailSales)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-right border-b border-gray-100 text-gray-700">
-                          {displayNum(row.actualWholesales)}
-                        </td>
-                      </tr>
+                  <tr
+                    key={row.month}
+                    className={`transition-colors ${allNull ? 'opacity-50' : 'hover:bg-gray-50 dark:hover:bg-slate-800'}`}
+                  >
+                    <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-200 border-b border-gray-100 dark:border-slate-700">
+                      {row.month}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right border-b border-gray-100 dark:border-slate-700 text-gray-700 dark:text-gray-300">
+                      {displayNum(row.beginning)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right border-b border-gray-100 dark:border-slate-700 text-gray-700 dark:text-gray-300">
+                      {displayNum(row.wholesale)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right border-b border-gray-100 dark:border-slate-700 text-gray-700 dark:text-gray-300">
+                      {displayNum(row.retailSales)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-right border-b border-gray-100 dark:border-slate-700 text-gray-700 dark:text-gray-300">
+                      {displayNum(row.actualWholesales)}
+                    </td>
+                  </tr>
                     );
                   })
                 )}
                 {/* Summary totals */}
-                <tr className="bg-blue-50 border-t-2 border-blue-200">
-                  <td className="px-4 py-3 text-sm font-bold text-blue-800">
+                <tr className="bg-blue-50 dark:bg-slate-800 border-t-2 border-blue-200 dark:border-slate-700">
+                  <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300">
                     Full Year Total
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold text-blue-800 text-right">
+                  <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">
                     {inventoryData.reduce((s, r) => s + (r.beginning ?? 0), 0) || '–'}
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold text-blue-800 text-right">
+                  <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">
                     {inventoryData.reduce((s, r) => s + (r.wholesale ?? 0), 0) || '–'}
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold text-blue-800 text-right">
+                  <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">
                     {inventoryData.reduce((s, r) => s + (r.retailSales ?? 0), 0) || '–'}
                   </td>
-                  <td className="px-4 py-3 text-sm font-bold text-blue-800 text-right">
+                  <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">
                     {inventoryData.reduce((s, r) => s + (r.actualWholesales ?? 0), 0) || '–'}
                   </td>
                 </tr>

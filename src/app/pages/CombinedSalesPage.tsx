@@ -161,10 +161,10 @@ export function CombinedSalesPage() {
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
               Combined Sales {currentYear}
             </h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Comprehensive sales tracking from allocation to delivery
             </p>
           </div>
@@ -178,62 +178,62 @@ export function CombinedSalesPage() {
 
         {/* Dashboard Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total Sales</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Sales</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">
                   {totalSales}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Units sold</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Units sold</p>
               </div>
-              <div className="bg-blue-50 p-3 rounded-lg">
-                <TrendingUp className="size-6 text-blue-600" />
+              <div className="bg-blue-50 dark:bg-blue-950 p-3 rounded-lg">
+                <TrendingUp className="size-6 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Released Units</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Released Units</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">
                   {releasedUnits}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Delivered to clients</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Delivered to clients</p>
               </div>
-              <div className="bg-green-50 p-3 rounded-lg">
-                <CheckCircle className="size-6 text-green-600" />
+              <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
+                <CheckCircle className="size-6 text-green-600 dark:text-green-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Pending Deliveries</p>
-                <p className="text-2xl font-semibold text-gray-900 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Pending Deliveries</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">
                   {pendingDeliveries}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Awaiting release</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Awaiting release</p>
               </div>
-              <div className="bg-orange-50 p-3 rounded-lg">
-                <Clock className="size-6 text-orange-600" />
+              <div className="bg-orange-50 dark:bg-orange-950 p-3 rounded-lg">
+                <Clock className="size-6 text-orange-600 dark:text-orange-400" />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500">Total Revenue</p>
-                <p className="text-xl font-semibold text-gray-900 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total Revenue</p>
+                <p className="text-xl font-semibold text-gray-900 dark:text-gray-100 mt-1">
                   ₱{totalRevenue.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-xs text-gray-400 mt-1">Invoice amount</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Invoice amount</p>
               </div>
-              <div className="bg-purple-50 p-3 rounded-lg">
-                <DollarSign className="size-6 text-purple-600" />
+              <div className="bg-purple-50 dark:bg-purple-950 p-3 rounded-lg">
+                <DollarSign className="size-6 text-purple-600 dark:text-purple-400" />
               </div>
             </div>
           </div>
@@ -241,23 +241,23 @@ export function CombinedSalesPage() {
 
         {/* Additional Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-6">
-            <p className="text-sm text-blue-700 font-medium">Total PO Amount</p>
-            <p className="text-2xl font-semibold text-blue-900 mt-1">
+          <div className="bg-gradient-to-br from-blue-50 dark:from-blue-950 to-blue-100 dark:to-blue-900 rounded-lg border border-blue-200 dark:border-blue-800 p-6">
+            <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">Total PO Amount</p>
+            <p className="text-2xl font-semibold text-blue-900 dark:text-blue-100 mt-1">
               ₱{totalPOAmount.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 p-6">
-            <p className="text-sm text-green-700 font-medium">Total Gross Profit</p>
-            <p className="text-2xl font-semibold text-green-900 mt-1">
+          <div className="bg-gradient-to-br from-green-50 dark:from-green-950 to-green-100 dark:to-green-900 rounded-lg border border-green-200 dark:border-green-800 p-6">
+            <p className="text-sm text-green-700 dark:text-green-300 font-medium">Total Gross Profit</p>
+            <p className="text-2xl font-semibold text-green-900 dark:text-green-100 mt-1">
               ₱{totalGrossProfit.toLocaleString('en-PH', { minimumFractionDigits: 2 })}
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200 p-6">
-            <p className="text-sm text-purple-700 font-medium">Average GP per Unit</p>
-            <p className="text-2xl font-semibold text-purple-900 mt-1">
+          <div className="bg-gradient-to-br from-purple-50 dark:from-purple-950 to-purple-100 dark:to-purple-900 rounded-lg border border-purple-200 dark:border-purple-800 p-6">
+            <p className="text-sm text-purple-700 dark:text-purple-300 font-medium">Average GP per Unit</p>
+            <p className="text-2xl font-semibold text-purple-900 dark:text-purple-100 mt-1">
               ₱
               {totalSales > 0
                 ? (totalGrossProfit / totalSales).toLocaleString('en-PH', {
@@ -269,16 +269,16 @@ export function CombinedSalesPage() {
         </div>
 
         {/* Filters Section */}
-        <div className="bg-white rounded-lg border border-gray-200">
+        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
           <div
             className="flex items-center justify-between px-6 py-4 cursor-pointer select-none"
             onClick={() => setIsFiltersOpen((prev) => !prev)}
           >
             <div className="flex items-center gap-2">
-              <Filter className="size-5 text-gray-500" />
-              <h2 className="font-semibold text-gray-900">Filters</h2>
+              <Filter className="size-5 text-gray-500 dark:text-gray-400" />
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">Filters</h2>
               {!isFiltersOpen && (
-                <span className="text-xs text-gray-400 ml-2">
+                <span className="text-xs text-gray-400 dark:text-gray-500 ml-2">
                   (click to expand)
                 </span>
               )}
@@ -305,10 +305,10 @@ export function CombinedSalesPage() {
           </div>
 
           {isFiltersOpen && (
-            <div className="px-6 pb-6 border-t border-gray-100">
+            <div className="px-6 pb-6 border-t border-gray-100 dark:border-gray-800">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Search
                   </label>
                   <Input
@@ -321,7 +321,7 @@ export function CombinedSalesPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Model
                   </label>
                   <Select
@@ -343,7 +343,7 @@ export function CombinedSalesPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Dealer
                   </label>
                   <Select
@@ -365,7 +365,7 @@ export function CombinedSalesPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Date From
                   </label>
                   <Input
@@ -378,7 +378,7 @@ export function CombinedSalesPage() {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                     Date To
                   </label>
                   <Input

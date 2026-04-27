@@ -278,16 +278,16 @@ function CropModal({
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center">
       <div className="absolute inset-0 bg-black/70" onClick={onCancel} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-auto max-w-[95vw] mx-4 overflow-hidden">
+      <div className="relative bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-auto max-w-[95vw] mx-4 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 dark:from-slate-800 to-white dark:to-slate-800">
           <div className="flex items-center gap-3">
             <div className="bg-blue-100 p-2 rounded-lg">
               <Crop className="size-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Crop Profile Photo</h2>
-              <p className="text-sm text-gray-500 flex items-center gap-1.5">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Crop Profile Photo</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                 <Move className="size-3.5 inline" />
                 Drag corners to resize · drag inside to move
               </p>
@@ -321,7 +321,7 @@ function CropModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={resetCrop} className="gap-2 text-gray-600">
               <RotateCcw className="size-4" />
@@ -447,17 +447,17 @@ export function UserProfilePage() {
 
   return (
     <>
-      <div className="flex-1 flex flex-col bg-gray-50">
+      <div className="flex-1 flex flex-col bg-gray-50 dark:bg-slate-950">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 px-6 py-4">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => navigate('/settings')} className="gap-2">
               <ArrowLeft className="size-4" />
               Back
             </Button>
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">User Profile</h1>
-              <p className="text-sm text-gray-500">Update your profile information</p>
+              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">User Profile</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Update your profile information</p>
             </div>
           </div>
         </div>
@@ -465,11 +465,11 @@ export function UserProfilePage() {
         {/* Content */}
         <div className="flex-1 overflow-auto p-6">
           <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-lg border border-gray-200 p-8">
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700 p-8">
 
               {/* Profile Photo Section */}
               <div className="mb-8">
-                <h3 className="font-semibold text-gray-900 mb-4">Profile Photo</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Profile Photo</h3>
                 <div className="flex items-start gap-6">
                   {/* Current photo preview — click to crop */}
                   <button
@@ -478,7 +478,7 @@ export function UserProfilePage() {
                     title="Click to crop your profile photo"
                     className="group relative w-36 h-36 flex-shrink-0 cursor-pointer focus:outline-none"
                   >
-                    <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-gray-100 shadow-sm group-hover:border-blue-300 group-focus:ring-2 group-focus:ring-blue-400 group-focus:ring-offset-2 transition-colors">
+                    <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-gray-100 dark:border-slate-700 shadow-sm group-hover:border-blue-300 group-focus:ring-2 group-focus:ring-blue-400 group-focus:ring-offset-2 transition-colors">
                       <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
                       <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/40 transition-colors flex flex-col items-center justify-center text-white opacity-0 group-hover:opacity-100 pointer-events-none">
                         <Crop className="size-6 mb-1" />
@@ -527,7 +527,7 @@ export function UserProfilePage() {
                             variant="outline"
                             size="sm"
                             onClick={() => openCropModal(profileImage)}
-                            className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                          className="gap-2 text-blue-600 border-blue-200 hover:bg-blue-50 dark:hover:bg-slate-800"
                           >
                             <Crop className="size-4" />
                             Re-Crop
@@ -548,26 +548,26 @@ export function UserProfilePage() {
 
               {/* Personal Information */}
               <div className="space-y-4">
-                <h3 className="font-semibold text-gray-900 mb-4">Personal Information</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Personal Information</h3>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
                   <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Enter your full name" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Role</label>
                   <Input value={role} onChange={(e) => setRole(e.target.value)} placeholder="Enter your role" />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
                   <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" />
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200">
+              <div className="flex justify-end gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-slate-700">
                 <Button variant="outline" onClick={() => navigate('/settings')}>Cancel</Button>
                 <Button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700">Save Changes</Button>
               </div>

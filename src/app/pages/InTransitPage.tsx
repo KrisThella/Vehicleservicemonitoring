@@ -345,11 +345,11 @@ const STATUS_CONFIG: Record<
   TransitStatus,
   { label: string; bg: string; text: string; dot: string }
 > = {
-  'IN TRANSIT':               { label: 'IN TRANSIT',               bg: 'bg-blue-100',   text: 'text-blue-700',   dot: 'bg-blue-500' },
-  'ARRIVED – FOR INSPECTION': { label: 'ARRIVED – FOR INSPECTION', bg: 'bg-yellow-100', text: 'text-yellow-700', dot: 'bg-yellow-500' },
-  'PENDING RELEASE':          { label: 'PENDING RELEASE',          bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-500' },
-  'RELEASED':                 { label: 'RELEASED',                 bg: 'bg-green-100',  text: 'text-green-700',  dot: 'bg-green-500' },
-  'DELAYED':                  { label: 'DELAYED',                  bg: 'bg-red-100',    text: 'text-red-700',    dot: 'bg-red-500' },
+  'IN TRANSIT':               { label: 'IN TRANSIT',               bg: 'bg-blue-100 dark:bg-blue-900/30',   text: 'text-blue-700 dark:text-blue-300',   dot: 'bg-blue-500' },
+  'ARRIVED – FOR INSPECTION': { label: 'ARRIVED – FOR INSPECTION', bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-300', dot: 'bg-yellow-500' },
+  'PENDING RELEASE':          { label: 'PENDING RELEASE',          bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300', dot: 'bg-orange-500' },
+  'RELEASED':                 { label: 'RELEASED',                 bg: 'bg-green-100 dark:bg-green-900/30',  text: 'text-green-700 dark:text-green-300',  dot: 'bg-green-500' },
+  'DELAYED':                  { label: 'DELAYED',                  bg: 'bg-red-100 dark:bg-red-900/30',    text: 'text-red-700 dark:text-red-300',    dot: 'bg-red-500' },
 };
 
 const isOverdue = (unit: InTransitUnit) =>
@@ -374,10 +374,10 @@ function StatCard({
   accent: string;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-start justify-between gap-4">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 p-5 flex items-start justify-between gap-4">
       <div>
-        <p className="text-sm text-gray-500">{label}</p>
-        <p className="text-2xl font-bold text-gray-900 mt-1">{value}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{label}</p>
+        <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">{value}</p>
         {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
       </div>
       <div className={`${accent} p-3 rounded-xl flex-shrink-0`}>{icon}</div>
@@ -497,7 +497,7 @@ export function InTransitPage() {
     <>
       <Header />
 
-      <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
+      <main className="flex-1 overflow-auto px-6 py-6 space-y-6 dark:bg-slate-950">
 
         {/* ── Page Title ──────────────────────────────────────────────── */}
         <div className="flex items-center justify-between flex-wrap gap-3">
@@ -506,8 +506,8 @@ export function InTransitPage() {
               <Truck className="size-5 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">IN TRANSIT</h1>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">IN TRANSIT</h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                 Vehicle transit monitoring & allocation tracking – 2026
               </p>
             </div>
@@ -530,35 +530,35 @@ export function InTransitPage() {
             label="Total Units Monitored"
             value={totalUnits}
             sub="All transit records"
-            accent="bg-blue-50"
+            accent="bg-blue-50 dark:bg-slate-800"
             icon={<Package className="size-6 text-blue-600" />}
           />
           <StatCard
             label="Currently In Transit"
             value={inTransitCount}
             sub="On the road now"
-            accent="bg-indigo-50"
+            accent="bg-indigo-50 dark:bg-slate-800"
             icon={<Truck className="size-6 text-indigo-600" />}
           />
           <StatCard
             label="Released Units"
             value={releasedCount}
             sub="Delivered to clients"
-            accent="bg-green-50"
+            accent="bg-green-50 dark:bg-slate-800"
             icon={<CheckCircle2 className="size-6 text-green-600" />}
           />
           <StatCard
             label="Delayed / Overdue"
             value={delayedCount}
             sub="Past target release date"
-            accent="bg-red-50"
+            accent="bg-red-50 dark:bg-slate-800"
             icon={<AlertTriangle className="size-6 text-red-500" />}
           />
         </div>
 
         {/* ── Allocation Summary Dashboard ─────────────────────────── */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
             <h2 className="font-semibold text-blue-900 text-base flex items-center gap-2">
               <TrendingUp className="size-5 text-blue-600" />
               Allocation Summary Dashboard
@@ -569,10 +569,10 @@ export function InTransitPage() {
             {/* Overall allocation quick stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
-                { label: 'Total Allocation', value: allotTotal, color: 'text-gray-800', bg: 'bg-gray-50 border-gray-200' },
-                { label: 'In Transit',        value: allotInTransit, color: 'text-blue-700',  bg: 'bg-blue-50 border-blue-200' },
-                { label: 'Total Received',    value: allotReceived, color: 'text-green-700', bg: 'bg-green-50 border-green-200' },
-                { label: 'Open / Remaining',  value: allotOpen, color: 'text-orange-700', bg: 'bg-orange-50 border-orange-200' },
+                { label: 'Total Allocation', value: allotTotal, color: 'text-gray-800 dark:text-gray-200', bg: 'bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600' },
+                { label: 'In Transit',        value: allotInTransit, color: 'text-blue-700 dark:text-blue-300',  bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-900/50' },
+                { label: 'Total Received',    value: allotReceived, color: 'text-green-700 dark:text-green-300', bg: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/50' },
+                { label: 'Open / Remaining',  value: allotOpen, color: 'text-orange-700 dark:text-orange-300', bg: 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-900/50' },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -586,36 +586,36 @@ export function InTransitPage() {
 
             {/* Bar chart - Pure CSS */}
             <div>
-              <p className="text-sm font-medium text-gray-600 mb-3">Allocation vs. Received vs. In Transit (by Model)</p>
+              <p className="text-sm font-medium text-gray-600 dark:text-gray-300 mb-3">Allocation vs. Received vs. In Transit (by Model)</p>
 
               {/* Legend */}
               <div className="flex items-center justify-center gap-4 mb-4 flex-wrap text-xs">
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#bfdbfe' }} />
-                  <span className="text-gray-600">Allocation</span>
+                  <span className="text-gray-600 dark:text-gray-400">Allocation</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#3b82f6' }} />
-                  <span className="text-gray-600">Total Received</span>
+                  <span className="text-gray-600 dark:text-gray-400">Total Received</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#6366f1' }} />
-                  <span className="text-gray-600">In Transit</span>
+                  <span className="text-gray-600 dark:text-gray-400">In Transit</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: '#f97316' }} />
-                  <span className="text-gray-600">Open / Remaining</span>
+                  <span className="text-gray-600 dark:text-gray-400">Open / Remaining</span>
                 </div>
               </div>
 
               {/* Chart */}
-              <div className="relative bg-gray-50/50 rounded-lg p-4">
+              <div className="relative bg-gray-50/50 dark:bg-slate-700/30 rounded-lg p-4">
                 {/* Y-axis grid lines */}
                 <div className="absolute inset-4 flex flex-col justify-between pointer-events-none">
                   {[0, 5, 10, 15, 20].reverse().map((val) => (
                     <div key={val} className="flex items-center">
-                      <span className="text-[10px] text-gray-400 w-6 -ml-8">{val}</span>
-                      <div className="flex-1 border-t border-dashed border-gray-200" />
+                      <span className="text-[10px] text-gray-400 dark:text-gray-500 w-6 -ml-8">{val}</span>
+                      <div className="flex-1 border-t border-dashed border-gray-200 dark:border-slate-600" />
                     </div>
                   ))}
                 </div>
@@ -677,7 +677,7 @@ export function InTransitPage() {
                         </div>
 
                         {/* X-axis label */}
-                        <div className="text-[10px] text-gray-500 text-center leading-tight max-w-full px-1">
+                        <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center leading-tight max-w-full px-1">
                           {row.model}
                         </div>
                       </div>
@@ -688,37 +688,37 @@ export function InTransitPage() {
             </div>
 
             {/* Per-model allocation table */}
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
+            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-slate-700">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Model</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Allocation</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-blue-600 uppercase">In Transit</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase">Total Received</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-orange-600 uppercase">Open Units</th>
-                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Progress</th>
+                  <tr className="bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600">
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Model</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Allocation</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase">In Transit</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Total Received</th>
+                    <th className="px-4 py-3 text-center text-xs font-semibold text-orange-600 dark:text-orange-400 uppercase">Open Units</th>
+                    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase">Progress</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                   {allocationData.map((row) => {
                     const pct = Math.round((row.totalReceived / row.allocation) * 100);
                     return (
-                      <tr key={row.model} className="hover:bg-gray-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-gray-900">{row.model}</td>
-                        <td className="px-4 py-3 text-center text-gray-700">{row.allocation}</td>
+                      <tr key={row.model} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{row.model}</td>
+                        <td className="px-4 py-3 text-center text-gray-700 dark:text-gray-300">{row.allocation}</td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center justify-center w-7 h-7 bg-indigo-100 text-indigo-700 rounded-full font-semibold text-xs">
                             {row.inTransit}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-center text-gray-700">{row.totalReceived}</td>
+                        <td className="px-4 py-3 text-center text-gray-700 dark:text-gray-300">{row.totalReceived}</td>
                         <td className="px-4 py-3 text-center">
                           <span
                             className={`inline-flex items-center justify-center w-7 h-7 rounded-full font-semibold text-xs ${
                               row.open > 0
-                                ? 'bg-orange-100 text-orange-700'
-                                : 'bg-green-100 text-green-700'
+                                ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300'
+                                : 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
                             }`}
                           >
                             {row.open}
@@ -726,13 +726,13 @@ export function InTransitPage() {
                         </td>
                         <td className="px-4 py-3 min-w-[140px]">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                            <div className="flex-1 bg-gray-200 dark:bg-slate-600 rounded-full h-2">
                               <div
                                 className="bg-blue-500 h-2 rounded-full transition-all"
                                 style={{ width: `${pct}%` }}
                               />
                             </div>
-                            <span className="text-xs text-gray-500 w-8 text-right">{pct}%</span>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 w-8 text-right">{pct}%</span>
                           </div>
                         </td>
                       </tr>
@@ -740,12 +740,12 @@ export function InTransitPage() {
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="bg-blue-50 border-t-2 border-blue-200">
-                    <td className="px-4 py-3 font-bold text-blue-800">TOTAL</td>
-                    <td className="px-4 py-3 text-center font-bold text-blue-800">{allotTotal}</td>
-                    <td className="px-4 py-3 text-center font-bold text-indigo-700">{allotInTransit}</td>
-                    <td className="px-4 py-3 text-center font-bold text-blue-800">{allotReceived}</td>
-                    <td className="px-4 py-3 text-center font-bold text-orange-700">{allotOpen}</td>
+                  <tr className="bg-blue-50 dark:bg-blue-900/20 border-t-2 border-blue-200 dark:border-blue-900/50">
+                    <td className="px-4 py-3 font-bold text-blue-800 dark:text-blue-300">TOTAL</td>
+                    <td className="px-4 py-3 text-center font-bold text-blue-800 dark:text-blue-300">{allotTotal}</td>
+                    <td className="px-4 py-3 text-center font-bold text-indigo-700 dark:text-indigo-300">{allotInTransit}</td>
+                    <td className="px-4 py-3 text-center font-bold text-blue-800 dark:text-blue-300">{allotReceived}</td>
+                    <td className="px-4 py-3 text-center font-bold text-orange-700 dark:text-orange-300">{allotOpen}</td>
                     <td className="px-4 py-3" />
                   </tr>
                 </tfoot>
@@ -755,21 +755,21 @@ export function InTransitPage() {
         </div>
 
         {/* ── Filters (collapsible) ─────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-gray-200">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700">
           <div
             className="flex items-center justify-between px-6 py-4 cursor-pointer select-none"
             onClick={() => setFiltersOpen((p) => !p)}
           >
             <div className="flex items-center gap-2">
-              <Filter className="size-4 text-gray-500" />
-              <h2 className="font-semibold text-gray-900">Filters</h2>
+              <Filter className="size-4 text-gray-500 dark:text-gray-400" />
+              <h2 className="font-semibold text-gray-900 dark:text-white">Filters</h2>
               {activeFilterCount > 0 && (
                 <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-xs font-bold">
                   {activeFilterCount}
                 </span>
               )}
               {!filtersOpen && (
-                <span className="text-xs text-gray-400">(click to expand)</span>
+                <span className="text-xs text-gray-400 dark:text-gray-500">(click to expand)</span>
               )}
             </div>
             <div className="flex items-center gap-2">
@@ -778,26 +778,26 @@ export function InTransitPage() {
                   variant="ghost"
                   size="sm"
                   onClick={(e) => { e.stopPropagation(); resetFilters(); }}
-                  className="text-gray-500 h-7 px-2"
+                  className="text-gray-500 dark:text-gray-400 h-7 px-2"
                 >
                   <RefreshCw className="size-3 mr-1" />
                   Reset
                 </Button>
               )}
               {filtersOpen ? (
-                <ChevronUp className="size-4 text-gray-400" />
+                <ChevronUp className="size-4 text-gray-400 dark:text-gray-500" />
               ) : (
-                <ChevronDown className="size-4 text-gray-400" />
+                <ChevronDown className="size-4 text-gray-400 dark:text-gray-500" />
               )}
             </div>
           </div>
 
           {filtersOpen && (
-            <div className="px-6 pb-6 border-t border-gray-100 pt-4">
+            <div className="px-6 pb-6 border-t border-gray-100 dark:border-slate-700 pt-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                 {/* Search */}
                 <div className="lg:col-span-2 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
                   <Input
                     className="pl-9"
                     placeholder="Model, chassis, engine, client, CS no…"
@@ -830,9 +830,9 @@ export function InTransitPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="mt-3 text-xs text-gray-500">
-                Showing <span className="font-semibold text-gray-700">{filtered.length}</span> of{' '}
-                <span className="font-semibold text-gray-700">{mockTransitUnits.length}</span> units
+              <div className="mt-3 text-xs text-gray-500 dark:text-gray-400">
+                Showing <span className="font-semibold text-gray-700 dark:text-gray-300">{filtered.length}</span> of{' '}
+                <span className="font-semibold text-gray-700 dark:text-gray-300">{mockTransitUnits.length}</span> units
                 {delayedCount > 0 && (
                   <span className="ml-3 text-red-500 font-medium">
                     ⚠ {delayedCount} unit{delayedCount > 1 ? 's' : ''} overdue / delayed
@@ -844,10 +844,10 @@ export function InTransitPage() {
         </div>
 
         {/* ── In Transit Data Table ─────────────────────────────────── */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200 bg-gray-50 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900">In Transit Data Table</h2>
-            <div className="flex items-center gap-3 text-xs text-gray-500">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-700 flex items-center justify-between">
+            <h2 className="font-semibold text-gray-900 dark:text-white">In Transit Data Table</h2>
+            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
               {Object.entries(STATUS_CONFIG).map(([key, cfg]) => (
                 <span key={key} className="flex items-center gap-1">
                   <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
@@ -860,7 +860,7 @@ export function InTransitPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
+                <tr className="border-b border-gray-200 dark:border-slate-700">
                   {[
                     '#', 'Model', 'Color', 'Chassis No.', 'Engine No.', 'Pull Out Location',
                     'CS No.', 'Year Model', 'Client Name', 'Dealer', 'PO Number', 'PO Amount',
@@ -869,17 +869,17 @@ export function InTransitPage() {
                   ].map((h) => (
                     <th
                       key={h}
-                      className="px-3 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap bg-gray-50"
+                      className="px-3 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide whitespace-nowrap bg-gray-50 dark:bg-slate-700"
                     >
                       {h}
                     </th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={20} className="px-4 py-12 text-center text-gray-400">
+                    <td colSpan={20} className="px-4 py-12 text-center text-gray-400 dark:text-gray-500">
                       No units match the current filters.
                     </td>
                   </tr>
@@ -891,74 +891,74 @@ export function InTransitPage() {
                         key={unit.id}
                         className={`transition-colors ${
                           overdue
-                            ? 'bg-red-50 hover:bg-red-100'
-                            : 'hover:bg-gray-50'
+                            ? 'bg-red-50 dark:bg-red-900/10 hover:bg-red-100 dark:hover:bg-red-900/20'
+                            : 'hover:bg-gray-50 dark:hover:bg-slate-700/50'
                         }`}
                       >
                         {/* # */}
-                        <td className="px-3 py-3 text-gray-400 font-mono text-xs">{idx + 1}</td>
+                        <td className="px-3 py-3 text-gray-400 dark:text-gray-500 font-mono text-xs">{idx + 1}</td>
 
                         {/* Model */}
-                        <td className="px-3 py-3 font-medium text-gray-900 whitespace-nowrap">
+                        <td className="px-3 py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
                           {unit.model}
                         </td>
 
                         {/* Color */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">{unit.color}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{unit.color}</td>
 
                         {/* Chassis */}
-                        <td className="px-3 py-3 font-mono text-xs text-gray-700 whitespace-nowrap">
+                        <td className="px-3 py-3 font-mono text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {unit.chassisNo}
                         </td>
 
                         {/* Engine */}
-                        <td className="px-3 py-3 font-mono text-xs text-gray-700 whitespace-nowrap">
+                        <td className="px-3 py-3 font-mono text-xs text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {unit.engineNo}
                         </td>
 
                         {/* Pull Out Location */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">{unit.pullOutLocation}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{unit.pullOutLocation}</td>
 
                         {/* CS No */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">{unit.csNo}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{unit.csNo}</td>
 
                         {/* Year */}
-                        <td className="px-3 py-3 text-gray-700">{unit.yearModel}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{unit.yearModel}</td>
 
                         {/* Client */}
-                        <td className="px-3 py-3 text-gray-900 whitespace-nowrap">{unit.clientName}</td>
+                        <td className="px-3 py-3 text-gray-900 dark:text-gray-100 whitespace-nowrap">{unit.clientName}</td>
 
                         {/* Dealer */}
                         <td className="px-3 py-3 whitespace-nowrap">
-                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-700">
+                          <span className="inline-flex px-2 py-0.5 rounded-full text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
                             {unit.dealer}
                           </span>
                         </td>
 
                         {/* PO Number */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">{unit.poNumber}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{unit.poNumber}</td>
 
                         {/* PO Amount */}
-                        <td className="px-3 py-3 text-gray-900 font-medium whitespace-nowrap">
+                        <td className="px-3 py-3 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">
                           {formatCurrency(unit.poAmount)}
                         </td>
 
                         {/* Pull Out Date */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">{unit.pullOutDate}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{unit.pullOutDate}</td>
 
                         {/* Color Code */}
-                        <td className="px-3 py-3 text-gray-600 font-mono text-xs">{unit.colorCode}</td>
+                        <td className="px-3 py-3 text-gray-600 dark:text-gray-400 font-mono text-xs">{unit.colorCode}</td>
 
                         {/* Declared Month */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">{unit.declaredMonth}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{unit.declaredMonth}</td>
 
                         {/* Current Location */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap max-w-[180px] truncate" title={unit.currentLocation}>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap max-w-[180px] truncate" title={unit.currentLocation}>
                           {unit.currentLocation}
                         </td>
 
                         {/* DP / Reservation */}
-                        <td className="px-3 py-3 text-gray-700 whitespace-nowrap">{unit.dpReservation}</td>
+                        <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">{unit.dpReservation}</td>
 
                         {/* Status */}
                         <td className="px-3 py-3 whitespace-nowrap">
@@ -969,7 +969,7 @@ export function InTransitPage() {
                         <td className="px-3 py-3 whitespace-nowrap">
                           <span
                             className={`inline-flex items-center gap-1 text-xs font-medium ${
-                              overdue ? 'text-red-600' : 'text-gray-700'
+                              overdue ? 'text-red-600 dark:text-red-400' : 'text-gray-700 dark:text-gray-300'
                             }`}
                           >
                             {overdue && <AlertTriangle className="size-3" />}
@@ -978,7 +978,7 @@ export function InTransitPage() {
                         </td>
 
                         {/* Remarks */}
-                        <td className="px-3 py-3 text-gray-500 text-xs max-w-[180px] truncate" title={unit.remarks2}>
+                        <td className="px-3 py-3 text-gray-500 dark:text-gray-400 text-xs max-w-[180px] truncate" title={unit.remarks2}>
                           {unit.remarks2}
                         </td>
                       </tr>
@@ -988,11 +988,11 @@ export function InTransitPage() {
               </tbody>
               {filtered.length > 0 && (
                 <tfoot>
-                  <tr className="bg-blue-50 border-t-2 border-blue-200">
-                    <td colSpan={11} className="px-3 py-3 text-sm font-bold text-blue-800">
+                  <tr className="bg-blue-50 dark:bg-blue-900/20 border-t-2 border-blue-200 dark:border-blue-900/50">
+                    <td colSpan={11} className="px-3 py-3 text-sm font-bold text-blue-800 dark:text-blue-300">
                       TOTAL ({filtered.length} units)
                     </td>
-                    <td className="px-3 py-3 text-sm font-bold text-blue-800 whitespace-nowrap">
+                    <td className="px-3 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 whitespace-nowrap">
                       {formatCurrency(filtered.reduce((s, u) => s + u.poAmount, 0))}
                     </td>
                     <td colSpan={8} />
