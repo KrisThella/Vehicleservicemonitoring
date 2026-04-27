@@ -308,20 +308,20 @@ export function NextCutOffPage() {
                       key={row.id}
                       className="hover:bg-emerald-50/30 transition-colors"
                     >
-                      <td className="px-4 py-3 text-gray-800 whitespace-nowrap">
+                      <td className="px-4 py-3 text-gray-800 dark:text-gray-200 whitespace-nowrap">
                         {row.description}
                       </td>
-                      <td className="px-4 py-3 text-right text-gray-800">
+                      <td className="px-4 py-3 text-right text-gray-800 dark:text-gray-200">
                         {row.number_of_units}
                       </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">
+                      <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
                         {formatPhp(row.total_amount)}
                       </td>
-                      <td className="px-4 py-3 text-gray-700 whitespace-nowrap">
+                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
                         {row.date_of_payment}
                       </td>
                       <td
-                        className={`px-4 py-3 text-xs ${row.remarks ? "text-gray-600" : "text-gray-400"}`}
+                        className={`px-4 py-3 text-xs ${row.remarks ? "text-gray-600 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}
                       >
                         {row.remarks || "–"}
                       </td>
@@ -1010,7 +1010,7 @@ function Th({
 }) {
   return (
     <th
-      className={`px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap bg-gray-50
+      className={`px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap bg-gray-50
       ${right ? "text-right" : center ? "text-center" : "text-left"}
       ${sticky ? "sticky right-0 border-l border-gray-200 z-10" : ""}
     `}

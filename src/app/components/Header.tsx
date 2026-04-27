@@ -81,18 +81,18 @@ export function Header() {
               </button>
 
               {notifOpen && (
-                <div className="absolute right-0 top-full mt-2 w-[420px] bg-white dark:bg-gray-900 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-800 z-[100] overflow-hidden">
-                  <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 bg-red-50 dark:bg-red-950/40 flex items-center justify-between">
+                <div className="absolute right-0 top-full mt-2 w-[420px] bg-white rounded-xl shadow-2xl border border-gray-200 z-[100] overflow-hidden">
+                  <div className="px-4 py-3 border-b border-gray-100 bg-red-50 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Bell className="size-4 text-red-600" />
-                      <span className="font-semibold text-red-800 dark:text-red-300">Overdue Alerts</span>
+                      <span className="font-semibold text-red-800">Overdue Alerts</span>
                     </div>
                     <span className="inline-flex items-center justify-center min-w-[22px] h-5 px-1.5 rounded-full bg-red-600 text-white text-xs font-bold">
                       {overdueVehicles.length}
                     </span>
                   </div>
 
-                  <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-100 dark:divide-gray-800">
+                  <div className="max-h-[420px] overflow-y-auto divide-y divide-gray-100">
                     {overdueVehicles.length === 0 ? (
                       <div className="px-4 py-8 text-center text-sm text-gray-500">
                         No overdue vehicles at the moment.
@@ -104,13 +104,13 @@ export function Header() {
                         return (
                           <div
                             key={vehicle.id}
-                            className="group relative flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                            className="group relative flex items-start gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                             onClick={() => handleViewDetails(vehicle.id)}
                           >
                             <div className="mt-1 w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-medium text-gray-900 dark:text-gray-100 text-sm truncate">
+                                <span className="font-medium text-gray-900 text-sm truncate">
                                   {vehicle.model}
                                 </span>
                                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-red-100 text-red-700 flex-shrink-0">
@@ -137,23 +137,23 @@ export function Header() {
                                   e.stopPropagation();
                                   setDotMenuOpen(isMenuOpen ? null : vehicle.id);
                                 }}
-                                className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
+                                className="p-1 rounded hover:bg-gray-200 transition-colors opacity-0 group-hover:opacity-100"
                                 aria-label="More options"
                               >
                                 <MoreVertical className="size-4 text-gray-500" />
                               </button>
                               {isMenuOpen && (
-                                <div className="absolute right-0 top-full mt-1 w-48 bg-white dark:bg-gray-900 rounded-lg shadow-xl border border-gray-200 dark:border-gray-800 z-[110] overflow-hidden">
+                                <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-[110] overflow-hidden">
                                   <button
                                     onClick={() => handleViewDetails(vehicle.id)}
-                                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-700 transition-colors"
+                                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                                   >
                                     <FileText className="size-4 flex-shrink-0" />
                                     Open Vehicle Details
                                   </button>
                                   <button
                                     onClick={() => handleViewHistory(vehicle.id)}
-                                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-950 hover:text-blue-700 transition-colors"
+                                    className="flex items-center gap-2 w-full px-3 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors"
                                   >
                                     <History className="size-4 flex-shrink-0" />
                                     History of Unit
@@ -168,7 +168,7 @@ export function Header() {
                   </div>
 
                   {overdueVehicles.length > 0 && (
-                    <div className="px-4 py-2.5 border-t border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800">
+                    <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50">
                       <button
                         onClick={() => { setNotifOpen(false); navigate('/'); }}
                         className="text-xs text-blue-600 hover:text-blue-800 font-medium w-full text-center"
