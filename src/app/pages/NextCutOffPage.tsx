@@ -1,6 +1,11 @@
 import { useState, useMemo } from "react";
 import { Header } from "../components/Header";
 import {
+  useNextCutOffPayments,
+  type NextCutOffRecord,
+  type NextCutOffInput,
+} from "../../lib/api";
+import {
   Plus,
   Pencil,
   Trash2,
@@ -33,7 +38,7 @@ import {
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface PaymentRow {
-  id: string;
+  id: number;
   description: string; // Model name (from dropdown)
   numberOfUnits: number;
   unitPrice: number; // auto-pulled from model
@@ -43,50 +48,28 @@ interface PaymentRow {
   status: "PENDING" | "PROCESSING" | "PAID" | "OVERDUE";
 }
 
-// ── Seed data ─────────────────────────────────────────────────────────────────
+// ── Mapping helpers (DB ↔ UI shape) ──────────────────────────────────────────
 
-const SEED: PaymentRow[] = [
-  {
-    id: "nc-1",
-    description: "ERTIGA 1.5 GA MT",
-    numberOfUnits: 2,
-    unitPrice: 870_000,
-    totalAmount: 1_740_000,
-    dateOfPayment: "2026-04-25",
-    remarks: "For BDO processing",
-    status: "PENDING",
-  },
-  {
-    id: "nc-2",
-    description: "DZIRE GL MT",
-    numberOfUnits: 2,
-    unitPrice: 700_000,
-    totalAmount: 1_400_000,
-    dateOfPayment: "2026-04-25",
-    remarks: "Pending bank confirmation",
-    status: "PROCESSING",
-  },
-  {
-    id: "nc-3",
-    description: "CELERIO 1.0 GL MT",
-    numberOfUnits: 1,
-    unitPrice: 595_000,
-    totalAmount: 595_000,
-    dateOfPayment: "2026-04-28",
-    remarks: "For BPI processing",
-    status: "PENDING",
-  },
-  {
-    id: "nc-4",
-    description: "FRONX GL+ HYBRID",
-    numberOfUnits: 2,
-    unitPrice: 1_160_000,
-    totalAmount: 2_320_000,
-    dateOfPayment: "2026-04-28",
-    remarks: "Awaiting SPH invoice",
-    status: "PENDING",
-  },
-];
+const toRow = (r: NextCutOffRecord): PaymentRow => ({
+  id: r.id,
+  description: r.description,
+  numberOfUnits: r.number_of_units,
+  unitPrice: r.unit_price,
+  totalAmount: r.total_amount,
+  dateOfPayment: r.date_of_payment,
+  remarks: r.remarks,
+  status: r.status,
+});
+
+const toInput = (r: Omit<PaymentRow, "id">): NextCutOffInput => ({
+  description: r.description,
+  number_of_units: r.numberOfUnits,
+  unit_price: r.unitPrice,
+  total_amount: r.totalAmount,
+  date_of_payment: r.dateOfPayment,
+  remarks: r.remarks,
+  status: r.status,
+});
 
 // ── Status config ─────────────────────────────────────────────────────────────
 
@@ -145,22 +128,36 @@ const EMPTY: Omit<PaymentRow, "id"> = {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function NextCutOffPage() {
-  const [rows, setRows] = useState<PaymentRow[]>(SEED);
-  const [showModal, setShowModal] = useState(false);
-  const [editRow, setEditRow] = useState<PaymentRow | null>(
-    null,
-  );
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const { rows: records, loading, addRow, updateRow, removeRow } =
+    useNextCutOffPayments();
+  const rows = useMemo(() => records.map(toRow), [records]);
 
-  const handleAdd = (row: PaymentRow) => {
-    setRows((p) => [...p, row]);
+  const [showModal, setShowModal] = useState(false);
+  const [editRow, setEditRow] = useState<PaymentRow | null>(null);
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+
+  const handleAdd = async (row: PaymentRow) => {
+    try {
+      await addRow(toInput(row));
+    } catch {
+      toast.error("Failed to add payment entry");
+    }
   };
-  const handleEdit = (row: PaymentRow) => {
-    setRows((p) => p.map((r) => (r.id === row.id ? row : r)));
+  const handleEdit = async (row: PaymentRow) => {
+    try {
+      await updateRow(row.id, toInput(row));
+    } catch {
+      toast.error("Failed to update payment entry");
+    }
   };
-  const handleDel = (id: string) => {
-    setRows((p) => p.filter((r) => r.id !== id));
-    setDeleteId(null);
+  const handleDel = async (id: number) => {
+    try {
+      await removeRow(id);
+    } catch {
+      toast.error("Failed to delete payment entry");
+    } finally {
+      setDeleteId(null);
+    }
   };
 
   // Summary
@@ -280,7 +277,16 @@ export function NextCutOffPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {rows.length === 0 ? (
+                {loading && rows.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={9}
+                      className="py-16 text-center text-gray-400 text-sm"
+                    >
+                      Loading…
+                    </td>
+                  </tr>
+                ) : rows.length === 0 ? (
                   <tr>
                     <td
                       colSpan={9}
@@ -510,7 +516,7 @@ function PaymentFormModal({
     }
     onSave({
       ...form,
-      id: initial?.id ?? crypto.randomUUID(),
+      id: initial?.id ?? 0,
     });
     toast.success(
       isEdit

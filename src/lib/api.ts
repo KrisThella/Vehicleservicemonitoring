@@ -250,6 +250,53 @@ export function usePayments() {
   return { rows, loading, refetch };
 }
 
+export type NextCutOffStatus = 'PENDING' | 'PROCESSING' | 'PAID' | 'OVERDUE';
+
+export interface NextCutOffRecord {
+  id: number;
+  description: string;
+  number_of_units: number;
+  unit_price: number;
+  total_amount: number;
+  date_of_payment: string;
+  remarks: string;
+  status: NextCutOffStatus;
+  sort_order: number;
+}
+
+export type NextCutOffInput = Omit<NextCutOffRecord, 'id' | 'sort_order'>;
+
+export function useNextCutOffPayments() {
+  const [rows, setRows] = useState<NextCutOffRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try { setRows(await get<NextCutOffRecord[]>('/next-cut-off')); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { refetch(); }, [refetch]);
+
+  const addRow = useCallback(async (input: NextCutOffInput) => {
+    const created = await post<NextCutOffRecord>('/next-cut-off', input);
+    setRows((p) => [...p, created]);
+    return created;
+  }, []);
+
+  const updateRow = useCallback(async (id: number, input: NextCutOffInput) => {
+    const updated = await put<NextCutOffRecord>(`/next-cut-off/${id}`, input);
+    setRows((p) => p.map((r) => (r.id === id ? updated : r)));
+    return updated;
+  }, []);
+
+  const removeRow = useCallback(async (id: number) => {
+    await del(`/next-cut-off/${id}`);
+    setRows((p) => p.filter((r) => r.id !== id));
+  }, []);
+
+  return { rows, loading, refetch, addRow, updateRow, removeRow };
+}
+
 export function useInventory(year: number) {
   const [rows, setRows] = useState<InventoryRecord[]>([]);
   const [loading, setLoading] = useState(true);

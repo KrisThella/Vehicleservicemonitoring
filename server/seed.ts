@@ -117,6 +117,13 @@ const SEED_PAYMENTS = [
   { description: 'S-Presso GL MT – Full Pull', number_of_units: 5, total_amount: 3_750_000, date_of_payment: 'Apr 10, 2026', remarks: 'Settled – Bank transfer' },
 ];
 
+const SEED_NEXT_CUT_OFF = [
+  { description: 'ERTIGA 1.5 GA MT',  number_of_units: 2, unit_price: 870_000,   total_amount: 1_740_000, date_of_payment: '2026-04-25', remarks: 'For BDO processing',         status: 'PENDING' },
+  { description: 'DZIRE GL MT',       number_of_units: 2, unit_price: 700_000,   total_amount: 1_400_000, date_of_payment: '2026-04-25', remarks: 'Pending bank confirmation',  status: 'PROCESSING' },
+  { description: 'CELERIO 1.0 GL MT', number_of_units: 1, unit_price: 595_000,   total_amount: 595_000,   date_of_payment: '2026-04-28', remarks: 'For BPI processing',         status: 'PENDING' },
+  { description: 'FRONX GL+ HYBRID',  number_of_units: 2, unit_price: 1_160_000, total_amount: 2_320_000, date_of_payment: '2026-04-28', remarks: 'Awaiting SPH invoice',       status: 'PENDING' },
+];
+
 const SEED_INVENTORY_2026 = [
   // Jan, Feb, Mar (past)
   { month_index: 0, beginning: 45, wholesale: 12, retail_sales: 10, actual_wholesales: 11 },
@@ -178,6 +185,18 @@ export function seedDatabase() {
     });
     txn(SEED_PAYMENTS);
     console.log(`[seed] Inserted ${SEED_PAYMENTS.length} payment rows`);
+  }
+
+  const ncCount = (db.prepare('SELECT COUNT(*) AS c FROM next_cut_off_payments').get() as { c: number }).c;
+  if (ncCount === 0) {
+    const insert = db.prepare(
+      'INSERT INTO next_cut_off_payments (description, number_of_units, unit_price, total_amount, date_of_payment, remarks, status, sort_order) VALUES (?,?,?,?,?,?,?,?)'
+    );
+    const txn = db.transaction((rows: any[]) => {
+      rows.forEach((r, i) => insert.run(r.description, r.number_of_units, r.unit_price, r.total_amount, r.date_of_payment, r.remarks, r.status, i));
+    });
+    txn(SEED_NEXT_CUT_OFF);
+    console.log(`[seed] Inserted ${SEED_NEXT_CUT_OFF.length} next-cut-off payment rows`);
   }
 
   const invCount = (db.prepare('SELECT COUNT(*) AS c FROM inventory_rows').get() as { c: number }).c;

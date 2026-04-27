@@ -168,6 +168,39 @@ app.delete('/api/payments/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Next Cut-Off Payments ─────────────────────────────────────────────────
+app.get('/api/next-cut-off', (_req, res) => {
+  const rows = db.prepare('SELECT * FROM next_cut_off_payments ORDER BY sort_order, id').all();
+  res.json(rows);
+});
+
+app.post('/api/next-cut-off', (req, res) => {
+  const {
+    description = '', number_of_units = 1, unit_price = 0, total_amount = 0,
+    date_of_payment = '', remarks = '', status = 'PENDING',
+  } = req.body || {};
+  const maxOrder = (db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM next_cut_off_payments').get() as { m: number }).m;
+  const r = db.prepare(
+    'INSERT INTO next_cut_off_payments (description, number_of_units, unit_price, total_amount, date_of_payment, remarks, status, sort_order) VALUES (?,?,?,?,?,?,?,?)'
+  ).run(description, number_of_units, unit_price, total_amount, date_of_payment, remarks, status, maxOrder + 1);
+  res.status(201).json(db.prepare('SELECT * FROM next_cut_off_payments WHERE id = ?').get(r.lastInsertRowid));
+});
+
+app.put('/api/next-cut-off/:id', (req, res) => {
+  const { description, number_of_units, unit_price, total_amount, date_of_payment, remarks, status } = req.body || {};
+  const r = db.prepare(
+    'UPDATE next_cut_off_payments SET description=?, number_of_units=?, unit_price=?, total_amount=?, date_of_payment=?, remarks=?, status=? WHERE id = ?'
+  ).run(description, number_of_units, unit_price, total_amount, date_of_payment, remarks, status, req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json(db.prepare('SELECT * FROM next_cut_off_payments WHERE id = ?').get(req.params.id));
+});
+
+app.delete('/api/next-cut-off/:id', (req, res) => {
+  const r = db.prepare('DELETE FROM next_cut_off_payments WHERE id = ?').run(req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
 // ── Inventory rows ────────────────────────────────────────────────────────
 app.get('/api/inventory', (req, res) => {
   const year = Number(req.query.year ?? new Date().getFullYear());

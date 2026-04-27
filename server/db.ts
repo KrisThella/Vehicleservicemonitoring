@@ -74,4 +74,16 @@ db.exec(`
     actual_wholesales INTEGER,
     UNIQUE(year, month_index)
   );
+
+  CREATE TABLE IF NOT EXISTS next_cut_off_payments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    description TEXT NOT NULL,
+    number_of_units INTEGER NOT NULL DEFAULT 1,
+    unit_price REAL NOT NULL DEFAULT 0,
+    total_amount REAL NOT NULL DEFAULT 0,
+    date_of_payment TEXT NOT NULL DEFAULT '',
+    remarks TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'PENDING',
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
 `);
