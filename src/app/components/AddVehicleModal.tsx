@@ -8,7 +8,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { format } from "date-fns";
 import { toast } from "sonner";
-import { getColorHex, colorHexMap } from "./utils/colorMapping";
+import { getColorHex } from "./utils/colorMapping";
+import { useColors, type ColorRecord } from "../../lib/api";
 
 interface AddVehicleModalProps {
   onClose: () => void;
@@ -48,7 +49,6 @@ const MODEL_OPTIONS = [
   "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
 ];
 
-const COLOR_OPTIONS = Object.keys(colorHexMap);
 const DEALER_OPTIONS = ["TEAM JM", "TEAM AARON", "TEAM JAY-R"];
 const STATUS_OPTIONS: VehicleData["status"][] = [
   "On Process",
@@ -136,6 +136,7 @@ interface FormFieldProps {
   required?: boolean;
   formData: Partial<VehicleData>;
   updateField: <K extends keyof VehicleData>(field: K, value: VehicleData[K]) => void;
+  colors?: ColorRecord[];
 }
 
 function FormField({
@@ -145,6 +146,7 @@ function FormField({
   required = false,
   formData,
   updateField,
+  colors = [],
 }: FormFieldProps) {
   const renderInput = () => {
     switch (type) {
@@ -195,42 +197,44 @@ function FormField({
         );
       }
 
-      case "color":
+      case "color": {
+        const selectedName = (formData[field] as string) || "";
+        const selectedHex =
+          colors.find((c) => c.name === selectedName)?.hex ?? getColorHex(selectedName);
         return (
           <Select
-            value={(formData[field] as string) || ""}
+            value={selectedName}
             onValueChange={(value) => updateField(field, value as any)}
           >
             <SelectTrigger className="h-9 text-sm">
               <SelectValue placeholder="Select color">
-                {formData[field] && (
+                {selectedName && (
                   <div className="flex items-center gap-2">
                     <div
                       className="size-4 rounded-full border border-gray-300"
-                      style={{
-                        backgroundColor: getColorHex(formData[field] as string),
-                      }}
+                      style={{ backgroundColor: selectedHex }}
                     />
-                    {formData[field] as string}
+                    {selectedName}
                   </div>
                 )}
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {COLOR_OPTIONS.map((color) => (
-                <SelectItem key={color} value={color}>
+              {colors.map((c) => (
+                <SelectItem key={c.id} value={c.name}>
                   <div className="flex items-center gap-2">
                     <div
                       className="size-4 rounded-full border border-gray-300"
-                      style={{ backgroundColor: getColorHex(color) }}
+                      style={{ backgroundColor: c.hex }}
                     />
-                    {color}
+                    {c.name}
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         );
+      }
 
       case "date": {
         const dateValue = formData[field] as Date | null | undefined;
@@ -279,6 +283,7 @@ function FormField({
 // ─── Main Modal Component ───────────────────────────────────────────────────
 
 export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
+  const { colors } = useColors();
   const [formData, setFormData] = useState<Partial<VehicleData>>({
     model: "",
     csNo: "",
@@ -406,7 +411,7 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               <FormField label="MODEL" field="model" type="select" required formData={formData} updateField={updateField} />
               <FormField label="CS NUMBER" field="csNo" type="text" required formData={formData} updateField={updateField} />
               <FormField label="PLATE NUMBER" field="plateNumber" type="text" formData={formData} updateField={updateField} />
-              <FormField label="COLOR" field="color" type="color" formData={formData} updateField={updateField} />
+              <FormField label="COLOR" field="color" type="color" formData={formData} updateField={updateField} colors={colors} />
               <FormField label="YEAR" field="year" type="number" formData={formData} updateField={updateField} />
               <FormField label="RECEIVED DATE" field="receivedDate" type="date" formData={formData} updateField={updateField} />
               <FormField label="PO NUMBER" field="poNumber" type="text" formData={formData} updateField={updateField} />

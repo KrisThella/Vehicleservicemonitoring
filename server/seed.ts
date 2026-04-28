@@ -209,15 +209,15 @@ export function seedDatabase() {
     console.log('[seed] Inserted profile');
   }
 
-  const colorCount = (db.prepare('SELECT COUNT(*) AS c FROM colors').get() as { c: number }).c;
-  if (colorCount === 0) {
-    const insert = db.prepare('INSERT INTO colors (name, hex, sort_order) VALUES (?,?,?)');
-    const txn = db.transaction((rows: { name: string; hex: string }[]) => {
-      rows.forEach((r, i) => insert.run(r.name, r.hex, i));
-    });
-    txn(SEED_COLORS);
-    console.log(`[seed] Inserted ${SEED_COLORS.length} colors`);
-  }
+  const existingColorCount = (db.prepare('SELECT COUNT(*) AS c FROM colors').get() as { c: number }).c;
+  const insertColor = db.prepare('INSERT OR IGNORE INTO colors (name, hex, sort_order) VALUES (?,?,?)');
+  const colorTxn = db.transaction((rows: { name: string; hex: string }[]) => {
+    rows.forEach((r, i) => insertColor.run(r.name, r.hex, existingColorCount + i));
+  });
+  colorTxn(SEED_COLORS);
+  const newColorCount = (db.prepare('SELECT COUNT(*) AS c FROM colors').get() as { c: number }).c;
+  const added = newColorCount - existingColorCount;
+  if (added > 0) console.log(`[seed] Added ${added} default colors (had ${existingColorCount}, now ${newColorCount})`);
 
   const poCount = (db.prepare('SELECT COUNT(*) AS c FROM pull_outs').get() as { c: number }).c;
   if (poCount === 0) {

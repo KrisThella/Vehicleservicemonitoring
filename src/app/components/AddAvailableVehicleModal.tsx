@@ -12,7 +12,7 @@ import {
 } from './ui/select';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
-import { colorHexMap } from './utils/colorMapping';
+import { useColors, type ColorRecord } from '../../lib/api';
 import { SUZUKI_MODELS, MODEL_CATEGORIES, CATEGORY_COLORS } from '../data/suzukiModels';
 
 export interface AvailableVehicleEntry {
@@ -84,10 +84,12 @@ function ColorSelectDropdown({
   value,
   onChange,
   allowedColors,
+  colors,
 }: {
   value: string;
   onChange: (v: string) => void;
   allowedColors?: string[];
+  colors: ColorRecord[];
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -150,14 +152,14 @@ function ColorSelectDropdown({
   }, [open]);
 
   const availableColors = allowedColors
-    ? Object.entries(colorHexMap).filter(([name]) => allowedColors.includes(name))
-    : Object.entries(colorHexMap);
+    ? colors.filter((c) => allowedColors.includes(c.name))
+    : colors;
 
-  const filtered = availableColors.filter(([name]) =>
-    name.toLowerCase().includes(search.toLowerCase())
+  const filtered = availableColors.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const hex = value ? (colorHexMap[value] ?? '#d1d5db') : null;
+  const hex = value ? (colors.find((c) => c.name === value)?.hex ?? '#d1d5db') : null;
 
   return (
     <div className="relative">
@@ -202,19 +204,19 @@ function ColorSelectDropdown({
             {filtered.length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No match</p>
             ) : (
-              filtered.map(([name, h]) => (
+              filtered.map((c) => (
                 <button
-                  key={name}
+                  key={c.id}
                   type="button"
-                  onClick={() => { onChange(name); setOpen(false); setSearch(''); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-teal-50 dark:hover:bg-gray-700 transition-colors ${value === name ? 'bg-teal-50 dark:bg-gray-700 font-medium' : ''}`}
+                  onClick={() => { onChange(c.name); setOpen(false); setSearch(''); }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-teal-50 dark:hover:bg-gray-700 transition-colors ${value === c.name ? 'bg-teal-50 dark:bg-gray-700 font-medium' : ''}`}
                 >
                   <span
                     className="inline-block w-4 h-4 rounded-sm border border-gray-300 dark:border-gray-600 flex-shrink-0 shadow-sm"
-                    style={{ backgroundColor: h }}
+                    style={{ backgroundColor: c.hex }}
                   />
-                  <span className="truncate text-gray-900 dark:text-gray-100">{name}</span>
-                  {value === name && <span className="ml-auto text-teal-600 dark:text-teal-400 text-xs">✓</span>}
+                  <span className="truncate text-gray-900 dark:text-gray-100">{c.name}</span>
+                  {value === c.name && <span className="ml-auto text-teal-600 dark:text-teal-400 text-xs">✓</span>}
                 </button>
               ))
             )}
@@ -237,6 +239,7 @@ export function AddAvailableVehicleModal({
   );
   const [errors, setErrors] = useState<Partial<Record<keyof AvailableVehicleEntry, string>>>({});
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const { colors } = useColors();
 
   // Auto-compute unit age from pull out date
   useEffect(() => {
@@ -372,6 +375,7 @@ export function AddAvailableVehicleModal({
                   value={form.color}
                   onChange={(v) => set('color', v)}
                   allowedColors={allowedColors}
+                  colors={colors}
                 />
               </div>
 

@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from './ui/select';
 import { toast } from 'sonner';
-import { colorHexMap } from './utils/colorMapping';
+import { useColors, type ColorRecord } from '../../lib/api';
 import { SUZUKI_MODELS, MODEL_CATEGORIES } from '../data/suzukiModels';
 
 export interface InTransitEntry {
@@ -78,9 +78,11 @@ const EMPTY_FORM: InTransitEntry = {
 function ColorSelectDropdown({
   value,
   onChange,
+  colors,
 }: {
   value: string;
   onChange: (v: string) => void;
+  colors: ColorRecord[];
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -142,11 +144,11 @@ function ColorSelectDropdown({
     return () => document.removeEventListener('scroll', handler, true);
   }, [open]);
 
-  const filtered = Object.entries(colorHexMap).filter(([name]) =>
-    name.toLowerCase().includes(search.toLowerCase())
+  const filtered = colors.filter((c) =>
+    c.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const hex = value ? (colorHexMap[value] ?? '#d1d5db') : null;
+  const hex = value ? (colors.find((c) => c.name === value)?.hex ?? '#d1d5db') : null;
 
   return (
     <div className="relative">
@@ -191,19 +193,19 @@ function ColorSelectDropdown({
             {filtered.length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No match</p>
             ) : (
-              filtered.map(([name, h]) => (
+              filtered.map((c) => (
                 <button
-                  key={name}
+                  key={c.id}
                   type="button"
-                  onClick={() => { onChange(name); setOpen(false); setSearch(''); }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors ${value === name ? 'bg-blue-50 dark:bg-gray-700 font-medium' : ''}`}
+                  onClick={() => { onChange(c.name); setOpen(false); setSearch(''); }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors ${value === c.name ? 'bg-blue-50 dark:bg-gray-700 font-medium' : ''}`}
                 >
                   <span
                     className="inline-block w-4 h-4 rounded-sm border border-gray-300 dark:border-gray-600 flex-shrink-0 shadow-sm"
-                    style={{ backgroundColor: h }}
+                    style={{ backgroundColor: c.hex }}
                   />
-                  <span className="truncate text-gray-900 dark:text-gray-100">{name}</span>
-                  {value === name && <span className="ml-auto text-blue-600 dark:text-blue-400 text-xs">✓</span>}
+                  <span className="truncate text-gray-900 dark:text-gray-100">{c.name}</span>
+                  {value === c.name && <span className="ml-auto text-blue-600 dark:text-blue-400 text-xs">✓</span>}
                 </button>
               ))
             )}
@@ -221,6 +223,7 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
   const [form, setForm] = useState<InTransitEntry>({ ...EMPTY_FORM });
   const [errors, setErrors] = useState<Partial<Record<keyof InTransitEntry, string>>>({});
   const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const { colors } = useColors();
 
   const set = (field: keyof InTransitEntry, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -319,7 +322,7 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
               {/* Color */}
               <div>
                 <FieldLabel>Color</FieldLabel>
-                <ColorSelectDropdown value={form.color} onChange={(v) => set('color', v)} />
+                <ColorSelectDropdown value={form.color} onChange={(v) => set('color', v)} colors={colors} />
               </div>
 
               {/* Color Code */}
