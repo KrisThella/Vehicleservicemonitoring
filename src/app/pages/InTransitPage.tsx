@@ -614,7 +614,7 @@ export function InTransitPage() {
                 <div className="absolute inset-4 flex flex-col justify-between pointer-events-none">
                   {[0, 5, 10, 15, 20].reverse().map((val) => (
                     <div key={val} className="flex items-center">
-                      <span className="text-[10px] text-gray-400 dark:text-gray-500 w-6 -ml-8">{val}</span>
+                      <span className="text-[10px] text-black-400 font-semibold dark:text-grey-500 font-semibold w-6 -ml-8">{val}</span>
                       <div className="flex-1 border-t border-dashed border-gray-200 dark:border-slate-600" />
                     </div>
                   ))}
@@ -677,7 +677,7 @@ export function InTransitPage() {
                         </div>
 
                         {/* X-axis label */}
-                        <div className="text-[10px] text-gray-500 dark:text-gray-400 text-center leading-tight max-w-full px-1">
+                        <div className="text-[10px] font-semibold text-black-500 dark:text-white-400 text-center font-semibold leading-tight max-w-full px-1">
                           {row.model}
                         </div>
                       </div>
