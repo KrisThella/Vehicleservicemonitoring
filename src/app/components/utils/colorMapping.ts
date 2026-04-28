@@ -1,4 +1,3 @@
-// src/app/utils/colorMapping.ts
 export const colorHexMap: Record<string, string> = {
   'ALLURING BLUE PEARL METALLIC': '#2A6F9E',
   'ARCTIC WHITE PEARL': '#F6F7F8',

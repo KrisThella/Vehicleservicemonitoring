@@ -6,7 +6,6 @@ import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { toast } from 'sonner';
 import { useColors, type ColorRecord } from '../../lib/api';
-import { colorHexMap } from '../components/utils/colorMapping';
 
 // ── Color conversion helpers (HSV ↔ HEX) ─────────────────────────────────
 
@@ -248,8 +247,10 @@ function ColorPicker({
 
 function PredefinedColorDropdown({
   onSelect,
+  colors = [],
 }: {
   onSelect: (name: string, hex: string) => void;
+  colors?: ColorRecord[];
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -309,9 +310,9 @@ function PredefinedColorDropdown({
     return () => document.removeEventListener('scroll', handler, true);
   }, [open]);
 
-  const filtered = Object.entries(colorHexMap)
-    .filter(([name]) => name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => a[0].localeCompare(b[0]));
+  const filtered = colors
+    .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <div className="relative">
@@ -343,12 +344,12 @@ function PredefinedColorDropdown({
             {filtered.length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No match</p>
             ) : (
-              filtered.map(([name, hex]) => (
+              filtered.map((c) => (
                 <button
-                  key={name}
+                  key={c.id}
                   type="button"
                   onClick={() => {
-                    onSelect(name, hex);
+                    onSelect(c.name, c.hex);
                     setOpen(false);
                     setSearch('');
                   }}
@@ -356,9 +357,9 @@ function PredefinedColorDropdown({
                 >
                   <span
                     className="inline-block w-4 h-4 rounded-sm border border-gray-300 dark:border-gray-600 flex-shrink-0 shadow-sm"
-                    style={{ backgroundColor: hex }}
+                    style={{ backgroundColor: c.hex }}
                   />
-                  <span className="truncate text-gray-900 dark:text-gray-100">{name}</span>
+                  <span className="truncate text-gray-900 dark:text-gray-100">{c.name}</span>
                 </button>
               ))
             )}
@@ -376,10 +377,12 @@ function ColorFormModal({
   initial,
   onClose,
   onSave,
+  colors = [],
 }: {
   initial: ColorRecord | null;
   onClose: () => void;
   onSave: (name: string, hex: string) => Promise<void>;
+  colors?: ColorRecord[];
 }) {
   const isEdit = !!initial;
   const [name, setName] = useState(initial?.name ?? '');
@@ -437,6 +440,7 @@ function ColorFormModal({
               Select from Predefined Colors <span className="text-gray-400">(optional)</span>
             </label>
             <PredefinedColorDropdown
+              colors={colors}
               onSelect={(name, hex) => {
                 setName(name);
                 setHex(hex.toLowerCase());
@@ -647,6 +651,7 @@ export function ColorsPage() {
       {showModal && (
         <ColorFormModal
           initial={editing}
+          colors={colors}
           onClose={() => { setShowModal(false); setEditing(null); }}
           onSave={handleSave}
         />
