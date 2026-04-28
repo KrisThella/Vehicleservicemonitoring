@@ -978,7 +978,7 @@ function SummaryCard({
   wide?: boolean;
 }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-200 p-5 flex items-start justify-between gap-3 shadow-sm">
+    <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-5 flex items-start justify-between gap-3 shadow-sm">
       <div className="min-w-0">
         <p className="text-xs text-gray-500 mb-1">{label}</p>
         <p
@@ -1010,9 +1010,9 @@ function Th({
 }) {
   return (
     <th
-      className={`px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap bg-gray-50
+      className={`px-4 py-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap bg-gray-50 dark:bg-gray-800
       ${right ? "text-right" : center ? "text-center" : "text-left"}
-      ${sticky ? "sticky right-0 border-l border-gray-200 z-10" : ""}
+      ${sticky ? "sticky right-0 border-l border-gray-200 dark:border-gray-700 z-10" : ""}
     `}
     >
       {children}
