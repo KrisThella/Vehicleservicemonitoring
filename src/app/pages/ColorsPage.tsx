@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Plus, Pencil, Trash2, X, Save, Paintbrush } from 'lucide-react';
 import { Button } from '../components/ui/button';
@@ -243,6 +244,132 @@ function ColorPicker({
   );
 }
 
+// ── Predefined Color Dropdown ─────────────────────────────────────────────────
+
+function PredefinedColorDropdown({
+  onSelect,
+}: {
+  onSelect: (name: string, hex: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const spaceAbove = rect.top;
+      const dropHeight = 260;
+
+      if (spaceBelow >= dropHeight || spaceBelow >= spaceAbove) {
+        setDropdownStyle({
+          position: 'fixed',
+          top: rect.bottom + 4,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 99999,
+        });
+      } else {
+        setDropdownStyle({
+          position: 'fixed',
+          bottom: window.innerHeight - rect.top + 4,
+          left: rect.left,
+          width: rect.width,
+          zIndex: 99999,
+        });
+      }
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(e.target as Node) &&
+        triggerRef.current && !triggerRef.current.contains(e.target as Node)
+      ) {
+        setOpen(false);
+      }
+    };
+    if (open) document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Close on scroll (only parent, not dropdown)
+  useEffect(() => {
+    if (!open || !dropdownRef.current) return;
+    const handler = (e: Event) => {
+      if (!dropdownRef.current || !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('scroll', handler, true);
+    return () => document.removeEventListener('scroll', handler, true);
+  }, [open]);
+
+  const filtered = Object.entries(colorHexMap)
+    .filter(([name]) => name.toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => a[0].localeCompare(b[0]));
+
+  return (
+    <div className="relative">
+      <button
+        ref={triggerRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        className="w-full text-left px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
+      >
+        {open ? '-- Choose a vehicle color --' : '-- Choose a vehicle color --'}
+      </button>
+
+      {open && createPortal(
+        <div
+          ref={dropdownRef}
+          style={dropdownStyle}
+          className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl overflow-hidden"
+        >
+          <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+            <input
+              autoFocus
+              className="w-full text-sm px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              placeholder="Search color…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+          <div className="max-h-52 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">No match</p>
+            ) : (
+              filtered.map(([name, hex]) => (
+                <button
+                  key={name}
+                  type="button"
+                  onClick={() => {
+                    onSelect(name, hex);
+                    setOpen(false);
+                    setSearch('');
+                  }}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <span
+                    className="inline-block w-4 h-4 rounded-sm border border-gray-300 dark:border-gray-600 flex-shrink-0 shadow-sm"
+                    style={{ backgroundColor: hex }}
+                  />
+                  <span className="truncate text-gray-900 dark:text-gray-100">{name}</span>
+                </button>
+              ))
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
+    </div>
+  );
+}
+
 // ── Add / Edit Modal ──────────────────────────────────────────────────────
 
 function ColorFormModal({
@@ -309,29 +436,12 @@ function ColorFormModal({
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Select from Predefined Colors <span className="text-gray-400">(optional)</span>
             </label>
-            <select
-              onChange={(e) => {
-                if (e.target.value) {
-                  const selectedName = e.target.value;
-                  const selectedHex = colorHexMap[selectedName];
-                  if (selectedHex) {
-                    setName(selectedName);
-                    setHex(selectedHex.toLowerCase());
-                  }
-                  e.target.value = ''; // Reset dropdown
-                }
+            <PredefinedColorDropdown
+              onSelect={(name, hex) => {
+                setName(name);
+                setHex(hex.toLowerCase());
               }}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="">-- Choose a vehicle color --</option>
-              {Object.keys(colorHexMap)
-                .sort()
-                .map((colorName) => (
-                  <option key={colorName} value={colorName}>
-                    {colorName}
-                  </option>
-                ))}
-            </select>
+            />
           </div>
 
           {/* Name */}

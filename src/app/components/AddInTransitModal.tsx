@@ -129,12 +129,17 @@ function ColorSelectDropdown({
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  // Close on scroll
+  // Close on scroll (only parent, not dropdown)
   useEffect(() => {
-    if (!open) return;
-    const handler = () => setOpen(false);
-    window.addEventListener('scroll', handler, true);
-    return () => window.removeEventListener('scroll', handler, true);
+    if (!open || !dropdownRef.current) return;
+    const handler = (e: Event) => {
+      // Don't close if scrolling within the dropdown itself
+      if (!dropdownRef.current || !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('scroll', handler, true);
+    return () => document.removeEventListener('scroll', handler, true);
   }, [open]);
 
   const filtered = Object.entries(colorHexMap).filter(([name]) =>
