@@ -628,9 +628,9 @@ export function InTransitPage() {
                     const spacing = 'gap-0.5';
 
                     return (
-                      <div key={row.model} className="flex-1 flex flex-col items-center gap-2">
+                      <div key={row.model} className="flex-1 flex flex-col items-center gap-2 h-full">
                         {/* Bar group */}
-                        <div className={`flex items-end justify-center ${spacing} w-full h-full`}>
+                        <div className={`flex items-end justify-center ${spacing} w-full flex-1`}>
                           {/* Allocation bar */}
                           <div
                             className={`${barWidth} bg-blue-200 rounded-t-sm transition-all hover:opacity-80 cursor-pointer group relative`}
