@@ -554,7 +554,7 @@ export function ColorsPage() {
       </div>
 
       <div className="flex-1 overflow-hidden flex flex-col p-6">
-        <div className="max-w-4xl mx-auto w-full space-y-4 flex flex-col flex-1 overflow-hidden">
+        <div className="max-w-4xl mx-auto w-full space-y-4 flex flex-col flex-1 min-h-0">
           <Input
             placeholder="Search by name or hex code…"
             value={search}
@@ -562,8 +562,8 @@ export function ColorsPage() {
             className="max-w-md"
           />
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col flex-1">
-            <div className="overflow-x-auto overflow-y-auto flex-1">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col flex-1 min-h-0">
+            <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
