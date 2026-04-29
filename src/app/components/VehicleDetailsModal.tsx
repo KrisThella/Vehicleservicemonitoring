@@ -329,13 +329,16 @@ export function VehicleDetailsModal({
     setIsEditMode(false);
   };
 
-  const handleSaveClick = () => {
+  const handleSaveClick = async () => {
     if (editedVehicle && onSave) {
-      onSave(editedVehicle);
-      toast.success("Vehicle details updated successfully!");
+      try {
+        await onSave(editedVehicle);
+        setIsEditMode(false);
+        setEditedVehicle(null);
+      } catch (e: any) {
+        toast.error(`Failed to save: ${e.message}`);
+      }
     }
-    setIsEditMode(false);
-    setEditedVehicle(null);
   };
 
   const updateField = <K extends keyof VehicleData>(

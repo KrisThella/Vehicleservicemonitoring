@@ -15,7 +15,7 @@ import { useLocation } from 'react-router';
 
 export function DashboardPage() {
   const location = useLocation();
-  const { vehicles, addVehicle } = useVehicles();
+  const { vehicles, addVehicle, updateVehicle } = useVehicles();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModel, setSelectedModel] = useState('all');
   const [selectedDealer, setSelectedDealer] = useState('all');
@@ -134,6 +134,16 @@ export function DashboardPage() {
     }
   };
 
+  const handleSaveVehicle = async (updatedVehicle: VehicleData) => {
+    try {
+      await updateVehicle(updatedVehicle.id, updatedVehicle);
+      setShowDetailsModal(false);
+      setDetailsVehicle(null);
+    } catch (e: any) {
+      toast.error(`Failed to update vehicle: ${e.message}`);
+    }
+  };
+
   return (
     <>
       <Header />
@@ -204,6 +214,7 @@ export function DashboardPage() {
           vehicle={detailsVehicle}
           isOpen={showDetailsModal}
           onClose={() => setShowDetailsModal(false)}
+          onSave={handleSaveVehicle}
         />
       )}
     </>
