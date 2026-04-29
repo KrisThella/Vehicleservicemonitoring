@@ -16,6 +16,8 @@ import { useLocation } from 'react-router';
 export function DashboardPage() {
   const location = useLocation();
   const { vehicles, addVehicle, updateVehicle } = useVehicles();
+  const normalizeStatus = (status: string) =>
+    status === 'AVAILABLE' ? 'ON TRACK' : status;
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModel, setSelectedModel] = useState('all');
   const [selectedDealer, setSelectedDealer] = useState('all');
@@ -72,7 +74,7 @@ export function DashboardPage() {
     }
 
     // Status filter
-    if (selectedStatus !== 'all' && vehicle.status !== selectedStatus) {
+    if (selectedStatus !== 'all' && normalizeStatus(vehicle.status) !== selectedStatus) {
       return false;
     }
 
@@ -125,6 +127,11 @@ export function DashboardPage() {
     setSelectedVehicle(vehicle);
   };
 
+  const handleViewDetails = (vehicle: VehicleData) => {
+    setDetailsVehicle(vehicle);
+    setShowDetailsModal(true);
+  };
+
   const handleAddVehicle = async (newVehicle: VehicleData) => {
     try {
       await addVehicle(newVehicle);
@@ -173,7 +180,7 @@ export function DashboardPage() {
 
         {/* Main Content - Full Width Vehicle Table */}
         <div>
-          <VehicleTable data={filteredVehicles} onViewHistory={handleViewHistory} />
+          <VehicleTable data={filteredVehicles} onViewHistory={handleViewHistory} onViewDetails={handleViewDetails} />
           
           {filteredVehicles.length === 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-12 text-center">

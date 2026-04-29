@@ -62,7 +62,6 @@ const STATUS_OPTIONS: VehicleData["status"][] = [
   "ON HOLD",
   "ON TRACK",
   "IN TRANSIT",
-  "AVAILABLE",
 ];
 const LOCATION_OPTIONS = [
   "TEAM JM",
@@ -76,7 +75,6 @@ const CATEGORY_OPTIONS = [
   "DEMO",
   "SALES",
   "ALLOCATION",
-  "AVAILABLE",
   "IN TRANSIT",
   "PULL OUT MONITORING",
 ];
@@ -483,8 +481,8 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
             </div>
           </div>
 
-          {/* Allocation Information (if category is ALLOCATION or AVAILABLE) */}
-          {(formData.category === "ALLOCATION" || formData.category === "AVAILABLE") && (
+          {/* Allocation Information (if category is ALLOCATION) */}
+          {formData.category === "ALLOCATION" && (
             <div className="mb-6">
               <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 <div className="h-1 w-8 bg-blue-600 rounded" />

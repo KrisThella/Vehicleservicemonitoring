@@ -5,6 +5,25 @@ import { seedDatabase } from './seed';
 
 seedDatabase();
 
+const normalizeAvailableVehicles = () => {
+  const rows = db
+    .prepare('SELECT id, data FROM vehicles')
+    .all() as { id: string; data: string }[];
+  const update = db.prepare(
+    "UPDATE vehicles SET data = ?, updated_at = strftime('%s','now') WHERE id = ?"
+  );
+
+  for (const row of rows) {
+    const vehicle = JSON.parse(row.data);
+    if (vehicle?.status === 'AVAILABLE') {
+      vehicle.status = 'ON TRACK';
+      update.run(JSON.stringify(vehicle), row.id);
+    }
+  }
+};
+
+normalizeAvailableVehicles();
+
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));

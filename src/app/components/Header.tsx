@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Car, Bell, Settings, DollarSign, Clock, MoreVertical, FileText, History } from 'lucide-react';
 import { Button } from './ui/button';
 import { useNavigate } from 'react-router';
-import { differenceInDays, format } from 'date-fns';
+import { differenceInDays, format, isValid } from 'date-fns';
 import { useVehicles, useProfile } from '../../lib/api';
 
 export function Header() {
@@ -13,6 +13,17 @@ export function Header() {
 
   const { vehicles } = useVehicles();
   const { profile } = useProfile();
+
+  const toValidDate = (value: Date | string | number | null | undefined) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    return isValid(date) ? date : null;
+  };
+
+  const formatDate = (value: Date | string | number | null | undefined) => {
+    const date = toValidDate(value);
+    return date ? format(date, 'MMM dd, yyyy') : null;
+  };
 
   const overdueVehicles = vehicles.filter(
     (v: any) => v.overdue || v.status === 'Overdue'
@@ -99,7 +110,10 @@ export function Header() {
                       </div>
                     ) : (
                       overdueVehicles.map((vehicle: any) => {
-                        const daysOverdue = differenceInDays(new Date(), vehicle.receivedDate);
+                        const receivedDate = toValidDate(vehicle.receivedDate);
+                        const daysOverdue = receivedDate
+                          ? differenceInDays(new Date(), receivedDate)
+                          : null;
                         const isMenuOpen = dotMenuOpen === vehicle.id;
                         return (
                           <div
@@ -123,7 +137,9 @@ export function Header() {
                               <div className="flex items-center gap-1 text-xs text-red-600 mt-1">
                                 <Clock className="size-3 flex-shrink-0" />
                                 <span>
-                                  Received: {format(vehicle.receivedDate, 'MMM dd, yyyy')} ({daysOverdue} days ago)
+                                  Received:{' '}
+                                  {formatDate(vehicle.receivedDate) ?? '-'}
+                                  {daysOverdue !== null ? ` (${daysOverdue} days ago)` : ''}
                                 </span>
                               </div>
                               <p className="text-xs text-gray-400 mt-0.5">

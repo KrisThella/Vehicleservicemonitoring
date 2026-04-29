@@ -94,7 +94,7 @@ export function PriceListPage() {
               className="max-w-md"
             />
           </div>
-
+          {/*—————Adding New Unit——————————————————*/}
           {isAddingNew && (
             <div className="bg-white dark:bg-gray-900 rounded-lg border border-blue-200 dark:border-blue-900 p-6 mb-6">
               <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-4">Add New Unit</h3>
@@ -149,12 +149,12 @@ export function PriceListPage() {
               </div>
             </div>
           )}
-
-          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
-            <div className="overflow-x-auto">
+          {/*——————————Table—————————————*/}
+          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden flex flex-col max-h-[500px]">
+            <div className="overflow-x-auto flex-shrink-0">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-10">
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Category</th>
                     <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase min-w-[240px]">Model</th>
                     {PRICE_COLUMNS.map((col) => (
@@ -165,6 +165,10 @@ export function PriceListPage() {
                     <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Actions</th>
                   </tr>
                 </thead>
+              </table>
+            </div>
+            <div className="overflow-x-auto overflow-y-auto flex-1 min-h-0">
+              <table className="w-full text-sm">
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                   {loading && (
                     <tr><td colSpan={PRICE_COLUMNS.length + 3} className="px-4 py-12 text-center text-sm text-gray-500">Loading…</td></tr>

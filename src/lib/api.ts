@@ -123,6 +123,12 @@ export function useVehicles() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const notifyVehiclesChanged = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('vehicles:changed'));
+    }
+  };
+
   const refetch = useCallback(async () => {
     setLoading(true);
     try {
@@ -138,10 +144,20 @@ export function useVehicles() {
 
   useEffect(() => { refetch(); }, [refetch]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handle = () => {
+      refetch();
+    };
+    window.addEventListener('vehicles:changed', handle);
+    return () => window.removeEventListener('vehicles:changed', handle);
+  }, [refetch]);
+
   const addVehicle = useCallback(async (v: any) => {
     const created = await send<VehicleRecord>('/vehicles', 'POST', dehydrateVehicle(v));
     const hydrated = hydrateVehicle(created);
     setVehicles((prev) => [...prev, hydrated]);
+    notifyVehiclesChanged();
     return hydrated;
   }, []);
 
@@ -149,12 +165,14 @@ export function useVehicles() {
     const updated = await send<VehicleRecord>(`/vehicles/${id}`, 'PUT', dehydrateVehicle(v));
     const hydrated = hydrateVehicle(updated);
     setVehicles((prev) => prev.map((x) => (x.id === id ? hydrated : x)));
+    notifyVehiclesChanged();
     return hydrated;
   }, []);
 
   const removeVehicle = useCallback(async (id: string) => {
     await send(`/vehicles/${id}`, 'DELETE');
     setVehicles((prev) => prev.filter((x) => x.id !== id));
+    notifyVehiclesChanged();
   }, []);
 
   return { vehicles, loading, error, refetch, addVehicle, updateVehicle, removeVehicle };

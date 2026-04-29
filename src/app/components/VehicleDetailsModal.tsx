@@ -104,7 +104,6 @@ const STATUS_OPTIONS: VehicleData["status"][] = [
   "ON HOLD",
   "ON TRACK",
   "IN TRANSIT",
-  "AVAILABLE",
 ];
 const LOCATION_OPTIONS = [
   "TEAM JM",
@@ -348,8 +347,12 @@ export function VehicleDetailsModal({
     setEditedVehicle((prev) => (prev ? { ...prev, [field]: value } : null));
   };
 
+  const normalizeStatus = (status: VehicleData["status"]) =>
+    status === "AVAILABLE" ? "ON TRACK" : status;
+
   const getStatusBadge = (status: VehicleData["status"]) => {
-    const variants: Record<VehicleData["status"], { className: string }> = {
+    const normalizedStatus = normalizeStatus(status);
+    const variants: Record<string, { className: string }> = {
       "On Process": { className: "bg-blue-100 text-blue-700 border-blue-200" },
       Pending: { className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
       Completed: { className: "bg-green-100 text-green-700 border-green-200" },
@@ -361,17 +364,20 @@ export function VehicleDetailsModal({
       "ON HOLD": { className: "bg-gray-100 text-green-700 border-gray-200" },
       "ON TRACK": { className: "bg-green-100 text-green-700 border-green-200" },
       "IN TRANSIT": { className: "bg-purple-100 text-purple-700 border-purple-200" },
-      AVAILABLE: { className: "bg-teal-100 text-teal-700 border-teal-200" },
     };
     return (
-      <Badge variant="outline" className={variants[status].className}>
-        {status}
+      <Badge
+        variant="outline"
+        className={variants[normalizedStatus].className}
+      >
+        {normalizedStatus}
       </Badge>
     );
   };
 
   const setStatusColor = (status: VehicleData["status"]) => {
-    const variants: Record<VehicleData["status"], { className: string }> = {
+    const normalizedStatus = normalizeStatus(status);
+    const variants: Record<string, { className: string }> = {
       "On Process": { className: "font-bold text-blue-700" },
       Pending: { className: "font-bold text-yellow-700" },
       Completed: { className: "font-bold text-green-700" },
@@ -383,9 +389,12 @@ export function VehicleDetailsModal({
       "ON HOLD": { className: "font-bold text-yellow-700" },
       "ON TRACK": { className: "font-bold text-green-700" },
       "IN TRANSIT": { className: "font-bold text-purple-700" },
-      AVAILABLE: { className: "font-bold text-teal-700" },
     };
-    return <div className={variants[status].className}>{status}</div>;
+    return (
+      <div className={variants[normalizedStatus].className}>
+        {normalizedStatus}
+      </div>
+    );
   };
 
   const calculateDays = () => differenceInDays(new Date(), currentVehicle.receivedDate);
@@ -559,12 +568,12 @@ export function VehicleDetailsModal({
             </div>
           </div>
 
-          {/* Allocation & Available Information Section */}
+          {/* Allocation & On Track Information Section */}
           {(currentVehicle.category === "ALLOCATION" || currentVehicle.category === "AVAILABLE") && (
             <div className="mb-6">
               <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2">
                 <div className="h-1 w-8 bg-blue-600 rounded" />
-                Allocation & Available Information
+                Allocation & On Track Information
               </h3>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                 <DetailRow label="ENGINE NUMBER" value={currentVehicle.engineNo} field="engineNo" type="text" {...rowProps} />

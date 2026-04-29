@@ -11,8 +11,8 @@ export function AvailablePage() {
   const { vehicles, addVehicle } = useVehicles();
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const availableVehicles = vehicles.filter((v: any) => v.status === 'ON TRACK');
-  const totalAvailable = availableVehicles.length;
+  const onTrackVehicles = vehicles.filter((v: any) => v.status === 'ON TRACK');
+  const totalOnTrack = onTrackVehicles.length;
 
   const handleAddEntry = async (entry: AvailableVehicleEntry) => {
     try {
@@ -33,7 +33,7 @@ export function AvailablePage() {
         dateTagged: entry.dateTagged ? new Date(entry.dateTagged) : null,
         monthDeclared: entry.monthDeclared,
         location: entry.location || '',
-        unit: 'AVAILABLE UNIT',
+        unit: 'ON TRACK UNIT',
         vinNumber: entry.chassisNo,
         plateNumber: 'N/A UNIT',
         receivedDate: entry.dateTagged ? new Date(entry.dateTagged) : new Date(),
@@ -52,7 +52,7 @@ export function AvailablePage() {
       <Header />
       <main className="flex-1 overflow-auto px-6 py-6 space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Available Units</h1>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">On Track Units</h1>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Vehicles with ON TRACK status ready for allocation or sale</p>
         </div>
 
@@ -60,8 +60,8 @@ export function AvailablePage() {
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Total Available</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">{totalAvailable}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Total On Track</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">{totalOnTrack}</p>
               </div>
               <div className="bg-teal-50 dark:bg-teal-950 p-3 rounded-lg">
                 <Package className="size-6 text-teal-600" />
@@ -73,7 +73,7 @@ export function AvailablePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Ready for Sale</p>
-                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">{totalAvailable}</p>
+                <p className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mt-1">{totalOnTrack}</p>
               </div>
               <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg">
                 <TrendingUp className="size-6 text-green-600" />
@@ -84,7 +84,7 @@ export function AvailablePage() {
 
         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
-            <h2 className="font-semibold text-gray-900 dark:text-gray-100">Available Vehicles</h2>
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">On Track Vehicles</h2>
             <Button onClick={() => setShowAddModal(true)} className="bg-teal-600 hover:bg-teal-700 h-8 px-3 text-sm" size="sm">
               <Plus className="size-4 mr-1.5" />
               Add Entry
@@ -100,7 +100,7 @@ export function AvailablePage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                {availableVehicles.map((vehicle: any) => {
+                {onTrackVehicles.map((vehicle: any) => {
                   const unitAge = differenceInDays(new Date(), vehicle.receivedDate);
                   const gracePeriod = Math.max(0, 90 - unitAge);
                   return (
@@ -127,8 +127,8 @@ export function AvailablePage() {
                     </tr>
                   );
                 })}
-                {availableVehicles.length === 0 && (
-                  <tr><td colSpan={19} className="px-4 py-12 text-center text-sm text-gray-500">No available vehicles found.</td></tr>
+                {onTrackVehicles.length === 0 && (
+                  <tr><td colSpan={19} className="px-4 py-12 text-center text-sm text-gray-500">No on track vehicles found.</td></tr>
                 )}
               </tbody>
             </table>

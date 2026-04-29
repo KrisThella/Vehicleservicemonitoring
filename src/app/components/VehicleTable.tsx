@@ -26,9 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from "./ui/table";
-import { format, differenceInDays } from "date-fns";
+import { format, differenceInDays, isValid } from "date-fns";
 import { getColorHex } from "./utils/colorMapping";
-import { VehicleDetailsModal } from "./VehicleDetailsModal";
 
 export interface VehicleData {
   id: string;
@@ -125,7 +124,7 @@ export interface VehicleData {
   dnpLessWsSubsidy?: string;
   ewt?: string;
 
-  // Allocation & Available specific fields
+  // Allocation & On Track specific fields
   taggingAccount?: string;
   allocationTeam?: string;
   dateTagged?: Date | null;
@@ -135,6 +134,7 @@ export interface VehicleData {
 interface VehicleTableProps {
   data: VehicleData[];
   onViewHistory: (vehicle: VehicleData) => void;
+  onViewDetails: (vehicle: VehicleData) => void;
 }
 
 type SortField = keyof VehicleData;
@@ -143,14 +143,13 @@ type SortDirection = "asc" | "desc" | null;
 export function VehicleTable({
   data,
   onViewHistory,
+  onViewDetails,
 }: VehicleTableProps) {
   const [sortField, setSortField] = useState<SortField | null>(
     null,
   );
   const [sortDirection, setSortDirection] =
     useState<SortDirection>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<VehicleData | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [vehicleData, setVehicleData] = useState<VehicleData[]>(data);
 
   // Sync vehicleData with data prop changes
@@ -159,23 +158,10 @@ export function VehicleTable({
   }, [data]);
 
   const handleViewDetails = (vehicle: VehicleData) => {
-    setSelectedVehicle(vehicle);
-    setIsDetailsModalOpen(true);
+    onViewDetails(vehicle);
   };
 
-  const handleCloseDetailsModal = () => {
-    setIsDetailsModalOpen(false);
-    setSelectedVehicle(null);
-  };
 
-  const handleSaveVehicle = (updatedVehicle: VehicleData) => {
-    // Update the vehicle in the data array
-    const updatedData = vehicleData.map(v =>
-      v.id === updatedVehicle.id ? updatedVehicle : v
-    );
-    setVehicleData(updatedData);
-    setSelectedVehicle(updatedVehicle);
-  };
 
   // Use vehicleData instead of data for sorting
   const dataToSort = vehicleData.length > 0 ? vehicleData : data;
@@ -230,11 +216,12 @@ export function VehicleTable({
     return 0;
   });
 
+  const normalizeStatus = (status: VehicleData["status"]) =>
+    status === "AVAILABLE" ? "ON TRACK" : status;
+
   const getStatusBadge = (status: VehicleData["status"]) => {
-    const variants: Record<
-      VehicleData["status"],
-      { className: string }
-    > = {
+    const normalizedStatus = normalizeStatus(status);
+    const variants: Record<string, { className: string }> = {
       "On Process": {
         className: "bg-blue-100 text-blue-700 border-blue-200",
       },
@@ -270,12 +257,9 @@ export function VehicleTable({
       "IN TRANSIT": {
         className: "bg-purple-100 text-purple-700 border-purlpe-200",
       },
-      AVAILABLE: {
-        className: "bg-teal-100 text-teal-700 border-teal-200",
-      },
     };
 
-    const badgeConfig = variants[status] || {
+    const badgeConfig = variants[normalizedStatus] || {
       className: "bg-gray-100 text-gray-700 border-gray-200",
     };
 
@@ -284,7 +268,7 @@ export function VehicleTable({
         variant="outline"
         className={badgeConfig.className}
       >
-        {status}
+        {normalizedStatus}
       </Badge>
     );
   };
@@ -300,8 +284,25 @@ export function VehicleTable({
     );
   };
 
-  const getDaysInService = (receivedDate: Date) => {
-    return differenceInDays(new Date(), receivedDate);
+  const toValidDate = (
+    value: Date | string | number | null | undefined
+  ) => {
+    if (!value) return null;
+    const date = value instanceof Date ? value : new Date(value);
+    return isValid(date) ? date : null;
+  };
+
+  const formatDate = (value: Date | string | number | null | undefined) => {
+    const date = toValidDate(value);
+    return date ? format(date, "MMM dd, yyyy") : null;
+  };
+
+  const getDaysInService = (
+    receivedDate: Date | string | null | undefined
+  ) => {
+    const date = toValidDate(receivedDate);
+    if (!date) return null;
+    return differenceInDays(new Date(), date);
   };
 
   return (
@@ -425,13 +426,14 @@ export function VehicleTable({
                 </TableCell>
                 <TableCell>{vehicle.year}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-1 text-sm">
-                    <CalendarIcon className="size-3 text-gray-400" />
-                    {format(
-                      vehicle.receivedDate,
-                      "MMM dd, yyyy",
-                    )}
-                  </div>
+                  {formatDate(vehicle.receivedDate) ? (
+                    <div className="flex items-center gap-1 text-sm">
+                      <CalendarIcon className="size-3 text-gray-400" />
+                      {formatDate(vehicle.receivedDate)}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 text-sm">-</span>
+                  )}
                 </TableCell>
                 <TableCell className="font-mono text-sm">
                   {vehicle.poNumber}
@@ -463,28 +465,35 @@ export function VehicleTable({
                   {vehicle.unit}
                 </TableCell>
                 <TableCell>
-                  {vehicle.pullOut ? (
+                  {formatDate(vehicle.pullOut) ? (
                     <div className="flex items-center gap-1 text-sm">
                       <CalendarIcon className="size-3 text-gray-400" />
-                      {format(vehicle.pullOut, "MMM dd, yyyy")}
+                      {formatDate(vehicle.pullOut)}
                     </div>
                   ) : (
-                    <span className="text-gray-400 text-sm">
-                      -
-                    </span>
+                    <span className="text-gray-400 text-sm">-</span>
                   )}
                 </TableCell>
                 <TableCell>
+                  {(() => {
+                    const daysInService = getDaysInService(
+                      vehicle.receivedDate
+                    );
+                    const badgeClassName =
+                      daysInService !== null && daysInService > 7
+                        ? "bg-orange-50 text-orange-700 border-orange-200"
+                        : "bg-gray-50 text-gray-700 border-gray-200";
+                    return (
                   <Badge
                     variant="outline"
                     className={
-                      getDaysInService(vehicle.receivedDate) > 7
-                        ? "bg-orange-50 text-orange-700 border-orange-200"
-                        : "bg-gray-50 text-gray-700 border-gray-200"
+                      badgeClassName
                     }
                   >
-                    {getDaysInService(vehicle.receivedDate)}d
+                    {daysInService !== null ? `${daysInService}d` : "-"}
                   </Badge>
+                    );
+                  })()}
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
@@ -525,12 +534,6 @@ export function VehicleTable({
           </TableBody>
         </Table>
       </div>
-      <VehicleDetailsModal
-        isOpen={isDetailsModalOpen}
-        onClose={handleCloseDetailsModal}
-        vehicle={selectedVehicle}
-        onSave={handleSaveVehicle}
-      />
     </div>
   );
 }

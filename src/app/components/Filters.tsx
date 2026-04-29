@@ -137,16 +137,6 @@ export function Filters({
             </button>
             
             <button
-              onClick={() => onCategoryChange('AVAILABLE')}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                selectedCategory === 'AVAILABLE'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-            >
-              Available
-            </button>
-            <button
               onClick={() => onCategoryChange('IN TRANSIT')}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
                 selectedCategory === 'IN TRANSIT'
@@ -268,7 +258,6 @@ export function Filters({
                 <SelectItem value="ON HOLD">ON HOLD</SelectItem>
                 <SelectItem value="ON TRACK">ON TRACK</SelectItem>
                 <SelectItem value="IN TRANSIT">IN TRANSIT</SelectItem>
-                <SelectItem value="AVAILABLE">AVAILABLE</SelectItem>
               </SelectContent>
             </Select>
 
