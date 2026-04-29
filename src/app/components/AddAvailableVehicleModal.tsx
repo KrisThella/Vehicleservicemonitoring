@@ -12,8 +12,8 @@ import {
 } from './ui/select';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
-import { useColors, type ColorRecord } from '../../lib/api';
-import { SUZUKI_MODELS, MODEL_CATEGORIES, CATEGORY_COLORS } from '../data/suzukiModels';
+import { useColors, usePrices, type ColorRecord } from '../../lib/api';
+import { CATEGORY_COLORS } from '../data/suzukiModels';
 
 export interface AvailableVehicleEntry {
   id: string;
@@ -240,6 +240,10 @@ export function AddAvailableVehicleModal({
   const [errors, setErrors] = useState<Partial<Record<keyof AvailableVehicleEntry, string>>>({});
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const { colors } = useColors();
+  const { prices } = usePrices();
+  const modelCategories = Array.from(
+    new Set(prices.map((p) => p.category).filter((c): c is string => Boolean(c)))
+  ).sort();
 
   // Auto-compute unit age from pull out date
   useEffect(() => {
@@ -280,12 +284,12 @@ export function AddAvailableVehicleModal({
     'bg-green-50 border-green-300 text-green-700';
 
   const filteredModels = categoryFilter === 'ALL'
-    ? SUZUKI_MODELS
-    : SUZUKI_MODELS.filter((m) => m.category === categoryFilter);
+    ? prices
+    : prices.filter((m) => m.category === categoryFilter);
 
   // Get the category of the currently selected model
   const selectedModelCategory = form.model
-    ? SUZUKI_MODELS.find((m) => m.name === form.model)?.category
+    ? prices.find((m) => m.model === form.model)?.category
     : undefined;
 
   // Get allowed colors based on selected model's category
@@ -340,7 +344,7 @@ export function AddAvailableVehicleModal({
                     className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 flex-shrink-0"
                   >
                     <option value="ALL">All</option>
-                    {MODEL_CATEGORIES.map((c) => (
+                    {modelCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -353,11 +357,11 @@ export function AddAvailableVehicleModal({
                     </SelectTrigger>
                     <SelectContent className="max-h-[280px]">
                       {filteredModels.map((m) => (
-                        <SelectItem key={m.name} value={m.name}>
+                        <SelectItem key={m.id} value={m.model}>
                           <span className="flex items-center justify-between gap-4 w-full">
-                            <span>{m.name}</span>
+                            <span>{m.model}</span>
                             <span className="text-gray-400 text-xs">
-                              ₱{m.basePrice.toLocaleString('en-PH')}
+                              {m.srp ? `₱${m.srp}` : '-'}
                             </span>
                           </span>
                         </SelectItem>
