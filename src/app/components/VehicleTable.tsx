@@ -275,10 +275,14 @@ export function VehicleTable({
       },
     };
 
+    const badgeConfig = variants[status] || {
+      className: "bg-gray-100 text-gray-700 border-gray-200",
+    };
+
     return (
       <Badge
         variant="outline"
-        className={variants[status].className}
+        className={badgeConfig.className}
       >
         {status}
       </Badge>
