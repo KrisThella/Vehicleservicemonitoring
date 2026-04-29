@@ -125,6 +125,7 @@ const BANK_OPTIONS = [
   "SECURITY BANK CORPORATION (SBC)",
   "LUZON DEVELOPMENT BANK (LDB)",
   "BANK OF COMMERCE (BOC)",
+  "METRO BANK (MB)",
 ];
 
 // ─── FormField is defined OUTSIDE the parent component to prevent re-mounting on each render ───

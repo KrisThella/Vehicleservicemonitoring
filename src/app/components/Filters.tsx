@@ -135,16 +135,7 @@ export function Filters({
             >
               Sales
             </button>
-            <button
-              onClick={() => onCategoryChange('ALLOCATION')}
-              className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                selectedCategory === 'ALLOCATION'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-              }`}
-            >
-              Allocation
-            </button>
+            
             <button
               onClick={() => onCategoryChange('AVAILABLE')}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
