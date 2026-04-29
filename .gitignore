@@ -1,3 +1,5 @@
 
 # Local SQLite database
 data/
+node_modules
+node_modules
