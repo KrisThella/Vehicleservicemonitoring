@@ -9,7 +9,7 @@ import { Calendar } from "./ui/calendar";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { getColorHex } from "./utils/colorMapping";
-import { useColors, type ColorRecord } from "../../lib/api";
+import { useColors, usePrices, type ColorRecord } from "../../lib/api";
 
 interface AddVehicleModalProps {
   onClose: () => void;
@@ -136,6 +136,7 @@ interface FormFieldProps {
   formData: Partial<VehicleData>;
   updateField: <K extends keyof VehicleData>(field: K, value: VehicleData[K]) => void;
   colors?: ColorRecord[];
+  modelOptions?: string[];
 }
 
 function FormField({
@@ -146,6 +147,7 @@ function FormField({
   formData,
   updateField,
   colors = [],
+  modelOptions = [],
 }: FormFieldProps) {
   const renderInput = () => {
     switch (type) {
@@ -168,7 +170,7 @@ function FormField({
 
       case "select": {
         let options: string[] = [];
-        if (field === "model") options = MODEL_OPTIONS;
+        if (field === "model") options = modelOptions.length ? modelOptions : MODEL_OPTIONS;
         else if (field === "dealer") options = DEALER_OPTIONS;
         else if (field === "status") options = STATUS_OPTIONS;
         else if (field === "location") options = LOCATION_OPTIONS;
@@ -283,6 +285,14 @@ function FormField({
 
 export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
   const { colors } = useColors();
+  const { prices } = usePrices();
+  const modelOptions = Array.from(
+    new Set(
+      prices
+        .map((p) => p.model)
+        .filter((model): model is string => Boolean(model))
+    )
+  );
   const [formData, setFormData] = useState<Partial<VehicleData>>({
     model: "",
     csNo: "",
@@ -407,7 +417,7 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <FormField label="CATEGORY" field="category" type="select" required formData={formData} updateField={updateField} />
-              <FormField label="MODEL" field="model" type="select" required formData={formData} updateField={updateField} />
+              <FormField label="MODEL" field="model" type="select" required formData={formData} updateField={updateField} modelOptions={modelOptions} />
               <FormField label="CS NUMBER" field="csNo" type="text" required formData={formData} updateField={updateField} />
               <FormField label="PLATE NUMBER" field="plateNumber" type="text" formData={formData} updateField={updateField} />
               <FormField label="COLOR" field="color" type="color" formData={formData} updateField={updateField} colors={colors} />

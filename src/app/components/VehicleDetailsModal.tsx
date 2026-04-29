@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { getColorHex, colorHexMap } from "./utils/colorMapping";
+import { usePrices } from "../../lib/api";
 import { toast } from "sonner";
 
 interface VehicleDetailsModalProps {
@@ -18,44 +19,6 @@ interface VehicleDetailsModalProps {
   onClose: () => void;
   onSave?: (updatedVehicle: VehicleData) => void;
 }
-
-// Pricing data for SRP lookup
-const pricingData: Record<string, string> = {
-  'APV 1.6 GA MT': '763,000.00',
-  'APV 1.6 GLX MT': '975,000.00',
-  'CELERIO 1.0 GL AGS': '754,000.00',
-  'DZIRE GL CVT - HYBRID': '920,000.00',
-  'DZIRE GLX CVT - HYBRID': '998,000.00',
-  'ERTIGA 1.5 GA MT - HYBRID': '954,000.00',
-  'ERTIGA 1.5 GL MT - HYBRID': '1,093,000.00',
-  'ERTIGA 1.5 GL AT - HYBRID': '1,128,000.00',
-  'ERTIGA 1.5 GLX AT - HYBRID': '1,213,000.00',
-  'FRONX GL AT': '1,059,000.00',
-  'FRONX GLX AT HYBRID': '1,219,000.00',
-  'FRONX GLX AT - HYBRID (TWO-TONE)': '1,229,000.00',
-  'FRONX SGX AT - HYBRID (TWO-TONE)': '1,299,000.00',
-  'JIMNY 1.5 GL MT SS': '1,293,000.00',
-  'JIMNY 1.5 GLX AT (MONOTONE) SS': '1,355,000.00',
-  'JIMNY 1.5 GLX AT (TWO-TONE) SS': '1,365,000.00',
-  'JIMNY 1.5 5DR GL MT': '1,558,000.00',
-  'JIMNY 1.5 5DR GLX AT (MONOTONE)': '1,698,000.00',
-  'JIMNY 1.5 5DR GLX AT (TWO-TONE)': '1,708,000.00',
-  'JIMNY 3GLX AT R': '1,331,000.00',
-  'JIMNY 5DR GLX AT R (MONOTONE)': '1,739,000.00',
-  'JIMNY 5DR GLX AT R (TWO-TONE)': '1,749,000.00',
-  'SWIFT 1.2 GL CVT': '989,000.00',
-  'CARRY CAB & CHASSIS': '614,000.00',
-  'CARRY DROPSIDE': '650,000.00',
-  'CARRY CARGO VAN': '705,000.00',
-  'CARRY UTILITY VAN': '754,000.00',
-  "CARRY LINEMAN'S VEHICLE": '798,000.00',
-  'S-PRESSO 1.0 GL MT': '634,000.00',
-  'S-PRESSO 1.0 GL AGS': '674,000.00',
-  'XL7 1.5 GLX AT - HYBRID MONOTONE': '1,252,000.00',
-  'XL7 1.5 GLX AT - HYBRID (TWO-TONE)': '1,262,000.00',
-  'XL7 1.5 GLX AT - HYBRID BLACK EDITION': '1,254,000.00',
-  'XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION': '1,269,000.00',
-};
 
 // Model options
 const MODEL_OPTIONS = [
@@ -167,6 +130,7 @@ interface DetailRowProps {
   isEditMode: boolean;
   currentVehicle: VehicleData;
   updateField: <K extends keyof VehicleData>(field: K, value: VehicleData[K]) => void;
+  modelOptions?: string[];
 }
 
 function DetailRow({
@@ -177,6 +141,7 @@ function DetailRow({
   isEditMode,
   currentVehicle,
   updateField,
+  modelOptions = [],
 }: DetailRowProps) {
   const renderValue = () => {
     if (!isEditMode || type === "readonly") {
@@ -200,7 +165,7 @@ function DetailRow({
 
       case "select": {
         let options: string[] = [];
-        if (field === "model") options = MODEL_OPTIONS;
+        if (field === "model") options = modelOptions.length ? modelOptions : MODEL_OPTIONS;
         else if (field === "dealer") options = DEALER_OPTIONS;
         else if (field === "status") options = STATUS_OPTIONS;
         else if (field === "location") options = LOCATION_OPTIONS;
@@ -311,6 +276,15 @@ export function VehicleDetailsModal({
   onClose,
   onSave,
 }: VehicleDetailsModalProps) {
+  const { prices } = usePrices();
+  const modelOptions = Array.from(
+    new Set(
+      prices
+        .map((p) => p.model)
+        .filter((model): model is string => Boolean(model))
+    )
+  );
+  const priceByModel = new Map(prices.map((p) => [p.model, p.srp]));
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedVehicle, setEditedVehicle] = useState<VehicleData | null>(null);
 
@@ -400,7 +374,7 @@ export function VehicleDetailsModal({
   const calculateDays = () => differenceInDays(new Date(), currentVehicle.receivedDate);
 
   // Shared props passed down to every DetailRow
-  const rowProps = { isEditMode, currentVehicle, updateField };
+  const rowProps = { isEditMode, currentVehicle, updateField, modelOptions };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -478,7 +452,7 @@ export function VehicleDetailsModal({
               <DetailRow label="CHASSIS NUMBER" value={currentVehicle.chassisNo} field="chassisNo" type="text" {...rowProps} />
               <DetailRow
                 label="UNIT PRICE (SRP)"
-                value={pricingData[currentVehicle.model] ? `₱${pricingData[currentVehicle.model]}` : "-"}
+                value={priceByModel.get(currentVehicle.model) ? `₱${priceByModel.get(currentVehicle.model)}` : "-"}
                 type="readonly"
                 {...rowProps}
               />
