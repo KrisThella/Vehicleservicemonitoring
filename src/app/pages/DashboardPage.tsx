@@ -29,6 +29,7 @@ export function DashboardPage() {
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleData | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showFab, setShowFab] = useState(false);
 
   // Handle navigation state from notification dropdown
   useEffect(() => {
@@ -191,13 +192,30 @@ export function DashboardPage() {
       </main>
 
       {/* Floating Add Button */}
-      <Button
-        onClick={() => setShowAddModal(true)}
-        className="fixed bottom-8 right-8 size-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 z-40"
-        size="icon"
-      >
-        <Plus className="size-6" />
-      </Button>
+      <div className="fixed bottom-6 right-6 z-40 flex items-end gap-2">
+        <Button
+          onClick={() => setShowAddModal(true)}
+          className={`size-14 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700 transition-all ${
+            showFab
+              ? "opacity-100 translate-y-0 pointer-events-auto"
+              : "opacity-0 translate-y-2 pointer-events-none"
+          }`}
+          size="icon"
+        >
+          <Plus className="size-6" />
+        </Button>
+        <button
+          type="button"
+          onClick={() => setShowFab((v) => !v)}
+          onMouseEnter={() => setShowFab((v) => !v)}
+          className="flex items-center justify-center size-8 rounded-full bg-gray-200 text-gray-700 shadow hover:bg-gray-300 transition-colors"
+          aria-label="Toggle add vehicle button"
+        >
+          <span className="text-sm font-semibold">
+            {showFab ? "∨" : "∧"}
+          </span>
+        </button>
+      </div>
 
       {/* History Panel Overlay */}
       {selectedVehicle && (
