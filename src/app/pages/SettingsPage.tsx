@@ -20,7 +20,7 @@ export function SettingsPage() {
   useEffect(() => { applyTheme(isDarkMode); }, [isDarkMode]);
 
   const settingsOptions = [
-    { icon: User, title: 'User Profile', description: 'Update your profile photo and user information', path: '/settings/profile' },
+    { icon: User, title: 'User Profile', description: 'Update your profile and user information', path: '/settings/profile' },
     { icon: Paintbrush, title: 'List of Colors', description: 'Manage vehicle colors used across the inventory', path: '/settings/colors' },
   ];
 

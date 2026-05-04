@@ -298,7 +298,7 @@ function PredefinedColorDropdown({
     return () => document.removeEventListener('mousedown', handler);
   }, [open]);
 
-  // Close on scroll (only parent, not dropdown)
+  //  Close on scroll (only parent, not dropdown)
   useEffect(() => {
     if (!open || !dropdownRef.current) return;
     const handler = (e: Event) => {
@@ -434,7 +434,7 @@ function ColorFormModal({
         </div>
 
         <div className="overflow-y-auto px-6 py-5 space-y-5">
-          {/* Predefined Colors Dropdown */}
+          {/* Predefined Color Dropdown */}
           <div>
             <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Select from Predefined Colors <span className="text-gray-400">(optional)</span>
@@ -657,7 +657,7 @@ export function ColorsPage() {
         />
       )}
 
-      {/* Delete confirmation */}
+      {/* Delete Confirmation */}
       {deleteId != null && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setDeleteId(null)} />
