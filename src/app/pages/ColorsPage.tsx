@@ -12,7 +12,7 @@ import { useColors, type ColorRecord } from '../../lib/api';
 interface HSV { h: number; s: number; v: number; }
 
 function clamp(n: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, n));
+ return Math.min(max, Math.max(min, n));
 }
 
 function hsvToRgb({ h, s, v }: HSV): { r: number; g: number; b: number } {
@@ -137,7 +137,7 @@ function ColorPicker({
     }
   };
 
-  // Cursor positions inside SV field (percentages)
+  //Cursor positions inside SV field (percentages)
   const cursorLeft = `${hsv.s * 100}%`;
   const cursorTop = `${(1 - hsv.v) * 100}%`;
 

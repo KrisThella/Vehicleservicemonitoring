@@ -182,7 +182,10 @@ function DetailRow({
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {options.map((option) => (
+              {options
+                .slice()
+                .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                .map((option) => (
                 <SelectItem key={option} value={option}>
                   {option}
                 </SelectItem>
@@ -212,7 +215,10 @@ function DetailRow({
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {COLOR_OPTIONS.map((color) => (
+              {COLOR_OPTIONS
+                .slice()
+                .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                .map((color) => (
                 <SelectItem key={color} value={color}>
                   <div className="flex items-center gap-2">
                     <div

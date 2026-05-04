@@ -144,9 +144,10 @@ function ColorSelectDropdown({
     return () => document.removeEventListener('scroll', handler, true);
   }, [open]);
 
-  const filtered = colors.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = colors
+    .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }));
 
   const hex = value ? (colors.find((c) => c.name === value)?.hex ?? '#d1d5db') : null;
 
@@ -250,6 +251,12 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
   const filteredModels = categoryFilter === 'ALL'
     ? SUZUKI_MODELS
     : SUZUKI_MODELS.filter((m) => m.category === categoryFilter);
+  const sortedModelCategories = MODEL_CATEGORIES
+    .slice()
+    .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }));
+  const sortedFilteredModels = filteredModels
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }));
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
@@ -294,7 +301,7 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                     className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 flex-shrink-0"
                   >
                     <option value="ALL">All</option>
-                    {MODEL_CATEGORIES.map((c) => (
+                    {sortedModelCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -303,7 +310,7 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                       <SelectValue placeholder="Select model…" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[280px]">
-                      {filteredModels.map((m) => (
+                      {sortedFilteredModels.map((m) => (
                         <SelectItem key={m.name} value={m.name}>
                           <span className="flex items-center justify-between gap-4 w-full">
                             <span>{m.name}</span>
@@ -394,7 +401,10 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                     <SelectValue placeholder="Select dealer…" />
                   </SelectTrigger>
                   <SelectContent>
-                    {DEALERS.map((d) => (
+                    {DEALERS
+                      .slice()
+                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .map((d) => (
                       <SelectItem key={d} value={d}>{d}</SelectItem>
                     ))}
                   </SelectContent>
@@ -458,7 +468,10 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                     <SelectValue placeholder="Select status…" />
                   </SelectTrigger>
                   <SelectContent>
-                    {STATUSES.map((s) => (
+                    {STATUSES
+                      .slice()
+                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .map((s) => (
                       <SelectItem key={s} value={s}>{s}</SelectItem>
                     ))}
                   </SelectContent>

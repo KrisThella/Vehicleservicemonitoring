@@ -213,7 +213,10 @@ export function PullOutMonitoringPage() {
                   className="bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-300 text-sm rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-blue-400 dark:focus:ring-blue-500 cursor-pointer"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {yearOptions.map((y) => (
+                  {yearOptions
+                    .slice()
+                    .sort((a, b) => a - b)
+                    .map((y) => (
                     <option key={y} value={y}>
                       {y}
                     </option>

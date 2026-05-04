@@ -692,7 +692,10 @@ function PaymentFormModal({
                 className="border border-gray-300 rounded-md px-2 py-2 text-xs text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-shrink-0"
               >
                 <option value="ALL">All Categories</option>
-                {MODEL_CATEGORIES.map((c) => (
+                {MODEL_CATEGORIES
+                  .slice()
+                  .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                  .map((c) => (
                   <option key={c} value={c}>
                     {c}
                   </option>
@@ -708,7 +711,10 @@ function PaymentFormModal({
                   <SelectValue placeholder="Select model…" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[280px]">
-                  {filteredModels.map((m) => (
+                  {filteredModels
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }))
+                    .map((m) => (
                     <SelectItem key={m.name} value={m.name}>
                       <span className="flex items-center justify-between gap-4 w-full">
                         <span>{m.name}</span>
@@ -849,7 +855,10 @@ function PaymentFormModal({
                   Object.keys(
                     STATUS_CFG,
                   ) as PaymentRow["status"][]
-                ).map((s) => (
+                )
+                  .slice()
+                  .sort((a, b) => STATUS_CFG[a].label.localeCompare(STATUS_CFG[b].label, 'en', { numeric: true, sensitivity: 'base' }))
+                  .map((s) => (
                   <SelectItem key={s} value={s}>
                     <span className="flex items-center gap-2">
                       <span

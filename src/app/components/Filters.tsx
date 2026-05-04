@@ -47,6 +47,52 @@ export function Filters({
   const [isExpanded, setIsExpanded] = useState(true);
 
   const hasActiveFilters = selectedModel !== 'all' || selectedDealer !== 'all' || selectedStatus !== 'all' || !!dateFrom || !!dateTo || !!searchTerm;
+  const modelOptions = [
+    "APV 1.6 GA MT",
+    "APV 1.6 GLX MT",
+    "CARRY CAB & CHASSIS",
+    "CARRY CARGO VAN",
+    "CARRY DROPSIDE",
+    "CARRY LINEMAN'S VEHICLE",
+    "CARRY UTILITY VAN",
+    "CELERIO GL AGS",
+    "DZIRE GL CVT - HYBRID",
+    "DZIRE GLX CVT - HYBRID",
+    "ERTIGA 1.5 GA MT",
+    "ERTIGA 1.5 GA MT - HYBRID",
+    "ERTIGA 1.5 GL MT - HYBRID",
+    "ERTIGA 1.5 GL AT - HYBRID",
+    "ERTIGA 1.5 GLX AT - HYBRID",
+    "JIMNY 1.5 GL MT SS",
+    "JIMNY 1.5 GLX AT (MONOTONE) SS",
+    "JIMNY 1.5 GLX AT (TWO-TONE) SS",
+    "JIMNY 1.5 5DR GL AT (MONOTONE)",
+    "JIMNY 1.5 5DR GLX AT (TWO-TONE)",
+    "JIMNY 3GLX AT R",
+    "JIMNY 5DR GLX AT R - (MONOTONE)",
+    "JIMNY 5DR GLX AT R - (TWO-TONE)",
+    "S-PRESSO 1.0 GL AGS",
+    "S-PRESSO 1.0 GL MT",
+    "SWIFT 1.2 GL CVT",
+    "XL7 1.5 GLX AT - HYBRID (MONOTONE)",
+    "XL7 1.5 GLX AT - HYBRID (TWO-TONE)",
+    "XL7 1.5 GLX AT - HYBRID BLACK EDITION",
+    "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
+  ];
+  const dealerOptions = ["TEAM JM", "TEAM AARON", "TEAM JAY-R"];
+  const statusOptions = [
+    "Completed",
+    "FOR LTO PROCESSING",
+    "HELD",
+    "IN TRANSIT",
+    "ON HOLD",
+    "ON TRACK",
+    "On Process",
+    "Overdue",
+    "PAID WITH LTO",
+    "Pending",
+    "SOLD",
+  ];
 
   return (
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
@@ -194,36 +240,14 @@ export function Filters({
               </SelectTrigger>
               <SelectContent className="max-h-[400px]">
                 <SelectItem value="all">All Models</SelectItem>
-                <SelectItem value="APV 1.6 GA MT">APV 1.6 GA MT</SelectItem>
-                <SelectItem value="APV 1.6 GLX MT">APV 1.6 GLX MT</SelectItem>
-                <SelectItem value="CARRY CAB & CHASSIS">CARRY CAB & CHASSIS</SelectItem>
-                <SelectItem value="CARRY CARGO VAN">CARRY CARGO VAN</SelectItem>
-                <SelectItem value="CARRY DROPSIDE">CARRY DROPSIDE</SelectItem>
-                <SelectItem value="CARRY LINEMAN'S VEHICLE">CARRY LINEMAN'S VEHICLE</SelectItem>
-                <SelectItem value="CARRY UTILITY VAN">CARRY UTILITY VAN</SelectItem>
-                <SelectItem value="CELERIO GL AGS">CELERIO GL AGS</SelectItem>
-                <SelectItem value="DZIRE GL CVT - HYBRID">DZIRE GL CVT - HYBRID</SelectItem>
-                <SelectItem value="DZIRE GLX CVT - HYBRID">DZIRE GLX CVT - HYBRID</SelectItem>
-                <SelectItem value="ERTIGA 1.5 GA MT">ERTIGA 1.5 GA MT</SelectItem>
-                <SelectItem value="ERTIGA 1.5 GA MT - HYBRID">ERTIGA 1.5 GA MT - HYBRID</SelectItem>
-                <SelectItem value="ERTIGA 1.5 GL MT - HYBRID">ERTIGA 1.5 GL MT - HYBRID</SelectItem>
-                <SelectItem value="ERTIGA 1.5 GL AT - HYBRID">ERTIGA 1.5 GL AT - HYBRID</SelectItem>
-                <SelectItem value="ERTIGA 1.5 GLX AT - HYBRID">ERTIGA 1.5 GLX AT - HYBRID</SelectItem>
-                <SelectItem value="JIMNY 1.5 GL MT SS">JIMNY 1.5 GL MT SS</SelectItem>
-                <SelectItem value="JIMNY 1.5 GLX AT (MONOTONE) SS">JIMNY 1.5 GLX AT (MONOTONE) SS</SelectItem>
-                <SelectItem value="JIMNY 1.5 GLX AT (TWO-TONE) SS">JIMNY 1.5 GLX AT (TWO-TONE) SS</SelectItem>
-                <SelectItem value="JIMNY 1.5 5DR GL AT (MONOTONE)">JIMNY 1.5 5DR GL MT</SelectItem>
-                <SelectItem value="JIMNY 1.5 5DR GLX AT (TWO-TONE)">JIMNY 1.5 5DR GLX AT (TWO-TONE)</SelectItem>
-                <SelectItem value="JIMNY 3GLX AT R">JIMNY 3GLX AT R</SelectItem>
-                <SelectItem value="JIMNY 5DR GLX AT R - (MONOTONE)">JIMNY 5DR GLX AT R - (MONOTONE) </SelectItem>
-                <SelectItem value="JIMNY 5DR GLX AT R - (TWO-TONE)">JIMNY 5DR GLX AT R - (TWO-TONE)</SelectItem>       
-                <SelectItem value="S-PRESSO 1.0 GL AGS">S-PRESSO 1.0 GL AGS</SelectItem>
-                <SelectItem value="S-PRESSO 1.0 GL MT">S-PRESSO 1.0 GL MT</SelectItem>
-                <SelectItem value="SWIFT 1.2 GL CVT">SWIFT 1.2 GL CVT</SelectItem>
-                <SelectItem value="XL7 1.5 GLX AT - HYBRID (MONOTONE)">XL7 1.5 GLX AT - HYBRID (MONOTONE)</SelectItem>
-                <SelectItem value="XL7 1.5 GLX AT - HYBRID (TWO-TONE)">XL7 1.5 GLX MT - HYBRID (TWO-TONE)</SelectItem>
-                <SelectItem value="XL7 1.5 GLX AT - HYBRID BLACK EDITION">XL7 1.5 GLX AT - HYBRID BLACK EDITION</SelectItem>
-                <SelectItem value="XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION">XL7 1.5 GLX MT - HYBRID (TWO-TONE) BLACK EDITION</SelectItem>
+                {modelOptions
+                  .slice()
+                  .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                  .map((model) => (
+                    <SelectItem key={model} value={model}>
+                      {model}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
@@ -234,9 +258,14 @@ export function Filters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Dealers</SelectItem>
-                <SelectItem value="TEAM JM">TEAM JM</SelectItem>
-                <SelectItem value="TEAM AARON">TEAM AARON</SelectItem>
-                <SelectItem value="TEAM JAY-R">TEAM JAY-R</SelectItem>
+                {dealerOptions
+                  .slice()
+                  .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                  .map((dealer) => (
+                    <SelectItem key={dealer} value={dealer}>
+                      {dealer}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
@@ -247,17 +276,14 @@ export function Filters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="On Process">On Process</SelectItem>
-                <SelectItem value="Pending">Pending</SelectItem>
-                <SelectItem value="Completed">Completed</SelectItem>
-                <SelectItem value="Overdue">Overdue</SelectItem>
-                <SelectItem value="HELD">HELD</SelectItem>
-                <SelectItem value="SOLD">SOLD</SelectItem>
-                <SelectItem value="PAID WITH LTO">PAID WITH LTO</SelectItem>
-                <SelectItem value="FOR LTO PROCESSING">FOR LTO PROCESSING</SelectItem>
-                <SelectItem value="ON HOLD">ON HOLD</SelectItem>
-                <SelectItem value="ON TRACK">ON TRACK</SelectItem>
-                <SelectItem value="IN TRANSIT">IN TRANSIT</SelectItem>
+                {statusOptions
+                  .slice()
+                  .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                  .map((status) => (
+                    <SelectItem key={status} value={status}>
+                      {status}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
