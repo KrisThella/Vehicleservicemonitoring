@@ -90,32 +90,35 @@ function ColorSelectDropdown({
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties>({});
 
+  const computeDropdownStyle = () => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+    const dropHeight = 260;
+
+    if (spaceBelow >= dropHeight || spaceBelow >= spaceAbove) {
+      setDropdownStyle({
+        position: 'fixed',
+        top: rect.bottom + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 99999,
+      });
+    } else {
+      setDropdownStyle({
+        position: 'fixed',
+        bottom: window.innerHeight - rect.top + 4,
+        left: rect.left,
+        width: rect.width,
+        zIndex: 99999,
+      });
+    }
+  };
+
   // Calculate fixed position from trigger's bounding rect
   useEffect(() => {
-    if (open && triggerRef.current) {
-      const rect = triggerRef.current.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      const spaceAbove = rect.top;
-      const dropHeight = 260;
-
-      if (spaceBelow >= dropHeight || spaceBelow >= spaceAbove) {
-        setDropdownStyle({
-          position: 'fixed',
-          top: rect.bottom + 4,
-          left: rect.left,
-          width: rect.width,
-          zIndex: 99999,
-        });
-      } else {
-        setDropdownStyle({
-          position: 'fixed',
-          bottom: window.innerHeight - rect.top + 4,
-          left: rect.left,
-          width: rect.width,
-          zIndex: 99999,
-        });
-      }
-    }
+    if (open) computeDropdownStyle();
   }, [open]);
 
   useEffect(() => {
@@ -156,7 +159,10 @@ function ColorSelectDropdown({
       <button
         ref={triggerRef}
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          if (!open) computeDropdownStyle();
+          setOpen((o) => !o);
+        }}
         className="w-full flex items-center justify-between gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-sm hover:border-gray-400 dark:hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-colors"
       >
         <span className="flex items-center gap-2 min-w-0">
