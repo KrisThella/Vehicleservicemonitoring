@@ -307,12 +307,14 @@ export function VehicleTable({
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader className="sticky top-0 z-10">
-            <TableRow className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-              <TableHead className="w-[50px]">#</TableHead>
-              <TableHead>
+      <Table
+        className="relative border-separate border-spacing-0"
+        containerClassName="max-h-[50vh] overflow-auto"
+      >
+        <TableHeader>
+            <TableRow className="border-b border-gray-200 dark:border-gray-700">
+              <TableHead className="w-[50px] sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">#</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort("model")}
@@ -321,7 +323,7 @@ export function VehicleTable({
                   <SortIcon field="model" />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort("csNo")}
@@ -330,7 +332,7 @@ export function VehicleTable({
                   <SortIcon field="csNo" />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort("plateNumber")}
@@ -339,8 +341,8 @@ export function VehicleTable({
                   <SortIcon field="plateNumber" />
                 </button>
               </TableHead>
-              <TableHead className="px-8">Color</TableHead>
-              <TableHead>
+              <TableHead className="px-8 sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Color</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort("year")}
@@ -349,7 +351,7 @@ export function VehicleTable({
                   <SortIcon field="year" />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort("receivedDate")}
@@ -358,9 +360,9 @@ export function VehicleTable({
                   <SortIcon field="receivedDate" />
                 </button>
               </TableHead>
-              <TableHead>PO Number</TableHead>
-              <TableHead>Chassis Number</TableHead>
-              <TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">PO Number</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Chassis Number</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort("dealer")}
@@ -369,7 +371,7 @@ export function VehicleTable({
                   <SortIcon field="dealer" />
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 <button
                   className="flex items-center gap-2 hover:text-gray-900"
                   onClick={() => handleSort("status")}
@@ -378,12 +380,12 @@ export function VehicleTable({
                   <SortIcon field="status" />
                 </button>
               </TableHead>
-              <TableHead>Remarks</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Unit</TableHead>
-              <TableHead>Pull Out</TableHead>
-              <TableHead>Days</TableHead>
-              <TableHead className="w-[80px]">
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Remarks</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Location</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Unit</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Pull Out</TableHead>
+              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Days</TableHead>
+              <TableHead className="w-[80px] sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
                 Actions
               </TableHead>
             </TableRow>
@@ -484,14 +486,12 @@ export function VehicleTable({
                         ? "bg-orange-50 text-orange-700 border-orange-200"
                         : "bg-gray-50 text-gray-700 border-gray-200";
                     return (
-                  <Badge
-                    variant="outline"
-                    className={
-                      badgeClassName
-                    }
-                  >
-                    {daysInService !== null ? `${daysInService}d` : "-"}
-                  </Badge>
+                      <Badge
+                        variant="outline"
+                        className={badgeClassName}
+                      >
+                        {daysInService !== null ? `${daysInService}d` : "-"}
+                      </Badge>
                     );
                   })()}
                 </TableCell>
@@ -516,7 +516,6 @@ export function VehicleTable({
                         <Eye className="size-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                     
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
@@ -532,8 +531,7 @@ export function VehicleTable({
               </TableRow>
             ))}
           </TableBody>
-        </Table>
-      </div>
+      </Table>
     </div>
   );
 }
