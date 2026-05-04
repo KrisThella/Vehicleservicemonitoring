@@ -202,7 +202,12 @@ export function Header() {
               onClick={() => navigate('/settings')}
             />
 
-            <div className="flex items-center gap-2 pl-4 border-l border-gray-200 dark:border-gray-800">
+            <button
+              type="button"
+              onClick={() => navigate('/settings/profile')}
+              className="flex items-center gap-2 pl-4 border-l border-gray-200 dark:border-gray-800 text-left hover:opacity-90 transition-opacity"
+              aria-label="Open user profile settings"
+            >
               <div className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-gray-500">
                 {profile?.image_data_url ? (
                   <img src={profile.image_data_url} alt="Profile" className="w-full h-full object-cover" />
@@ -216,7 +221,7 @@ export function Header() {
                 <p className="font-medium text-gray-900 dark:text-gray-100">{profile?.role ?? 'User'}</p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{profile?.name ?? ''}</p>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
