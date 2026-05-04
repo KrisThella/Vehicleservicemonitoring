@@ -108,7 +108,10 @@ export function PriceListPage() {
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
                     <SelectContent>
-                      {categoryOptions.map((c) => (
+                      {categoryOptions
+                        .slice()
+                        .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                        .map((c) => (
                         <SelectItem key={c} value={c}>{c}</SelectItem>
                       ))}
                     </SelectContent>
@@ -231,7 +234,12 @@ function PriceRow({
           <Select value={draft.category} onValueChange={(v) => setField('category', v)}>
             <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {categories.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              {categories
+                .slice()
+                .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                .map((c) => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
             </SelectContent>
           </Select>
         ) : (

@@ -155,9 +155,10 @@ function ColorSelectDropdown({
     ? colors.filter((c) => allowedColors.includes(c.name))
     : colors;
 
-  const filtered = availableColors.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = availableColors
+    .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }));
 
   const hex = value ? (colors.find((c) => c.name === value)?.hex ?? '#d1d5db') : null;
 
@@ -286,6 +287,12 @@ export function AddAvailableVehicleModal({
   const filteredModels = categoryFilter === 'ALL'
     ? prices
     : prices.filter((m) => m.category === categoryFilter);
+  const sortedModelCategories = modelCategories
+    .slice()
+    .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }));
+  const sortedFilteredModels = filteredModels
+    .slice()
+    .sort((a, b) => a.model.localeCompare(b.model, 'en', { numeric: true, sensitivity: 'base' }));
 
   // Get the category of the currently selected model
   const selectedModelCategory = form.model
@@ -344,7 +351,7 @@ export function AddAvailableVehicleModal({
                     className="border border-gray-300 dark:border-gray-600 rounded-md px-2 py-2 text-xs text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-teal-500 dark:focus:ring-teal-400 flex-shrink-0"
                   >
                     <option value="ALL">All</option>
-                    {modelCategories.map((c) => (
+                    {sortedModelCategories.map((c) => (
                       <option key={c} value={c}>{c}</option>
                     ))}
                   </select>
@@ -356,7 +363,7 @@ export function AddAvailableVehicleModal({
                       <SelectValue placeholder="Select model…" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[280px]">
-                      {filteredModels.map((m) => (
+                      {sortedFilteredModels.map((m) => (
                         <SelectItem key={m.id} value={m.model}>
                           <span className="flex items-center justify-between gap-4 w-full">
                             <span>{m.model}</span>
@@ -459,7 +466,10 @@ export function AddAvailableVehicleModal({
                     <SelectValue placeholder="Select team" />
                   </SelectTrigger>
                   <SelectContent>
-                    {ALLOCATION_TEAMS.map((t) => (
+                    {ALLOCATION_TEAMS
+                      .slice()
+                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .map((t) => (
                       <SelectItem key={t} value={t}>{t}</SelectItem>
                     ))}
                   </SelectContent>
@@ -514,7 +524,10 @@ export function AddAvailableVehicleModal({
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {AVAILABLE_STATUSES.map((s) => (
+                    {AVAILABLE_STATUSES
+                      .slice()
+                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .map((s) => (
                       <SelectItem key={s} value={s}>{s}</SelectItem>
                     ))}
                   </SelectContent>

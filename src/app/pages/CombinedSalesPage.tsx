@@ -333,7 +333,10 @@ export function CombinedSalesPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Models</SelectItem>
-                      {uniqueModels.map((model) => (
+                      {uniqueModels
+                        .slice()
+                        .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                        .map((model) => (
                         <SelectItem key={model} value={model}>
                           {model}
                         </SelectItem>
@@ -355,7 +358,10 @@ export function CombinedSalesPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Dealers</SelectItem>
-                      {uniqueDealers.map((dealer) => (
+                      {uniqueDealers
+                        .slice()
+                        .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                        .map((dealer) => (
                         <SelectItem key={dealer} value={dealer}>
                           {dealer}
                         </SelectItem>

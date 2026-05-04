@@ -188,7 +188,10 @@ function FormField({
               <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {options.map((option) => (
+              {options
+                .slice()
+                .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                .map((option) => (
                 <SelectItem key={option} value={option}>
                   {option}
                 </SelectItem>
@@ -221,7 +224,10 @@ function FormField({
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {colors.map((c) => (
+              {colors
+                .slice()
+                .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }))
+                .map((c) => (
                 <SelectItem key={c.id} value={c.name}>
                   <div className="flex items-center gap-2">
                     <div
@@ -286,7 +292,7 @@ function FormField({
 export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
   const { colors } = useColors();
   const { prices } = usePrices();
-  const modelOptions = Array.from(
+  const modelOptions: string[] = Array.from(
     new Set(
       prices
         .map((p) => p.model)

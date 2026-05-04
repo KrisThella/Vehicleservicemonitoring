@@ -987,7 +987,10 @@ export function InTransitPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Models</SelectItem>
-                    {uniqueModels.map((m) => (
+                    {uniqueModels
+                      .slice()
+                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .map((m) => (
                       <SelectItem key={m} value={m}>
                         {m}
                       </SelectItem>
@@ -1001,7 +1004,10 @@ export function InTransitPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Dealers</SelectItem>
-                    {uniqueDealers.map((d) => (
+                    {uniqueDealers
+                      .slice()
+                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
                       </SelectItem>
@@ -1015,7 +1021,10 @@ export function InTransitPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
-                    {uniqueStatuses.map((s) => (
+                    {uniqueStatuses
+                      .slice()
+                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .map((s) => (
                       <SelectItem key={s} value={s}>
                         {s}
                       </SelectItem>
