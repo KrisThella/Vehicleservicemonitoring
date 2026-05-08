@@ -54,7 +54,7 @@ const MODEL_OPTIONS = [
 ];
 
 const COLOR_OPTIONS = Object.keys(colorHexMap);
-const DEALER_OPTIONS = ["TEAM JM", "TEAM AARON", "TEAM JAY-R"];
+const DEALER_OPTIONS = ["BIÑAN"];
 const STATUS_OPTIONS: VehicleData["status"][] = [
   "On Process",
   "Pending",
@@ -81,6 +81,7 @@ const SALES_CONSULTANT_OPTIONS = [
   "ALMACEN, MA.ISSAC ANNE",
   "ALMONTE, JAISTLE",
   "ALONTE, NERISSA",
+  "ALBAN0, RHIAN IRISH",
   "CARAMAY, CARNATION",
   "BAJEN, JOHN LESTER LEGASTO",
   "CASAMINA, JUSTIN LORENZ C.",

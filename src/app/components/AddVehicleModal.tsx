@@ -3,7 +3,13 @@ import { X, Save, Calendar as CalendarIcon } from "lucide-react";
 import { VehicleData } from "./VehicleTable";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { format } from "date-fns";
@@ -80,26 +86,26 @@ const CATEGORY_OPTIONS = [
 ];
 
 const SALES_CONSULTANT_OPTIONS = [
-  "ABANTO, JENNIFER A.",
   "ALMACEN, MA.ISSAC ANNE",
   "ALMONTE, JAISTLE",
   "ALONTE, NERISSA",
+  "ALBANO, RHIAN IRISH",
+  "ARAGONES, SARAH JANE M.",
+  "BARTOLAZO, ROCHELLE V.",
   "CARAMAY, CARNATION",
-  "BAJEN, JOHN LESTER LEGASTO",
-  "CASAMINA, JUSTIN LORENZ C.",
   "CASTILLO, JAARON ALBERT D.",
   "CERVANTES, ELLA MARIE",
-  "CORDERO, ANGELICA E.",
+  "DAGOL, ANN-MARIE",
+  "DAÑO, RYAN",
   "DUAT, MARLOU",
   "FONACIER, APRIL R.",
-  "GALLANO, SHIRLY",
+  "LOYOLA, KARL JOHN",
   "MALLARI, MARILYN",
   "MANZANO, ROCKY R.",
   "MARANAN, SALVE MAY CHRISTY J.",
   "MONDEJAR, JESSA MAE",
   "MONTAÑA, JERISHE",
   "PERA, REGINA O.",
-  "PUNZALAN, ARNEL ADRIAN DIZON",
   "SARMIENTO, KAREN L.",
   "STA. MARIA, THELMA C.",
   "VIZCARRA, JELLY ANN L.",
@@ -134,7 +140,10 @@ interface FormFieldProps {
   type?: "text" | "select" | "date" | "color" | "number";
   required?: boolean;
   formData: Partial<VehicleData>;
-  updateField: <K extends keyof VehicleData>(field: K, value: VehicleData[K]) => void;
+  updateField: <K extends keyof VehicleData>(
+    field: K,
+    value: VehicleData[K],
+  ) => void;
   colors?: ColorRecord[];
   modelOptions?: string[];
 }
@@ -160,7 +169,9 @@ function FormField({
             onChange={(e) =>
               updateField(
                 field,
-                (type === "number" ? parseInt(e.target.value) : e.target.value) as any
+                (type === "number"
+                  ? parseInt(e.target.value)
+                  : e.target.value) as any,
               )
             }
             className="h-9 text-sm"
@@ -170,12 +181,14 @@ function FormField({
 
       case "select": {
         let options: string[] = [];
-        if (field === "model") options = modelOptions.length ? modelOptions : MODEL_OPTIONS;
+        if (field === "model")
+          options = modelOptions.length ? modelOptions : MODEL_OPTIONS;
         else if (field === "dealer") options = DEALER_OPTIONS;
         else if (field === "status") options = STATUS_OPTIONS;
         else if (field === "location") options = LOCATION_OPTIONS;
         else if (field === "category") options = CATEGORY_OPTIONS;
-        else if (field === "salesConsultant") options = SALES_CONSULTANT_OPTIONS;
+        else if (field === "salesConsultant")
+          options = SALES_CONSULTANT_OPTIONS;
         else if (field === "generalManager") options = GENERAL_MANAGER_OPTIONS;
         else if (field === "bank") options = BANK_OPTIONS;
 
@@ -190,12 +203,17 @@ function FormField({
             <SelectContent className="max-h-[300px]">
               {options
                 .slice()
-                .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                .sort((a, b) =>
+                  a.localeCompare(b, "en", {
+                    numeric: true,
+                    sensitivity: "base",
+                  }),
+                )
                 .map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         );
@@ -204,7 +222,8 @@ function FormField({
       case "color": {
         const selectedName = (formData[field] as string) || "";
         const selectedHex =
-          colors.find((c) => c.name === selectedName)?.hex ?? getColorHex(selectedName);
+          colors.find((c) => c.name === selectedName)?.hex ??
+          getColorHex(selectedName);
         return (
           <Select
             value={selectedName}
@@ -226,18 +245,23 @@ function FormField({
             <SelectContent className="max-h-[300px]">
               {colors
                 .slice()
-                .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }))
+                .sort((a, b) =>
+                  a.name.localeCompare(b.name, "en", {
+                    numeric: true,
+                    sensitivity: "base",
+                  }),
+                )
                 .map((c) => (
-                <SelectItem key={c.id} value={c.name}>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="size-4 rounded-full border border-gray-300"
-                      style={{ backgroundColor: c.hex }}
-                    />
-                    {c.name}
-                  </div>
-                </SelectItem>
-              ))}
+                  <SelectItem key={c.id} value={c.name}>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="size-4 rounded-full border border-gray-300"
+                        style={{ backgroundColor: c.hex }}
+                      />
+                      {c.name}
+                    </div>
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
         );
@@ -296,8 +320,8 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
     new Set(
       prices
         .map((p) => p.model)
-        .filter((model): model is string => Boolean(model))
-    )
+        .filter((model): model is string => Boolean(model)),
+    ),
   );
   const [formData, setFormData] = useState<Partial<VehicleData>>({
     model: "",
@@ -322,7 +346,7 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
 
   const updateField = <K extends keyof VehicleData>(
     field: K,
-    value: VehicleData[K]
+    value: VehicleData[K],
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
@@ -390,8 +414,12 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-50 dark:from-blue-950 to-white dark:to-gray-900">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Add New Vehicle</h2>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Fill in the vehicle details</p>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+              Add New Vehicle
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Fill in the vehicle details
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -422,17 +450,88 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               Basic Information
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <FormField label="CATEGORY" field="category" type="select" required formData={formData} updateField={updateField} />
-              <FormField label="MODEL" field="model" type="select" required formData={formData} updateField={updateField} modelOptions={modelOptions} />
-              <FormField label="CS NUMBER" field="csNo" type="text" required formData={formData} updateField={updateField} />
-              <FormField label="PLATE NUMBER" field="plateNumber" type="text" formData={formData} updateField={updateField} />
-              <FormField label="COLOR" field="color" type="color" formData={formData} updateField={updateField} colors={colors} />
-              <FormField label="YEAR" field="year" type="number" formData={formData} updateField={updateField} />
-              <FormField label="RECEIVED DATE" field="receivedDate" type="date" formData={formData} updateField={updateField} />
-              <FormField label="PO NUMBER" field="poNumber" type="text" formData={formData} updateField={updateField} />
-              <FormField label="CHASSIS NUMBER" field="chassisNo" type="text" formData={formData} updateField={updateField} />
-              <FormField label="ENGINE NUMBER" field="engineNo" type="text" formData={formData} updateField={updateField} />
-              <FormField label="VIN NUMBER" field="vinNumber" type="text" formData={formData} updateField={updateField} />
+              <FormField
+                label="CATEGORY"
+                field="category"
+                type="select"
+                required
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="MODEL"
+                field="model"
+                type="select"
+                required
+                formData={formData}
+                updateField={updateField}
+                modelOptions={modelOptions}
+              />
+              <FormField
+                label="CS NUMBER"
+                field="csNo"
+                type="text"
+                required
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="PLATE NUMBER"
+                field="plateNumber"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="COLOR"
+                field="color"
+                type="color"
+                formData={formData}
+                updateField={updateField}
+                colors={colors}
+              />
+              <FormField
+                label="YEAR"
+                field="year"
+                type="number"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="RECEIVED DATE"
+                field="receivedDate"
+                type="date"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="PO NUMBER"
+                field="poNumber"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="CHASSIS NUMBER"
+                field="chassisNo"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="ENGINE NUMBER"
+                field="engineNo"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="VIN NUMBER"
+                field="vinNumber"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
             </div>
           </div>
 
@@ -443,11 +542,41 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               Dealer & Status Information
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <FormField label="DEALER" field="dealer" type="select" formData={formData} updateField={updateField} />
-              <FormField label="STATUS" field="status" type="select" formData={formData} updateField={updateField} />
-              <FormField label="REMARKS" field="remarks" type="text" formData={formData} updateField={updateField} />
-              <FormField label="LOCATION" field="location" type="select" formData={formData} updateField={updateField} />
-              <FormField label="UNIT" field="unit" type="text" formData={formData} updateField={updateField} />
+              <FormField
+                label="DEALER"
+                field="dealer"
+                type="select"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="STATUS"
+                field="status"
+                type="select"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="REMARKS"
+                field="remarks"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="LOCATION"
+                field="location"
+                type="select"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="UNIT"
+                field="unit"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
             </div>
           </div>
 
@@ -458,9 +587,27 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               Timeline Information
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <FormField label="PULL OUT DATE" field="pullOut" type="date" formData={formData} updateField={updateField} />
-              <FormField label="INVOICE DATE" field="invoiceDate" type="date" formData={formData} updateField={updateField} />
-              <FormField label="RELEASED DATE" field="releaseDate" type="date" formData={formData} updateField={updateField} />
+              <FormField
+                label="PULL OUT DATE"
+                field="pullOut"
+                type="date"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="INVOICE DATE"
+                field="invoiceDate"
+                type="date"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="RELEASED DATE"
+                field="releaseDate"
+                type="date"
+                formData={formData}
+                updateField={updateField}
+              />
             </div>
           </div>
 
@@ -471,10 +618,34 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               Client & Sales Information
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <FormField label="NAME OF CLIENT" field="nameOfClient" type="text" formData={formData} updateField={updateField} />
-              <FormField label="INVOICE NUMBER" field="invoiceNumber" type="text" formData={formData} updateField={updateField} />
-              <FormField label="SALES CONSULTANT" field="salesConsultant" type="select" formData={formData} updateField={updateField} />
-              <FormField label="GENERAL MANAGER" field="generalManager" type="select" formData={formData} updateField={updateField} />
+              <FormField
+                label="NAME OF CLIENT"
+                field="nameOfClient"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="INVOICE NUMBER"
+                field="invoiceNumber"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="SALES CONSULTANT"
+                field="salesConsultant"
+                type="select"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="GENERAL MANAGER"
+                field="generalManager"
+                type="select"
+                formData={formData}
+                updateField={updateField}
+              />
             </div>
           </div>
 
@@ -485,15 +656,69 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               Financial Information
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <FormField label="TERMS" field="terms" type="text" formData={formData} updateField={updateField} />
-              <FormField label="BANK" field="bank" type="select" formData={formData} updateField={updateField} />
-              <FormField label="INVOICE AMOUNT (₱)" field="invoiceAmount" type="text" formData={formData} updateField={updateField} />
-              <FormField label="GROSS PROFIT" field="grossProfit" type="text" formData={formData} updateField={updateField} />
-              <FormField label="DNP (₱)" field="dnp" type="text" formData={formData} updateField={updateField} />
-              <FormField label="WS SUBSIDY (₱)" field="wsSubsidy" type="text" formData={formData} updateField={updateField} />
-              <FormField label="DNP LESS WS SUBSIDY (₱)" field="dnpLessWsSubsidy" type="text" formData={formData} updateField={updateField} />
-              <FormField label="EWT (₱)" field="ewt" type="text" formData={formData} updateField={updateField} />
-              <FormField label="PO AMOUNT (₱)" field="poAmount" type="text" formData={formData} updateField={updateField} />
+              <FormField
+                label="TERMS"
+                field="terms"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="BANK"
+                field="bank"
+                type="select"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="INVOICE AMOUNT (₱)"
+                field="invoiceAmount"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="GROSS PROFIT"
+                field="grossProfit"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="DNP (₱)"
+                field="dnp"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="WS SUBSIDY (₱)"
+                field="wsSubsidy"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="DNP LESS WS SUBSIDY (₱)"
+                field="dnpLessWsSubsidy"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="EWT (₱)"
+                field="ewt"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="PO AMOUNT (₱)"
+                field="poAmount"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
             </div>
           </div>
 
@@ -505,10 +730,34 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
                 Allocation Information
               </h3>
               <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <FormField label="TAGGING ACCOUNT" field="taggingAccount" type="text" formData={formData} updateField={updateField} />
-                <FormField label="ALLOCATION TEAM" field="allocationTeam" type="text" formData={formData} updateField={updateField} />
-                <FormField label="DATE TAGGED" field="dateTagged" type="date" formData={formData} updateField={updateField} />
-                <FormField label="MONTH DECLARED" field="monthDeclared" type="text" formData={formData} updateField={updateField} />
+                <FormField
+                  label="TAGGING ACCOUNT"
+                  field="taggingAccount"
+                  type="text"
+                  formData={formData}
+                  updateField={updateField}
+                />
+                <FormField
+                  label="ALLOCATION TEAM"
+                  field="allocationTeam"
+                  type="text"
+                  formData={formData}
+                  updateField={updateField}
+                />
+                <FormField
+                  label="DATE TAGGED"
+                  field="dateTagged"
+                  type="date"
+                  formData={formData}
+                  updateField={updateField}
+                />
+                <FormField
+                  label="MONTH DECLARED"
+                  field="monthDeclared"
+                  type="text"
+                  formData={formData}
+                  updateField={updateField}
+                />
               </div>
             </div>
           )}
@@ -520,8 +769,20 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               Additional Information
             </h3>
             <div className="bg-gray-50 rounded-lg p-4">
-              <FormField label="EXTENDED WARRANTY" field="extendedWarranty" type="text" formData={formData} updateField={updateField} />
-              <FormField label="LTO DOCUMENTS TRANSMITTAL" field="ltoDocumentsTransmittal" type="text" formData={formData} updateField={updateField} />
+              <FormField
+                label="EXTENDED WARRANTY"
+                field="extendedWarranty"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="LTO DOCUMENTS TRANSMITTAL"
+                field="ltoDocumentsTransmittal"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
             </div>
           </div>
         </div>
