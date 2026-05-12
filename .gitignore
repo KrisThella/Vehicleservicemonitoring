@@ -1,5 +1,11 @@
 
 # Local SQLite database
 data/
-node_modules
-node_modules
+data/*.db
+data/*.db-*
+
+# Dependencies
+node_modules/
+
+# Editor config
+.vscode/
