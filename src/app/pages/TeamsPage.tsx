@@ -150,7 +150,7 @@ export function TeamsPage() {
   const loading = loadingManagers || loadingConsultants;
 
   return (
-    <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950">
+    <div className="flex-1 flex flex-col min-h-0 bg-gray-50 dark:bg-gray-950">
       <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="sm" onClick={() => navigate('/settings')} className="gap-2">
@@ -164,7 +164,7 @@ export function TeamsPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 min-h-0 overflow-auto p-6">
         <div className="max-w-5xl mx-auto space-y-6">
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
             <div className="flex items-center justify-between">
