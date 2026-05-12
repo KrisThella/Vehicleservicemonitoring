@@ -83,6 +83,23 @@ db.exec(`
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
   );
 
+  CREATE TABLE IF NOT EXISTS general_managers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS sales_consultants (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    manager_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    FOREIGN KEY(manager_id) REFERENCES general_managers(id) ON DELETE CASCADE,
+    UNIQUE(manager_id, name)
+  );
+
   CREATE TABLE IF NOT EXISTS next_cut_off_payments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     description TEXT NOT NULL,

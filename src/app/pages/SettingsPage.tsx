@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft, User, Palette, ChevronRight, Moon, Sun, Paintbrush } from 'lucide-react';
+import { ArrowLeft, User, Palette, ChevronRight, Moon, Sun, Paintbrush, Users } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Switch } from '../components/ui/switch';
 import { useEffect, useState } from 'react';
@@ -22,6 +22,7 @@ export function SettingsPage() {
   const settingsOptions = [
     { icon: User, title: 'User Profile', description: 'Update your profile and user information', path: '/settings/profile' },
     { icon: Paintbrush, title: 'List of Colors', description: 'Manage vehicle colors used across the inventory', path: '/settings/colors' },
+    { icon: Users, title: 'Team Management', description: 'Configure General Managers and Sales Consultants', path: '/settings/teams' },
   ];
 
   return (

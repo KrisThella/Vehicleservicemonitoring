@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { X, Save, Calendar as CalendarIcon } from "lucide-react";
 import { VehicleData } from "./VehicleTable";
 import { Button } from "./ui/button";
@@ -15,7 +15,14 @@ import { Calendar } from "./ui/calendar";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { getColorHex } from "./utils/colorMapping";
-import { useColors, usePrices, type ColorRecord } from "../../lib/api";
+import {
+  useColors,
+  usePrices,
+  useGeneralManagers,
+  useSalesConsultants,
+  type ColorRecord,
+} from "../../lib/api";
+import { GeneralManagerSelect, SalesConsultantSelect } from "./TeamSelect";
 
 interface AddVehicleModalProps {
   onClose: () => void;
@@ -55,7 +62,6 @@ const MODEL_OPTIONS = [
   "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
 ];
 
-const DEALER_OPTIONS = ["TEAM JM", "TEAM AARON", "TEAM JAY-R"];
 const STATUS_OPTIONS: VehicleData["status"][] = [
   "On Process",
   "Pending",
@@ -183,7 +189,6 @@ function FormField({
         let options: string[] = [];
         if (field === "model")
           options = modelOptions.length ? modelOptions : MODEL_OPTIONS;
-        else if (field === "dealer") options = DEALER_OPTIONS;
         else if (field === "status") options = STATUS_OPTIONS;
         else if (field === "location") options = LOCATION_OPTIONS;
         else if (field === "category") options = CATEGORY_OPTIONS;
@@ -316,6 +321,8 @@ function FormField({
 export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
   const { colors } = useColors();
   const { prices } = usePrices();
+  const { managers } = useGeneralManagers();
+  const { consultants } = useSalesConsultants();
   const modelOptions: string[] = Array.from(
     new Set(
       prices
@@ -332,7 +339,7 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
     receivedDate: new Date(),
     poNumber: "",
     vinNumber: "",
-    dealer: "",
+    dealer: "BIÑAN",
     status: "On Process",
     remarks: "",
     location: "",
@@ -344,6 +351,18 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
     engineNo: "",
   });
 
+  const selectedManagerId = useMemo(() => {
+    const selected = managers.find((m) => m.name === formData.generalManager);
+    return selected?.id ?? null;
+  }, [managers, formData.generalManager]);
+
+  const filteredConsultantNames = useMemo(() => {
+    const list = selectedManagerId
+      ? consultants.filter((c) => c.manager_id === selectedManagerId)
+      : consultants;
+    return list.map((c) => c.name);
+  }, [consultants, selectedManagerId]);
+
   const updateField = <K extends keyof VehicleData>(
     field: K,
     value: VehicleData[K],
@@ -351,9 +370,18 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  useEffect(() => {
+    if (
+      formData.salesConsultant &&
+      !filteredConsultantNames.includes(formData.salesConsultant)
+    ) {
+      updateField("salesConsultant", "" as any);
+    }
+  }, [formData.salesConsultant, filteredConsultantNames, updateField]);
+
   const handleSave = () => {
     if (!formData.model || !formData.csNo || !formData.category) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please all required fields");
       return;
     }
 
@@ -545,7 +573,7 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               <FormField
                 label="DEALER"
                 field="dealer"
-                type="select"
+                type="text"
                 formData={formData}
                 updateField={updateField}
               />
@@ -632,20 +660,29 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
                 formData={formData}
                 updateField={updateField}
               />
-              <FormField
-                label="SALES CONSULTANT"
-                field="salesConsultant"
-                type="select"
-                formData={formData}
-                updateField={updateField}
-              />
-              <FormField
-                label="GENERAL MANAGER"
-                field="generalManager"
-                type="select"
-                formData={formData}
-                updateField={updateField}
-              />
+              <div className="flex py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+                  SALES CONSULTANT
+                </div>
+                <div className="w-2/3">
+                  <SalesConsultantSelect
+                    value={formData.salesConsultant || ""}
+                    onChange={(value) => updateField("salesConsultant", value as any)}
+                    managerId={selectedManagerId}
+                  />
+                </div>
+              </div>
+              <div className="flex py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+                  GENERAL MANAGER
+                </div>
+                <div className="w-2/3">
+                  <GeneralManagerSelect
+                    value={formData.generalManager || ""}
+                    onChange={(value) => updateField("generalManager", value as any)}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 

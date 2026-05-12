@@ -7,6 +7,7 @@ import { SettingsPage } from "./pages/SettingsPage";
 import { UserProfilePage } from "./pages/UserProfilePage";
 import { PriceListPage } from "./pages/PriceListPage";
 import { ColorsPage } from "./pages/ColorsPage";
+import { TeamsPage } from "./pages/TeamsPage";
 import { CombinedSalesPage } from "./pages/CombinedSalesPage";
 import { PullOutMonitoringPage } from "./pages/PullOutMonitoringPage";
 import { InTransitPage } from "./pages/InTransitPage";
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
       { path: "settings", Component: SettingsPage },
       { path: "settings/profile", Component: UserProfilePage },
       { path: "settings/colors", Component: ColorsPage },
+      { path: "settings/teams", Component: TeamsPage },
     ],
   },
 ]);

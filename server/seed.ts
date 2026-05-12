@@ -147,6 +147,44 @@ const SEED_COLORS = [
   { name: 'WHITE', hex: '#FFFFFF' },
 ];
 
+const SEED_TEAMS = [
+  {
+    manager: 'MR. AARON QUIROGA',
+    consultants: [
+      'ALONTE, NERRISA',
+      'ARAGONES, SARAH JANE M.',
+      'CERVANTES, ELLA MARIE',
+      'DAGOL, ANN-MARIE',
+      'FONACIER, APRIL R.',
+      'SARMIENTO, KAREN L.',
+    ],
+  },
+  {
+    manager: 'MR. NESTOR MATEO SENARIO JR.',
+    consultants: [
+      'ALBANO, RHIAN IRISH',
+      'BARTOLAZA, ROCHELLE V.',
+      'DANO, RYAN',
+      'LOYOLA, KARL JOHN',
+      'MALLARI, MARILYN',
+      'MONTANA, JERISH',
+    ],
+  },
+  {
+    manager: 'MR. ROGELIO MENDOZA JR.',
+    consultants: [
+      'CARAMAY, CARNATION',
+      'CASTILLO, JAARON ALBERT D.',
+      'MANZANO, ROCKY R.',
+      'MARANAN, SALVE MAY CHRISTY J.',
+      'MONDEJAR, JESSA MAE',
+      'PERA, REGINA O.',
+      'STA. MARIA, THELMA C.',
+      'VIZCARRA, JELLY ANN L.',
+    ],
+  },
+];
+
 const SEED_PULL_OUTS = [
   { description: 'Suzuki Ertiga 1.5 GA MT',  sph_allocation: 10, date_of_confirmation: 'Mar 05, 2026', confirmed_units: 8, pulled_out: 6 },
   { description: 'Suzuki Dzire GL MT',       sph_allocation: 8,  date_of_confirmation: 'Mar 10, 2026', confirmed_units: 6, pulled_out: 4 },
@@ -218,6 +256,27 @@ export function seedDatabase() {
   const newColorCount = (db.prepare('SELECT COUNT(*) AS c FROM colors').get() as { c: number }).c;
   const added = newColorCount - existingColorCount;
   if (added > 0) console.log(`[seed] Added ${added} default colors (had ${existingColorCount}, now ${newColorCount})`);
+
+  const gmCount = (db.prepare('SELECT COUNT(*) AS c FROM general_managers').get() as { c: number }).c;
+  if (gmCount === 0) {
+    const insertManager = db.prepare(
+      'INSERT INTO general_managers (name, sort_order) VALUES (?, ?)'
+    );
+    const insertConsultant = db.prepare(
+      'INSERT INTO sales_consultants (manager_id, name, sort_order) VALUES (?, ?, ?)'
+    );
+    const txn = db.transaction(() => {
+      SEED_TEAMS.forEach((team, teamIndex) => {
+        const result = insertManager.run(team.manager, teamIndex);
+        const managerId = result.lastInsertRowid as number;
+        team.consultants.forEach((name, consultantIndex) => {
+          insertConsultant.run(managerId, name, consultantIndex);
+        });
+      });
+    });
+    txn();
+    console.log(`[seed] Inserted ${SEED_TEAMS.length} general managers with consultants`);
+  }
 
   const poCount = (db.prepare('SELECT COUNT(*) AS c FROM pull_outs').get() as { c: number }).c;
   if (poCount === 0) {

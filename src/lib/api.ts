@@ -66,6 +66,19 @@ export interface ProfileRecord {
   image_data_url: string | null;
 }
 
+export interface GeneralManagerRecord {
+  id: number;
+  name: string;
+  sort_order: number;
+}
+
+export interface SalesConsultantRecord {
+  id: number;
+  manager_id: number;
+  name: string;
+  sort_order: number;
+}
+
 // ── HTTP helpers ──────────────────────────────────────────────────────────
 
 const BASE = '/api';
@@ -210,6 +223,109 @@ export function usePrices() {
   }, []);
 
   return { prices, loading, refetch, addPrice, updatePrice, removePrice };
+}
+
+// ── Team Management ──────────────────────────────────────────────────────
+
+export function useGeneralManagers() {
+  const [managers, setManagers] = useState<GeneralManagerRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const notifyTeamsChanged = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('teams:changed'));
+    }
+  };
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try { setManagers(await get<GeneralManagerRecord[]>('/general-managers')); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { refetch(); }, [refetch]);
+
+  const addManager = useCallback(async (name: string, consultants: string[]) => {
+    const created = await send<{ manager: GeneralManagerRecord }>(
+      '/general-managers',
+      'POST',
+      { name, consultants }
+    );
+    const manager = created.manager;
+    setManagers((prev) => [...prev, manager].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)));
+    notifyTeamsChanged();
+    return manager;
+  }, []);
+
+  const updateManager = useCallback(async (id: number, name: string) => {
+    const updated = await send<GeneralManagerRecord>(`/general-managers/${id}`, 'PUT', { name });
+    setManagers((prev) => prev.map((m) => (m.id === id ? updated : m)));
+    notifyTeamsChanged();
+    return updated;
+  }, []);
+
+  const removeManager = useCallback(async (id: number) => {
+    await send(`/general-managers/${id}`, 'DELETE');
+    setManagers((prev) => prev.filter((m) => m.id !== id));
+    notifyTeamsChanged();
+  }, []);
+
+  return { managers, loading, refetch, addManager, updateManager, removeManager };
+}
+
+export function useSalesConsultants(managerId?: number) {
+  const [consultants, setConsultants] = useState<SalesConsultantRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try {
+      const query = managerId ? `?manager_id=${managerId}` : '';
+      setConsultants(await get<SalesConsultantRecord[]>(`/sales-consultants${query}`));
+    } finally {
+      setLoading(false);
+    }
+  }, [managerId]);
+
+  useEffect(() => { refetch(); }, [refetch]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handle = () => { refetch(); };
+    window.addEventListener('teams:changed', handle);
+    return () => window.removeEventListener('teams:changed', handle);
+  }, [refetch]);
+
+  const addConsultant = useCallback(async (manager_id: number, name: string) => {
+    const created = await send<SalesConsultantRecord>('/sales-consultants', 'POST', { manager_id, name });
+    setConsultants((prev) => [...prev, created].sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name)));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('teams:changed'));
+    }
+    return created;
+  }, []);
+
+  const updateConsultant = useCallback(async (id: number, name: string, nextManagerId?: number) => {
+    const updated = await send<SalesConsultantRecord>(`/sales-consultants/${id}`, 'PUT', {
+      name,
+      manager_id: nextManagerId,
+    });
+    setConsultants((prev) => prev.map((c) => (c.id === id ? updated : c)));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('teams:changed'));
+    }
+    return updated;
+  }, []);
+
+  const removeConsultant = useCallback(async (id: number) => {
+    await send(`/sales-consultants/${id}`, 'DELETE');
+    setConsultants((prev) => prev.filter((c) => c.id !== id));
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('teams:changed'));
+    }
+  }, []);
+
+  return { consultants, loading, refetch, addConsultant, updateConsultant, removeConsultant };
 }
 
 // ── Pull-Out Monitoring data ──────────────────────────────────────────────

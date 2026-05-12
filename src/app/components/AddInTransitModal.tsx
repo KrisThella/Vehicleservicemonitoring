@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CalendarIcon, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
@@ -11,7 +11,13 @@ import {
   SelectValue,
 } from './ui/select';
 import { toast } from 'sonner';
-import { useColors, type ColorRecord } from '../../lib/api';
+import {
+  useColors,
+  useGeneralManagers,
+  useSalesConsultants,
+  type ColorRecord,
+} from '../../lib/api';
+import { GeneralManagerSelect, SalesConsultantSelect } from './TeamSelect';
 import { SUZUKI_MODELS, MODEL_CATEGORIES } from '../data/suzukiModels';
 
 export interface InTransitEntry {
@@ -24,6 +30,8 @@ export interface InTransitEntry {
   yearModel: string;
   clientName: string;
   dealer: string;
+  generalManager: string;
+  salesConsultant: string;
   poNumber: string;
   poAmount: string;
   pullOutDate: string;
@@ -40,8 +48,6 @@ interface AddInTransitModalProps {
   onClose: () => void;
   onSave: (data: InTransitEntry) => void;
 }
-
-const DEALERS = ['TEAM JM', 'TEAM AARON', 'TEAM JAY-R'];
 
 const STATUSES = [
   'IN TRANSIT',
@@ -60,7 +66,9 @@ const EMPTY_FORM: InTransitEntry = {
   csNo: '',
   yearModel: '',
   clientName: '',
-  dealer: '',
+  dealer: 'BIÑAN',
+  generalManager: '',
+  salesConsultant: '',
   poNumber: '',
   poAmount: '',
   pullOutDate: '',
@@ -231,11 +239,31 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
   const [errors, setErrors] = useState<Partial<Record<keyof InTransitEntry, string>>>({});
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const { colors } = useColors();
+  const { managers } = useGeneralManagers();
+  const { consultants } = useSalesConsultants();
 
   const set = (field: keyof InTransitEntry, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
+
+  const selectedManagerId = useMemo(() => {
+    const selected = managers.find((m) => m.name === form.generalManager);
+    return selected?.id ?? null;
+  }, [managers, form.generalManager]);
+
+  const filteredConsultantNames = useMemo(() => {
+    const list = selectedManagerId
+      ? consultants.filter((c) => c.manager_id === selectedManagerId)
+      : consultants;
+    return list.map((c) => c.name);
+  }, [consultants, selectedManagerId]);
+
+  useEffect(() => {
+    if (form.salesConsultant && !filteredConsultantNames.includes(form.salesConsultant)) {
+      set('salesConsultant', '');
+    }
+  }, [form.salesConsultant, filteredConsultantNames, set]);
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof InTransitEntry, string>> = {};
@@ -402,19 +430,12 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
               {/* Dealer */}
               <div>
                 <FieldLabel required>Dealer</FieldLabel>
-                <Select value={form.dealer} onValueChange={(v) => set('dealer', v)}>
-                  <SelectTrigger className={errors.dealer ? 'border-red-400' : ''}>
-                    <SelectValue placeholder="Select dealer…" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {DEALERS
-                      .slice()
-                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
-                      .map((d) => (
-                      <SelectItem key={d} value={d}>{d}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  value={form.dealer}
+                  onChange={(e) => set('dealer', e.target.value)}
+                  placeholder="e.g. BIÑAN"
+                  className={errors.dealer ? 'border-red-400' : ''}
+                />
                 {errors.dealer && <ErrMsg>{errors.dealer}</ErrMsg>}
               </div>
 
@@ -425,6 +446,25 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                   value={form.clientName}
                   onChange={(e) => set('clientName', e.target.value)}
                   placeholder="e.g. MR. JUAN DELA CRUZ"
+                />
+              </div>
+
+              {/* General Manager */}
+              <div>
+                <FieldLabel>General Manager</FieldLabel>
+                <GeneralManagerSelect
+                  value={form.generalManager}
+                  onChange={(value) => set('generalManager', value)}
+                />
+              </div>
+
+              {/* Sales Consultant */}
+              <div>
+                <FieldLabel>Sales Consultant</FieldLabel>
+                <SalesConsultantSelect
+                  value={form.salesConsultant}
+                  onChange={(value) => set('salesConsultant', value)}
+                  managerId={selectedManagerId}
                 />
               </div>
 

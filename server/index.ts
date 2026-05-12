@@ -165,6 +165,149 @@ app.delete('/api/colors/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Team Management ──────────────────────────────────────────────────────
+app.get('/api/general-managers', (_req, res) => {
+  const rows = db
+    .prepare('SELECT id, name, sort_order FROM general_managers ORDER BY sort_order, name')
+    .all();
+  res.json(rows);
+});
+
+app.post('/api/general-managers', (req, res) => {
+  const { name, consultants } = req.body || {};
+  if (!name || typeof name !== 'string') {
+    return res.status(400).json({ error: 'name required' });
+  }
+  if (!Array.isArray(consultants) || consultants.length === 0) {
+    return res.status(400).json({ error: 'at least one consultant is required' });
+  }
+  const cleanedConsultants = consultants
+    .filter((c: unknown) => typeof c === 'string')
+    .map((c: string) => c.trim())
+    .filter(Boolean);
+  if (cleanedConsultants.length === 0) {
+    return res.status(400).json({ error: 'at least one consultant is required' });
+  }
+  const maxOrder = (db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM general_managers').get() as { m: number }).m;
+  try {
+    const insertManager = db.prepare(
+      'INSERT INTO general_managers (name, sort_order) VALUES (?, ?)'
+    );
+    const insertConsultant = db.prepare(
+      'INSERT INTO sales_consultants (manager_id, name, sort_order) VALUES (?, ?, ?)'
+    );
+    const txn = db.transaction(() => {
+      const result = insertManager.run(name, maxOrder + 1);
+      const managerId = result.lastInsertRowid as number;
+      cleanedConsultants.forEach((c: string, index: number) => {
+        insertConsultant.run(managerId, c, index);
+      });
+      return managerId;
+    });
+    const managerId = txn();
+    const manager = db.prepare('SELECT id, name, sort_order FROM general_managers WHERE id = ?').get(managerId);
+    const rows = db.prepare('SELECT id, manager_id, name, sort_order FROM sales_consultants WHERE manager_id = ? ORDER BY sort_order, name').all(managerId);
+    res.status(201).json({ manager, consultants: rows });
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/general-managers/:id', (req, res) => {
+  const { name } = req.body || {};
+  if (!name || typeof name !== 'string') {
+    return res.status(400).json({ error: 'name required' });
+  }
+  try {
+    const r = db.prepare(
+      "UPDATE general_managers SET name=?, updated_at=strftime('%s','now') WHERE id = ?"
+    ).run(name, req.params.id);
+    if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(db.prepare('SELECT id, name, sort_order FROM general_managers WHERE id = ?').get(req.params.id));
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/general-managers/:id', (req, res) => {
+  const r = db.prepare('DELETE FROM general_managers WHERE id = ?').run(req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
+app.get('/api/sales-consultants', (req, res) => {
+  const managerId = req.query.manager_id ? Number(req.query.manager_id) : null;
+  if (managerId) {
+    const rows = db
+      .prepare('SELECT id, manager_id, name, sort_order FROM sales_consultants WHERE manager_id = ? ORDER BY sort_order, name')
+      .all(managerId);
+    return res.json(rows);
+  }
+  const rows = db
+    .prepare('SELECT id, manager_id, name, sort_order FROM sales_consultants ORDER BY sort_order, name')
+    .all();
+  res.json(rows);
+});
+
+app.post('/api/sales-consultants', (req, res) => {
+  const { manager_id, name } = req.body || {};
+  if (!manager_id || !name) return res.status(400).json({ error: 'manager_id and name required' });
+  const maxOrder = (db.prepare(
+    'SELECT COALESCE(MAX(sort_order), -1) AS m FROM sales_consultants WHERE manager_id = ?'
+  ).get(manager_id) as { m: number }).m;
+  try {
+    const r = db.prepare(
+      'INSERT INTO sales_consultants (manager_id, name, sort_order) VALUES (?, ?, ?)'
+    ).run(manager_id, name, maxOrder + 1);
+    res.status(201).json(
+      db.prepare('SELECT id, manager_id, name, sort_order FROM sales_consultants WHERE id = ?').get(r.lastInsertRowid)
+    );
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/sales-consultants/:id', (req, res) => {
+  const { name, manager_id } = req.body || {};
+  if (!name || typeof name !== 'string') return res.status(400).json({ error: 'name required' });
+  const current = db.prepare('SELECT id, manager_id FROM sales_consultants WHERE id = ?').get(req.params.id) as { id: number; manager_id: number } | undefined;
+  if (!current) return res.status(404).json({ error: 'Not found' });
+  const nextManagerId = manager_id ? Number(manager_id) : current.manager_id;
+
+  if (current.manager_id !== nextManagerId) {
+    const remaining = db.prepare(
+      'SELECT COUNT(*) AS c FROM sales_consultants WHERE manager_id = ? AND id != ?'
+    ).get(current.manager_id, current.id) as { c: number };
+    if (remaining.c === 0) {
+      return res.status(400).json({ error: 'manager must have at least one consultant' });
+    }
+  }
+
+  try {
+    const r = db.prepare(
+      "UPDATE sales_consultants SET name=?, manager_id=?, updated_at=strftime('%s','now') WHERE id = ?"
+    ).run(name, nextManagerId, req.params.id);
+    if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+    res.json(db.prepare('SELECT id, manager_id, name, sort_order FROM sales_consultants WHERE id = ?').get(req.params.id));
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/sales-consultants/:id', (req, res) => {
+  const current = db.prepare('SELECT id, manager_id FROM sales_consultants WHERE id = ?').get(req.params.id) as { id: number; manager_id: number } | undefined;
+  if (!current) return res.status(404).json({ error: 'Not found' });
+  const remaining = db.prepare(
+    'SELECT COUNT(*) AS c FROM sales_consultants WHERE manager_id = ? AND id != ?'
+  ).get(current.manager_id, current.id) as { c: number };
+  if (remaining.c === 0) {
+    return res.status(400).json({ error: 'manager must have at least one consultant' });
+  }
+  const r = db.prepare('DELETE FROM sales_consultants WHERE id = ?').run(req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
 // ── Pull-out rows ─────────────────────────────────────────────────────────
 app.get('/api/pull-outs', (_req, res) => {
   const rows = db.prepare('SELECT * FROM pull_outs ORDER BY sort_order, id').all();

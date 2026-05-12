@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, CalendarIcon, ChevronDown } from 'lucide-react';
 import { Button } from './ui/button';
@@ -12,7 +12,14 @@ import {
 } from './ui/select';
 import { toast } from 'sonner';
 import { differenceInDays, format } from 'date-fns';
-import { useColors, usePrices, type ColorRecord } from '../../lib/api';
+import {
+  useColors,
+  usePrices,
+  useGeneralManagers,
+  useSalesConsultants,
+  type ColorRecord,
+} from '../../lib/api';
+import { GeneralManagerSelect, SalesConsultantSelect } from './TeamSelect';
 import { CATEGORY_COLORS } from '../data/suzukiModels';
 
 export interface AvailableVehicleEntry {
@@ -27,6 +34,8 @@ export interface AvailableVehicleEntry {
   taggingAccount: string;
   allocationTeam: string;
   dealer: string;
+  generalManager: string;
+  salesConsultant: string;
   poNumber: string;
   poAmount: string;
   pullOutDate: string;
@@ -68,7 +77,9 @@ const EMPTY_FORM: AvailableVehicleEntry = {
   yearModel: '',
   taggingAccount: '',
   allocationTeam: '',
-  dealer: '',
+  dealer: 'BIÑAN',
+  generalManager: '',
+  salesConsultant: '',
   poNumber: '',
   poAmount: '',
   pullOutDate: '',
@@ -242,12 +253,16 @@ export function AddAvailableVehicleModal({
   mode = 'add',
 }: AddAvailableVehicleModalProps) {
   const [form, setForm] = useState<AvailableVehicleEntry>(
-    initialData ? { ...initialData } : { ...EMPTY_FORM, id: crypto.randomUUID() }
+    initialData
+      ? { ...EMPTY_FORM, ...initialData }
+      : { ...EMPTY_FORM, id: crypto.randomUUID() }
   );
   const [errors, setErrors] = useState<Partial<Record<keyof AvailableVehicleEntry, string>>>({});
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const { colors } = useColors();
   const { prices } = usePrices();
+  const { managers } = useGeneralManagers();
+  const { consultants } = useSalesConsultants();
   const modelCategories = Array.from(
     new Set(prices.map((p) => p.category).filter((c): c is string => Boolean(c)))
   ).sort();
@@ -267,6 +282,24 @@ export function AddAvailableVehicleModal({
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
+
+  const selectedManagerId = useMemo(() => {
+    const selected = managers.find((m) => m.name === form.generalManager);
+    return selected?.id ?? null;
+  }, [managers, form.generalManager]);
+
+  const filteredConsultantNames = useMemo(() => {
+    const list = selectedManagerId
+      ? consultants.filter((c) => c.manager_id === selectedManagerId)
+      : consultants;
+    return list.map((c) => c.name);
+  }, [consultants, selectedManagerId]);
+
+  useEffect(() => {
+    if (form.salesConsultant && !filteredConsultantNames.includes(form.salesConsultant)) {
+      set('salesConsultant', '');
+    }
+  }, [form.salesConsultant, filteredConsultantNames, set]);
 
   const validate = (): boolean => {
     const e: Partial<Record<keyof AvailableVehicleEntry, string>> = {};
@@ -499,6 +532,25 @@ export function AddAvailableVehicleModal({
                   value={form.dealer}
                   onChange={(e) => set('dealer', e.target.value)}
                   placeholder="e.g. TSMPC SHAW"
+                />
+              </div>
+
+              {/* General Manager */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">General Manager</label>
+                <GeneralManagerSelect
+                  value={form.generalManager}
+                  onChange={(value) => set('generalManager', value)}
+                />
+              </div>
+
+              {/* Sales Consultant */}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Sales Consultant</label>
+                <SalesConsultantSelect
+                  value={form.salesConsultant}
+                  onChange={(value) => set('salesConsultant', value)}
+                  managerId={selectedManagerId}
                 />
               </div>
 
