@@ -1,0 +1,209 @@
+# MAIN MODULES / SEPARATE PAGES
+
+Create the following pages with sidebar navigation:
+
+1. *PENDING*
+2. *ON PROCESS*
+3. *COMPLETED*
+4. *FOR LTO PROCESSING*
+5. *ON HOLD*
+6. *TAGGED*
+7. *SOLD*
+
+Each page should:
+
+Display data tables
+Have search, filter, and sorting features
+Include status badges with different colors
+Allow edit, delete, and view actions
+Support export to Excel/PDF
+Include pagination
+Have responsive mobile/tablet/desktop design
+
+---
+
+# DEALERS AUTOMATICALLY
+
+Automatically categorize and assign dealer records under:
+
+*BINAN*
+
+Include:
+
+Auto-tagging of dealer location
+Dealer filter dropdown
+Dealer statistics card
+
+---
+
+# SUMMARY REPORT (COMBINED SALE)
+
+Create a powerful reporting dashboard with the following columns:
+
+MODEL
+COLOR
+CHASSIS
+VIN NO
+REMARKS
+PULL OUT LOCATION
+CS NO.
+YEAR MODEL
+CSR STATUS
+ALLOCATIONS
+P.O NUMBER
+PULL OUT DATE
+COLOR CODE
+(SPH) MONTH DECLARED
+(LICA) INVOICE DATE
+NAME OF CLIENT
+INVOICE NO.
+RELEASE DATE
+SC
+GRM
+(LICA) DEALER
+TERMS (FINANCING, CASH, BANK P.O)
+BANK
+INVOICE AMOUNT
+GP
+EXTENDED WARRANTY
+LTO DOCS TRANSMITTAL
+
+Features:
+
+Group report *PER MONTH*
+Monthly sales analytics
+Total invoice amount computation
+GP computation
+Filters by:
+
+  * Month
+  * Dealer
+  * Team
+  * Sales Consultant
+  * Terms
+Export to Excel and PDF
+Graphs and charts for monthly sales trends
+
+---
+
+# TERMS OPTIONS
+
+Provide dropdown selections for payment terms:
+
+FINANCING
+CASH
+BANK P.O
+
+---
+
+# TEAM GROUPING MODULE
+
+Create team sections with editable team members and maintain sticky/floating icons even when horizontally scrolling.
+
+## Important UI Requirement
+
+Team icons and additional action buttons must remain visible/fixed even while scrolling horizontally.
+Use sticky/frozen columns behavior.
+Modern card-based team layout.
+
+---
+
+# TEAM AARON
+
+ALONTE, NERRISA
+ARAGONES, SARAH JANE M.
+CERVANTES, ELLA MARIE
+DAGOL, ANN-MARIE
+FONACIER, APRIL R.
+SARMIENTO, KAREN L.
+
+---
+
+# TEAM JR
+
+ALBANO, RHIAN IRISH
+BARTOLAZA, ROCHELLE V.
+DAÑO, RYAN
+LOYOLA, KARL JOHN
+MALLARI, MARILYN
+MONTAÑA, JERISHE
+
+---
+
+# TEAM JM
+
+CARAMAY, CARNATION
+CASTILLO, JAARON ALBERT D.
+MANZANO, ROCKY R.
+MARANAN, SALVE MAY CHRISTY J.
+MONDEJAR, JESSA MAE
+PERA, REGINA O.
+STA. MARIA, THELMA C.
+VIZCARRA, JELLY ANN L.
+
+---
+
+# DASHBOARD FEATURES
+
+Create a dashboard homepage with:
+
+Total Pending
+Total Sold
+Total On Process
+Monthly Revenue
+Monthly GP
+Team Performance Ranking
+Dealer Performance
+Sales Charts
+Recent Transactions
+Notifications Panel
+
+---
+
+# DESIGN STYLE
+
+Use:
+
+Modern admin dashboard design
+Dark/light mode
+Glassmorphism or clean professional UI
+Responsive layout
+Smooth animations
+Sticky headers and frozen columns
+Color-coded statuses
+
+Preferred colors:
+
+Blue
+White
+Gray
+Accent colors for statuses
+
+---
+
+# SYSTEM FEATURES
+
+Role-based access
+Admin and encoder accounts
+Real-time updates
+Search and filtering
+Secure login page
+Audit logs
+Auto-save form entries
+Cloud database ready
+Mobile-friendly
+
+---
+
+# TECH STACK (OPTIONAL)
+
+Preferred:
+
+React / Next.js
+Tailwind CSS
+Firebase or MySQL
+Node.js backend
+DataTables
+Chart.js or ApexCharts
+
+Build the system with enterprise-level usability, smooth navigation, and highly organized sales monitoring workflow.
