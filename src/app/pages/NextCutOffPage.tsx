@@ -1,8 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Header } from "../components/Header";
 import {
   useNextCutOffPayments,
-  usePayments,
+  useVehicles,
   type NextCutOffRecord,
   type NextCutOffInput,
 } from "../../lib/api";
@@ -30,9 +30,6 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import {
-  SUZUKI_MODELS,
-  MODEL_PRICE_MAP,
-  MODEL_CATEGORIES,
   formatPhp,
 } from "../data/suzukiModels";
 
@@ -40,7 +37,7 @@ import {
 
 interface PaymentRow {
   id: number;
-  description: string; // Model name (from dropdown)
+  description: string; // Month range label
   numberOfUnits: number;
   unitPrice: number; // auto-pulled from model
   totalAmount: number; // auto-calculated
@@ -126,38 +123,188 @@ const EMPTY: Omit<PaymentRow, "id"> = {
   status: "PENDING",
 };
 
+const RANGE_FIRST_HALF = "1-15";
+const RANGE_SECOND_HALF = "16-";
+
+const toDateOnly = (value: string) => {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const getMonthLabel = (date: Date) =>
+  new Intl.DateTimeFormat("en-PH", { month: "short" }).format(date);
+
+const MONTH_LABELS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+const getMonthRanges = (date: Date) => {
+  const monthLabel = getMonthLabel(date);
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  return [
+    `${monthLabel} ${RANGE_FIRST_HALF}`,
+    `${monthLabel} ${RANGE_SECOND_HALF}${lastDay}`,
+  ];
+};
+
+const parseDescriptionMonth = (description: string) => {
+  const month = description.split(' ')[0];
+  const index = MONTH_LABELS.findIndex(
+    (label) => label.toLowerCase() === month.toLowerCase(),
+  );
+  return index >= 0 ? index : null;
+};
+
+const getRangeFromRow = (row: PaymentRow) => {
+  const monthFromDescription = parseDescriptionMonth(row.description);
+  const date = toDateOnly(row.dateOfPayment);
+  const base = date ?? new Date();
+  let year = base.getFullYear();
+
+  if (!date && monthFromDescription !== null) {
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const nextMonth = (currentMonth + 1) % 12;
+    if (monthFromDescription === nextMonth && currentMonth === 11) {
+      year = today.getFullYear() + 1;
+    } else {
+      year = today.getFullYear();
+    }
+  }
+
+  const month = monthFromDescription ?? base.getMonth();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const isSecondHalf = row.description.includes(RANGE_SECOND_HALF);
+  const startDay = isSecondHalf ? 16 : 1;
+  const endDay = isSecondHalf ? lastDay : 15;
+  const start = new Date(year, month, startDay);
+  const end = new Date(year, month, endDay);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+};
+
+const parsePhpNumber = (value: string | number | null | undefined) => {
+  if (value === null || value === undefined) return 0;
+  if (typeof value === "number") return value;
+  const cleaned = value.replace(/[^0-9.]/g, "");
+  const parsed = Number.parseFloat(cleaned);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const applyOverdueStatus = (row: PaymentRow) => {
+  if (row.status === "PAID") return row.status;
+  const date = toDateOnly(row.dateOfPayment);
+  if (!date) return row.status;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today ? "OVERDUE" : row.status;
+};
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function NextCutOffPage() {
   const { rows: records, loading, addRow, updateRow, removeRow } =
     useNextCutOffPayments();
   const rows = useMemo(() => records.map(toRow), [records]);
+  const { vehicles } = useVehicles();
 
-  // Current Month for Payment (from `payments` DB table)
-  const { rows: paymentRows, loading: payLoading } = usePayments();
-  const cmTotalUnits = paymentRows.reduce(
-    (s, r) => s + r.number_of_units,
-    0,
-  );
-  const cmTotalAmount = paymentRows.reduce(
-    (s, r) => s + r.total_amount,
-    0,
-  );
+  const today = new Date();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
+  const nextMonthDate = new Date(currentYear, currentMonth + 1, 1);
+
+  const currentMonthRows = rows.filter((row) => {
+    const monthIndex = parseDescriptionMonth(row.description);
+    return monthIndex === currentMonth;
+  });
+
+  const nextMonthRows = rows.filter((row) => {
+    const monthIndex = parseDescriptionMonth(row.description);
+    return monthIndex === nextMonthDate.getMonth();
+  });
+
+  const [historyPage, setHistoryPage] = useState(1);
+  const itemsPerPage = 6;
+  const [historyYear, setHistoryYear] = useState(currentYear.toString());
+
+  const historyRows = useMemo(() => {
+    const year = Number(historyYear) || currentYear;
+    return rows.filter((row) => {
+      const monthIndex = parseDescriptionMonth(row.description);
+      if (monthIndex === null) return false;
+      const date = toDateOnly(row.dateOfPayment);
+      if (!date || date.getFullYear() !== year) return false;
+      return (
+        monthIndex !== currentMonth &&
+        monthIndex !== nextMonthDate.getMonth()
+      );
+    }).sort((a, b) => new Date(b.dateOfPayment).getTime() - new Date(a.dateOfPayment).getTime());
+  }, [rows, currentYear, currentMonth, historyYear]);
+
+  const totalHistoryPages = Math.ceil(historyRows.length / itemsPerPage);
+  const paginatedHistory = historyRows.slice((historyPage - 1) * itemsPerPage, historyPage * itemsPerPage);
+
+  const computeRangeTotals = (row: PaymentRow) => {
+    const { start, end } = getRangeFromRow(row);
+    const matching = vehicles.filter((vehicle) => {
+      const pullDate = vehicle.pullOut ?? vehicle.pullOutDate ?? null;
+      if (!pullDate) return false;
+      const date = pullDate instanceof Date ? pullDate : new Date(pullDate);
+      if (Number.isNaN(date.getTime())) return false;
+      return date >= start && date <= end;
+    });
+    const numberOfUnits = matching.length;
+    const totalAmount = matching.reduce(
+      (sum, vehicle) => sum + parsePhpNumber(vehicle.poAmount),
+      0,
+    );
+    return { numberOfUnits, totalAmount };
+  };
 
   const [showModal, setShowModal] = useState(false);
   const [editRow, setEditRow] = useState<PaymentRow | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
 
+  const normalizeRowForSave = (row: PaymentRow) => {
+    const { numberOfUnits, totalAmount } = computeRangeTotals(row);
+    return {
+      ...row,
+      numberOfUnits,
+      totalAmount,
+      unitPrice: 0,
+      status: applyOverdueStatus(row),
+    };
+  };
+
   const handleAdd = async (row: PaymentRow) => {
+    const paymentYear = new Date(row.dateOfPayment).getFullYear();
+    if (paymentYear !== currentYear) {
+      toast.error("Payment entries must be for the current year");
+      return;
+    }
+    const existing = rows.find(r => r.description === row.description && new Date(r.dateOfPayment).getFullYear() === currentYear);
+    if (existing) {
+      toast.error("A payment entry with this range already exists for the current year");
+      return;
+    }
     try {
-      await addRow(toInput(row));
+      await addRow(toInput(normalizeRowForSave(row)));
+      toast.success("Payment entry added!");
     } catch {
       toast.error("Failed to add payment entry");
     }
   };
   const handleEdit = async (row: PaymentRow) => {
     try {
-      await updateRow(row.id, toInput(row));
+      await updateRow(row.id, toInput(normalizeRowForSave(row)));
+      toast.success("Payment entry updated!");
     } catch {
       toast.error("Failed to update payment entry");
     }
@@ -173,16 +320,41 @@ export function NextCutOffPage() {
   };
 
   // Summary
-  const totals = useMemo(
-    () => ({
-      units: rows.reduce((s, r) => s + r.numberOfUnits, 0),
-      amount: rows.reduce((s, r) => s + r.totalAmount, 0),
-      pending: rows.filter((r) => r.status === "PENDING")
-        .length,
-      paid: rows.filter((r) => r.status === "PAID").length,
-    }),
-    [rows],
-  );
+  const totals = useMemo(() => {
+    const enriched = rows.map((row) => {
+      const { numberOfUnits, totalAmount } = computeRangeTotals(row);
+      const status = applyOverdueStatus(row);
+      return { ...row, numberOfUnits, totalAmount, status };
+    });
+    return {
+      units: enriched.reduce((s, r) => s + r.numberOfUnits, 0),
+      amount: enriched.reduce((s, r) => s + r.totalAmount, 0),
+      pending: enriched.filter((r) => r.status === "PENDING").length,
+      paid: enriched.filter((r) => r.status === "PAID").length,
+    };
+  }, [rows, vehicles]);
+
+  const currentMonthTotals = useMemo(() => {
+    const enriched = currentMonthRows.map((row) => ({
+      ...row,
+      ...computeRangeTotals(row),
+    }));
+    return {
+      units: enriched.reduce((s, r) => s + r.numberOfUnits, 0),
+      amount: enriched.reduce((s, r) => s + r.totalAmount, 0),
+    };
+  }, [currentMonthRows, vehicles]);
+
+  const nextMonthTotals = useMemo(() => {
+    const enriched = nextMonthRows.map((row) => ({
+      ...row,
+      ...computeRangeTotals(row),
+    }));
+    return {
+      units: enriched.reduce((s, r) => s + r.numberOfUnits, 0),
+      amount: enriched.reduce((s, r) => s + r.totalAmount, 0),
+    };
+  }, [nextMonthRows, vehicles]);
 
   return (
     <>
@@ -264,84 +436,120 @@ export function NextCutOffPage() {
                 Current Month for Payment
               </h2>
               <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
-                {paymentRows.length} payment record(s) for the
+                {currentMonthRows.length} payment record(s) for the
                 current month
               </p>
             </div>
             <span className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
-              {formatPhp(cmTotalAmount)} total
+              {formatPhp(currentMonthTotals.amount)} total
             </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                  <Th>Description</Th>
+                  <Th>Month Range</Th>
                   <Th right>Number of Units</Th>
                   <Th right>Total Amount</Th>
                   <Th>Date of Payment</Th>
+                  <Th center>Status</Th>
                   <Th>Remarks</Th>
+                  <Th sticky>Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {payLoading && paymentRows.length === 0 ? (
+                {loading && currentMonthRows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={7}
                       className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500"
                     >
                       Loading…
                     </td>
                   </tr>
-                ) : paymentRows.length === 0 ? (
+                ) : currentMonthRows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={5}
+                      colSpan={7}
                       className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500"
                     >
                       No payments recorded yet.
                     </td>
                   </tr>
                 ) : (
-                  paymentRows.map((row) => (
-                    <tr
-                      key={row.id}
-                      className="hover:bg-emerald-50/30 transition-colors"
-                    >
-                      <td className="px-4 py-3 text-gray-800 dark:text-gray-200 whitespace-nowrap">
-                        {row.description}
-                      </td>
-                      <td className="px-4 py-3 text-right text-gray-800 dark:text-gray-200">
-                        {row.number_of_units}
-                      </td>
-                      <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                        {formatPhp(row.total_amount)}
-                      </td>
-                      <td className="px-4 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                        {row.date_of_payment}
-                      </td>
-                      <td
-                        className={`px-4 py-3 text-xs ${row.remarks ? "text-gray-600 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}
+                  currentMonthRows.map((row) => {
+                    const { numberOfUnits, totalAmount } = computeRangeTotals(row);
+                    const status = applyOverdueStatus(row);
+                    const cfg = STATUS_CFG[status];
+                    return (
+                      <tr
+                        key={row.id}
+                        className="hover:bg-emerald-50/30 transition-colors"
                       >
-                        {row.remarks || "–"}
-                      </td>
-                    </tr>
-                  ))
+                        <td className="px-4 py-3 text-gray-800 dark:text-gray-200 whitespace-nowrap">
+                          {row.description}
+                        </td>
+                        <td className="px-4 py-3 text-right text-gray-800 dark:text-gray-200">
+                          {numberOfUnits}
+                        </td>
+                        <td className="px-4 py-3 text-right font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                          {formatPhp(totalAmount)}
+                        </td>
+                        <td className="px-4 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                          {row.dateOfPayment}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${cfg.bg} ${cfg.text} ${cfg.border}`}
+                          >
+                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                            {cfg.label}
+                          </span>
+                        </td>
+                        <td
+                          className={`px-4 py-3 text-xs ${row.remarks ? "text-gray-600 dark:text-gray-400" : "text-gray-400 dark:text-gray-500"}`}
+                        >
+                          {row.remarks || "–"}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap sticky right-0 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                setEditRow(row);
+                                setShowModal(true);
+                              }}
+                              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950 transition-colors"
+                              title="Edit"
+                            >
+                              <Pencil className="size-3.5" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteId(row.id)}
+                              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
                 )}
               </tbody>
-              {paymentRows.length > 0 && (
+              {currentMonthRows.length > 0 && (
                 <tfoot>
                   <tr className="bg-emerald-50 dark:bg-emerald-950 border-t-2 border-emerald-200 dark:border-emerald-800">
                     <td className="px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200">
                       Total
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 text-right">
-                      {cmTotalUnits}
+                      {currentMonthTotals.units}
                     </td>
                     <td className="px-4 py-3 text-sm font-bold text-emerald-800 dark:text-emerald-200 text-right whitespace-nowrap">
-                      {formatPhp(cmTotalAmount)}
+                      {formatPhp(currentMonthTotals.amount)}
                     </td>
-                    <td className="px-4 py-3" colSpan={2} />
+                    <td className="px-4 py-3" colSpan={4} />
                   </tr>
                 </tfoot>
               )}
@@ -354,15 +562,15 @@ export function NextCutOffPage() {
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between bg-gradient-to-r from-indigo-50 dark:from-indigo-950 to-blue-50 dark:to-blue-950">
             <div>
               <h2 className="font-semibold text-indigo-900 dark:text-indigo-100">
-                Payment Schedule
+                Next Cut-Off
               </h2>
               <p className="text-xs text-indigo-600 dark:text-indigo-300 mt-0.5">
-                {rows.length} entries · Click a row to edit
+                {nextMonthRows.length} entries · Click a row to edit
                 inline
               </p>
             </div>
             <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-200">
-              {formatPhp(totals.amount)} total
+              {formatPhp(nextMonthTotals.amount)} total
             </span>
           </div>
 
@@ -371,30 +579,29 @@ export function NextCutOffPage() {
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                   <Th>#</Th>
-                  <Th>Description / Model</Th>
+                  <Th>(Next month) Month Range</Th>
                   <Th center>Units</Th>
-                  <Th right>Unit Price</Th>
                   <Th right>Total Amount</Th>
                   <Th center>Date of Payment</Th>
-                  <Th>Remarks</Th>
                   <Th center>Status</Th>
+                  <Th>Remarks</Th>
                   <Th sticky>Actions</Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {loading && rows.length === 0 ? (
+                {loading && nextMonthRows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={9}
+                      colSpan={8}
                       className="py-16 text-center text-gray-400 dark:text-gray-500 text-sm"
                     >
                       Loading…
                     </td>
                   </tr>
-                ) : rows.length === 0 ? (
+                ) : nextMonthRows.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={9}
+                      colSpan={8}
                       className="py-16 text-center text-gray-400 dark:text-gray-500 text-sm"
                     >
                       <AlertCircle className="size-8 mx-auto mb-2 opacity-30" />
@@ -403,8 +610,10 @@ export function NextCutOffPage() {
                     </td>
                   </tr>
                 ) : (
-                  rows.map((row, idx) => {
-                    const cfg = STATUS_CFG[row.status];
+                  nextMonthRows.map((row, idx) => {
+                    const { numberOfUnits, totalAmount } = computeRangeTotals(row);
+                    const status = applyOverdueStatus(row);
+                    const cfg = STATUS_CFG[status];
                     return (
                       <tr
                         key={row.id}
@@ -418,14 +627,11 @@ export function NextCutOffPage() {
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 text-xs font-semibold">
-                            {row.numberOfUnits}
+                            {numberOfUnits}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                          {formatPhp(row.unitPrice)}
-                        </td>
                         <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
-                          {formatPhp(row.totalAmount)}
+                          {formatPhp(totalAmount)}
                         </td>
                         <td className="px-4 py-3 text-center whitespace-nowrap text-gray-700 dark:text-gray-300">
                           <span className="flex items-center justify-center gap-1.5">
@@ -441,9 +647,6 @@ export function NextCutOffPage() {
                               : "—"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 max-w-[200px] truncate text-xs">
-                          {row.remarks || "—"}
-                        </td>
                         <td className="px-4 py-3 text-center">
                           <span
                             className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${cfg.bg} ${cfg.text} ${cfg.border}`}
@@ -453,6 +656,9 @@ export function NextCutOffPage() {
                             />
                             {cfg.label}
                           </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 max-w-[200px] truncate text-xs">
+                          {row.remarks || "—"}
                         </td>
                         <td className="px-4 py-3 whitespace-nowrap sticky right-0 bg-white dark:bg-gray-900 group-hover:bg-indigo-50/30 dark:group-hover:bg-indigo-900/20 border-l border-gray-100 dark:border-gray-800 transition-colors">
                           <div className="flex items-center gap-1">
@@ -482,7 +688,7 @@ export function NextCutOffPage() {
                   })
                 )}
               </tbody>
-              {rows.length > 0 && (
+              {nextMonthRows.length > 0 && (
                 <tfoot>
                   <tr className="bg-indigo-50 dark:bg-indigo-950 border-t-2 border-indigo-200 dark:border-indigo-800">
                     <td
@@ -492,13 +698,10 @@ export function NextCutOffPage() {
                       TOTAL
                     </td>
                     <td className="px-4 py-3 text-center font-bold text-indigo-900 dark:text-indigo-100">
-                      {totals.units}
-                    </td>
-                    <td className="px-4 py-3 text-right text-gray-400 dark:text-gray-500 text-xs">
-                      —
+                      {nextMonthTotals.units}
                     </td>
                     <td className="px-4 py-3 text-right font-bold text-indigo-900 dark:text-indigo-100 text-base">
-                      {formatPhp(totals.amount)}
+                      {formatPhp(nextMonthTotals.amount)}
                     </td>
                     <td colSpan={4} />
                   </tr>
@@ -507,6 +710,175 @@ export function NextCutOffPage() {
             </table>
           </div>
         </div>
+
+        {/* ── History Table ───────────────────────────────────────────── */}  
+        <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-gray-50 dark:from-gray-950 to-slate-50 dark:to-slate-950 flex items-center justify-between">
+            <div>
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+                Payment History
+              </h2>
+              <p className="text-xs text-gray-600 dark:text-gray-300 mt-0.5">
+                {paginatedHistory.length} entries · Page {historyPage} of {totalHistoryPages}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Year:
+              </label>
+              <Input
+                type="number"
+                value={historyYear}
+                onChange={(e) => {
+                  setHistoryYear(e.target.value);
+                  setHistoryPage(1); // reset to first page
+                }}
+                className="w-20"
+                min="2020"
+                max={currentYear}
+              />
+            </div>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+                  <Th>#</Th>
+                  <Th>Month Range</Th>
+                  <Th center>Units</Th>
+                  <Th right>Total Amount</Th>
+                  <Th center>Date of Payment</Th>
+                  <Th center>Status</Th>
+                  <Th>Remarks</Th>
+                  <Th sticky>Actions</Th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {loading && paginatedHistory.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500"
+                    >
+                      Loading…
+                    </td>
+                  </tr>
+                ) : paginatedHistory.length === 0 ? (
+                  <tr>
+                    <td
+                      colSpan={8}
+                      className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500"
+                    >
+                      No history records for {historyYear}.
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedHistory.map((row, idx) => {
+                    const { numberOfUnits, totalAmount } = computeRangeTotals(row);
+                    const status = applyOverdueStatus(row);
+                    const cfg = STATUS_CFG[status];
+                    return (
+                      <tr
+                        key={row.id}
+                        className="hover:bg-gray-50/30 transition-colors"
+                      >
+                        <td className="px-4 py-3 text-gray-400 dark:text-gray-500 text-xs">
+                          {(historyPage - 1) * itemsPerPage + idx + 1}
+                        </td>
+                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                          {row.description}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 text-xs font-semibold">
+                            {numberOfUnits}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                          {formatPhp(totalAmount)}
+                        </td>
+                        <td className="px-4 py-3 text-center whitespace-nowrap text-gray-700 dark:text-gray-300">
+                          <span className="flex items-center justify-center gap-1.5">
+                            <CalendarIcon className="size-3.5 text-gray-400 dark:text-gray-500" />
+                            {row.dateOfPayment
+                              ? new Date(
+                                  row.dateOfPayment,
+                                ).toLocaleDateString("en-PH", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })
+                              : "—"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border ${cfg.bg} ${cfg.text} ${cfg.border}`}
+                          >
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`}
+                            />
+                            {cfg.label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400 max-w-[200px] truncate text-xs">
+                          {row.remarks || "—"}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap sticky right-0 bg-white dark:bg-gray-900 border-l border-gray-100 dark:border-gray-800">
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => {
+                                setEditRow(row);
+                                setShowModal(true);
+                              }}
+                              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950 transition-colors"
+                              title="Edit"
+                            >
+                              <Pencil className="size-3.5" />
+                            </button>
+                            <button
+                              onClick={() =>
+                                setDeleteId(row.id)
+                              }
+                              className="p-1.5 rounded-md text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="size-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          {totalHistoryPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 flex items-center justify-between">
+              <button
+                onClick={() => setHistoryPage(Math.max(1, historyPage - 1))}
+                disabled={historyPage === 1}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                Page {historyPage} of {totalHistoryPages}
+              </span>
+              <button
+                onClick={() => setHistoryPage(Math.min(totalHistoryPages, historyPage + 1))}
+                disabled={historyPage === totalHistoryPages}
+                className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+
       </main>
 
       {/* ── Add / Edit Modal ──────────────────────────────────────────── */}
@@ -523,6 +895,9 @@ export function NextCutOffPage() {
             setShowModal(false);
             setEditRow(null);
           }}
+          vehicles={vehicles}
+          currentYear={currentYear}
+          currentMonth={currentMonth}
         />
       )}
 
@@ -532,6 +907,7 @@ export function NextCutOffPage() {
           row={rows.find((r) => r.id === deleteId)!}
           onCancel={() => setDeleteId(null)}
           onConfirm={() => handleDel(deleteId)}
+          vehicles={vehicles}
         />
       )}
     </>
@@ -544,13 +920,18 @@ function PaymentFormModal({
   initial,
   onClose,
   onSave,
+  vehicles,
+  currentYear,
+  currentMonth,
 }: {
   initial: PaymentRow | null;
   onClose: () => void;
   onSave: (row: PaymentRow) => void;
+  vehicles: any[];
+  currentYear: number;
+  currentMonth: number;
 }) {
   const isEdit = !!initial;
-  const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [form, setForm] = useState<Omit<PaymentRow, "id">>({
     ...EMPTY,
     ...(initial
@@ -577,37 +958,81 @@ function PaymentFormModal({
     if (errors[k]) setErrors((p) => ({ ...p, [k]: "" }));
   };
 
-  // When model changes → auto-fill price & recalc total
-  const handleModelChange = (model: string) => {
-    const price = MODEL_PRICE_MAP[model] ?? 0;
-    const total = price * form.numberOfUnits;
-    setForm((p) => ({
-      ...p,
-      description: model,
-      unitPrice: price,
-      totalAmount: total,
-    }));
-    if (errors.description)
-      setErrors((p) => ({ ...p, description: "" }));
-  };
+  const monthRangeOptions = useMemo(() => {
+    const currentRanges = getMonthRanges(new Date());
+    const nextMonthDate = new Date(currentYear, currentMonth + 1, 1);
+    const nextRanges = getMonthRanges(nextMonthDate);
+    return [...currentRanges, ...nextRanges];
+  }, []);
 
-  // When units change → recalc total
-  const handleUnitsChange = (val: string) => {
-    const n = Math.max(0, parseInt(val, 10) || 0);
-    const total = form.unitPrice * n;
-    setForm((p) => ({
-      ...p,
-      numberOfUnits: n,
-      totalAmount: total,
-    }));
-  };
+  useEffect(() => {
+    if (!monthRangeOptions.includes(form.description)) {
+      setForm((p) => ({ ...p, description: monthRangeOptions[0] }));
+    }
+  }, [monthRangeOptions, form.description]);
+
+  // Auto-suggest dateOfPayment based on month range (e.g., if range ends on 15th, suggest 20th of same month)
+  useEffect(() => {
+    if (!form.dateOfPayment && form.description) {
+      // Extract month from description like "May 1-15" or "May 16-31"
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const currentMonth = today.getMonth();
+      
+      // Determine if this is current month or next month range
+      const isNextMonth = form.description.includes(monthRangeOptions[2] ? monthRangeOptions[2].substring(0, 3) : '');
+      
+      let targetMonth = currentMonth;
+      if (form.description.includes('Jun') || form.description.includes('Jul') || 
+          form.description.includes('Aug') || form.description.includes('Sep') || 
+          form.description.includes('Oct') || form.description.includes('Nov') || 
+          form.description.includes('Dec')) {
+        if (form.description.includes('Jun') && currentMonth > 5) {
+          targetMonth = 5; // Next year's June
+        } else if (form.description.includes('Jun')) {
+          targetMonth = 5;
+        } else {
+          targetMonth = new Date(`${form.description.substring(0, 3)} 1, ${currentYear}`).getMonth();
+        }
+      }
+      
+      // Auto-suggest due date: if first half (1-15), suggest 20th; if second half (16-end), suggest 5th of next month
+      const isFirstHalf = form.description.includes('1-15');
+      let suggestedDate;
+      
+      if (isFirstHalf) {
+        suggestedDate = new Date(currentYear, targetMonth, 20);
+      } else {
+        suggestedDate = new Date(currentYear, targetMonth + 1, 5);
+      }
+      
+      const dateString = suggestedDate.toISOString().split('T')[0];
+      setForm((p) => ({ ...p, dateOfPayment: dateString }));
+    }
+  }, [form.description, form.dateOfPayment, monthRangeOptions]);
+
+  const rangeTotals = useMemo(() => {
+    const row: PaymentRow = { ...form, id: 0 };
+    const { start, end } = getRangeFromRow(row);
+    const matching = vehicles.filter((vehicle) => {
+      const pullDate = vehicle.pullOut ?? vehicle.pullOutDate ?? null;
+      if (!pullDate) return false;
+      const date = pullDate instanceof Date ? pullDate : new Date(pullDate);
+      if (Number.isNaN(date.getTime())) return false;
+      return date >= start && date <= end;
+    });
+    const numberOfUnits = matching.length;
+    const totalAmount = matching.reduce(
+      (sum, vehicle) => sum + parsePhpNumber(vehicle.poAmount),
+      0,
+    );
+    return { numberOfUnits, totalAmount };
+  }, [form.description, form.dateOfPayment, vehicles]);
 
   const validate = () => {
     const e: typeof errors = {};
     if (!form.description)
-      e.description = "Please select a model";
-    if (!form.numberOfUnits)
-      e.numberOfUnits = "Units must be ≥ 1";
+      e.description = "Please select a month range";
     if (!form.dateOfPayment)
       e.dateOfPayment = "Date of payment is required";
     setErrors(e);
@@ -621,21 +1046,13 @@ function PaymentFormModal({
     }
     onSave({
       ...form,
+      numberOfUnits: rangeTotals.numberOfUnits,
+      totalAmount: rangeTotals.totalAmount,
+      unitPrice: 0,
+      status: applyOverdueStatus({ ...form, id: 0 }),
       id: initial?.id ?? 0,
     });
-    toast.success(
-      isEdit
-        ? "Payment entry updated!"
-        : "Payment entry added!",
-    );
   };
-
-  const filteredModels =
-    categoryFilter === "ALL"
-      ? SUZUKI_MODELS
-      : SUZUKI_MODELS.filter(
-          (m) => m.category === categoryFilter,
-        );
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
@@ -644,21 +1061,21 @@ function PaymentFormModal({
         onClick={onClose}
       />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] flex flex-col">
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-xl mx-4 max-h-[90vh] flex flex-col">
         {/* Header */}
         <div
-          className={`flex items-center justify-between px-6 py-4 border-b border-gray-200 rounded-t-2xl ${isEdit ? "bg-blue-50" : "bg-indigo-50"}`}
+          className={`flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 rounded-t-2xl ${isEdit ? "bg-blue-50 dark:bg-blue-950" : "bg-indigo-50 dark:bg-indigo-950"}`}
         >
           <div>
             <h2
-              className={`font-semibold ${isEdit ? "text-blue-900" : "text-indigo-900"}`}
+              className={`font-semibold ${isEdit ? "text-blue-900 dark:text-blue-100" : "text-indigo-900 dark:text-indigo-100"}`}
             >
               {isEdit
                 ? "✏️ Edit Payment Entry"
                 : "＋ Add Payment Entry"}
             </h2>
             <p
-              className={`text-xs mt-0.5 ${isEdit ? "text-blue-600" : "text-indigo-600"}`}
+              className={`text-xs mt-0.5 ${isEdit ? "text-blue-600 dark:text-blue-300" : "text-indigo-600 dark:text-indigo-300"}`}
             >
               Fields marked{" "}
               <span className="text-red-500">*</span> are
@@ -667,66 +1084,38 @@ function PaymentFormModal({
           </div>
           <button
             onClick={onClose}
-            className={`p-1.5 rounded-lg transition-colors ${isEdit ? "hover:bg-blue-100" : "hover:bg-indigo-100"}`}
+            className={`p-1.5 rounded-lg transition-colors ${isEdit ? "hover:bg-blue-100 dark:hover:bg-blue-900" : "hover:bg-indigo-100 dark:hover:bg-indigo-900"}`}
           >
             <X
-              className={`size-5 ${isEdit ? "text-blue-700" : "text-indigo-700"}`}
+              className={`size-5 ${isEdit ? "text-blue-700 dark:text-blue-300" : "text-indigo-700 dark:text-indigo-300"}`}
             />
           </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5">
-          {/* Description / Model */}
+        <div className="overflow-y-auto flex-1 px-6 py-5 space-y-5 dark:bg-gray-900">
+          {/* Month Range */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
-              Description / Model{" "}
-              <span className="text-red-500">*</span>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Month Range <span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-2 mb-1">
-              <select
-                value={categoryFilter}
-                onChange={(e) =>
-                  setCategoryFilter(e.target.value)
-                }
-                className="border border-gray-300 rounded-md px-2 py-2 text-xs text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500 flex-shrink-0"
+            <Select
+              value={form.description}
+              onValueChange={(value) => set("description", value)}
+            >
+              <SelectTrigger
+                className={`flex-1 ${errors.description ? "border-red-400" : ""}`}
               >
-                <option value="ALL">All Categories</option>
-                {MODEL_CATEGORIES
-                  .slice()
-                  .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
-                  .map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
+                <SelectValue placeholder="Select month range…" />
+              </SelectTrigger>
+              <SelectContent className="max-h-[280px]">
+                {monthRangeOptions.map((range) => (
+                  <SelectItem key={range} value={range}>
+                    {range}
+                  </SelectItem>
                 ))}
-              </select>
-              <Select
-                value={form.description}
-                onValueChange={handleModelChange}
-              >
-                <SelectTrigger
-                  className={`flex-1 ${errors.description ? "border-red-400" : ""}`}
-                >
-                  <SelectValue placeholder="Select model…" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[280px]">
-                  {filteredModels
-                    .slice()
-                    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }))
-                    .map((m) => (
-                    <SelectItem key={m.name} value={m.name}>
-                      <span className="flex items-center justify-between gap-4 w-full">
-                        <span>{m.name}</span>
-                        <span className="text-gray-400 text-xs">
-                          {formatPhp(m.basePrice)}
-                        </span>
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              </SelectContent>
+            </Select>
             {errors.description && (
               <p className="text-xs text-red-500">
                 {errors.description}
@@ -734,52 +1123,22 @@ function PaymentFormModal({
             )}
           </div>
 
-          {/* Units + Price + Total row */}
-          <div className="grid grid-cols-3 gap-3">
-            {/* Number of Units */}
+          {/* Units + Total row */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                No. of Units{" "}
-                <span className="text-red-500">*</span>
-              </label>
-              <Input
-                type="number"
-                min={1}
-                value={form.numberOfUnits}
-                onChange={(e) =>
-                  handleUnitsChange(e.target.value)
-                }
-                className={
-                  errors.numberOfUnits ? "border-red-400" : ""
-                }
-              />
-              {errors.numberOfUnits && (
-                <p className="text-xs text-red-500 mt-1">
-                  {errors.numberOfUnits}
-                </p>
-              )}
-            </div>
-
-            {/* Unit Price (auto-filled) */}
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Unit Price
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Number of Units
                 <span className="ml-1 text-gray-400 font-normal">
                   (auto)
                 </span>
               </label>
-              <div className="px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm text-gray-700">
-                {form.unitPrice ? (
-                  formatPhp(form.unitPrice)
-                ) : (
-                  <span className="text-gray-400">—</span>
-                )}
+              <div className="px-3 py-2 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200">
+                {rangeTotals.numberOfUnits}
               </div>
             </div>
 
-            {/* Total Amount (auto-calculated) */}
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Total Amount
                 <span className="ml-1 text-gray-400 font-normal">
                   (auto)
@@ -787,36 +1146,38 @@ function PaymentFormModal({
               </label>
               <div
                 className={`px-3 py-2 border rounded-md text-sm font-semibold ${
-                  form.totalAmount > 0
-                    ? "border-indigo-200 bg-indigo-50 text-indigo-800"
-                    : "border-gray-200 bg-gray-50 text-gray-400"
+                  rangeTotals.totalAmount > 0
+                    ? "border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-200"
+                    : "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500"
                 }`}
               >
-                {form.totalAmount > 0
-                  ? formatPhp(form.totalAmount)
+                {rangeTotals.totalAmount > 0
+                  ? formatPhp(rangeTotals.totalAmount)
                   : "—"}
               </div>
             </div>
           </div>
 
           {/* Auto-calc banner */}
-          {form.totalAmount > 0 && (
+          {rangeTotals.totalAmount > 0 && (
             <div className="flex items-center gap-2 px-3 py-2 bg-indigo-50 rounded-lg border border-indigo-100 text-xs text-indigo-700">
               <Calculator className="size-3.5 flex-shrink-0" />
               <span>
-                <strong>{form.numberOfUnits}</strong> unit
-                {form.numberOfUnits !== 1 ? "s" : ""} ×{" "}
-                <strong>{formatPhp(form.unitPrice)}</strong> ={" "}
-                <strong>{formatPhp(form.totalAmount)}</strong>
+                <strong>{rangeTotals.numberOfUnits}</strong> unit
+                {rangeTotals.numberOfUnits !== 1 ? "s" : ""} ·{" "}
+                <strong>{formatPhp(rangeTotals.totalAmount)}</strong>
               </span>
             </div>
           )}
 
           {/* Date of Payment */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Date of Payment{" "}
               <span className="text-red-500">*</span>
+              <span className="block text-gray-500 dark:text-gray-400 font-normal text-[11px] mt-0.5">
+                Due date pin to track pending vs overdue status
+              </span>
             </label>
             <div className="relative">
               <Input
@@ -834,11 +1195,14 @@ function PaymentFormModal({
                 {errors.dateOfPayment}
               </p>
             )}
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5">
+              Auto-suggested based on month range. Adjust if needed.
+            </p>
           </div>
 
           {/* Status */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Status
             </label>
             <Select
@@ -874,7 +1238,7 @@ function PaymentFormModal({
 
           {/* Remarks */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1">
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
               Remarks
             </label>
             <Input
@@ -886,9 +1250,9 @@ function PaymentFormModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
-          <p className="text-xs text-gray-400">
-            Total auto-calculated from model price × units.
+        <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 rounded-b-2xl">
+          <p className="text-xs text-gray-400 dark:text-gray-500">
+            Totals auto-calculated from pull-out dates.
           </p>
           <div className="flex items-center gap-3">
             <Button variant="outline" onClick={onClose}>
@@ -918,39 +1282,59 @@ function DeleteDialog({
   row,
   onCancel,
   onConfirm,
+  vehicles,
 }: {
   row: PaymentRow;
   onCancel: () => void;
   onConfirm: () => void;
+  vehicles: any[];
 }) {
+  const derived = useMemo(() => {
+    const { start, end } = getRangeFromRow(row);
+    const matching = vehicles.filter((vehicle) => {
+      const pullDate = vehicle.pullOut ?? vehicle.pullOutDate ?? null;
+      if (!pullDate) return false;
+      const date = pullDate instanceof Date ? pullDate : new Date(pullDate);
+      if (Number.isNaN(date.getTime())) return false;
+      return date >= start && date <= end;
+    });
+    return {
+      numberOfUnits: matching.length,
+      totalAmount: matching.reduce(
+        (sum, vehicle) => sum + parsePhpNumber(vehicle.poAmount),
+        0,
+      ),
+    };
+  }, [row, vehicles]);
+
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onCancel}
       />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
+      <div className="relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="bg-red-100 p-2.5 rounded-xl">
-            <Trash2 className="size-5 text-red-600" />
+          <div className="bg-red-100 dark:bg-red-950 p-2.5 rounded-xl">
+            <Trash2 className="size-5 text-red-600 dark:text-red-300" />
           </div>
           <div>
-            <h3 className="font-semibold text-gray-900">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-100">
               Delete Entry
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               This action cannot be undone.
             </p>
           </div>
         </div>
-        <div className="bg-gray-50 rounded-lg p-3 mb-5 border border-gray-200 space-y-0.5">
-          <p className="text-sm font-medium text-gray-800">
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 mb-5 border border-gray-200 dark:border-gray-700 space-y-0.5">
+          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
             {row.description}
           </p>
-          <p className="text-xs text-gray-500">
-            {row.numberOfUnits} unit
-            {row.numberOfUnits !== 1 ? "s" : ""} ·{" "}
-            {formatPhp(row.totalAmount)}
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            {derived.numberOfUnits} unit
+            {derived.numberOfUnits !== 1 ? "s" : ""} ·{" "}
+            {formatPhp(derived.totalAmount)}
           </p>
         </div>
         <div className="flex items-center justify-end gap-3">

@@ -98,6 +98,18 @@ async function send<T>(path: string, method: string, body?: unknown): Promise<T>
   return r.json();
 }
 
+async function post<T>(path: string, body?: unknown): Promise<T> {
+  return send<T>(path, 'POST', body);
+}
+
+async function put<T>(path: string, body?: unknown): Promise<T> {
+  return send<T>(path, 'PUT', body);
+}
+
+async function del<T>(path: string): Promise<T> {
+  return send<T>(path, 'DELETE');
+}
+
 // ── Date conversion helpers ───────────────────────────────────────────────
 
 function toDate(s: string | null | undefined): Date | null {
