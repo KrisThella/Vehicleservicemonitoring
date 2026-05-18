@@ -110,7 +110,7 @@ const GENERAL_MANAGER_OPTIONS = [
 const BANK_OPTIONS = [
   "BANK OF THE PHILIPPINE ISLANDS (BPI)",
   "EASTWEST BANK (EWB)",
-  "MAYBANK",
+  "MAYBANK (MBI)",
   "PHILIPPINE SAVINGS BANK (PSB)",
   "BANCO DE ORO UNIBANK, INC. (BDO)",
   "RIZAL COMMERCIAL BANKING CORPORATION (RCBC)",
@@ -119,7 +119,58 @@ const BANK_OPTIONS = [
   "SECURITY BANK CORPORATION (SBC)",
   "LUZON DEVELOPMENT BANK (LDB)",
   "BANK OF COMMERCE (BOC)",
+  "METRO BANK (MB)",
 ];
+
+const STATUS_VARIANTS: Record<
+  string,
+  { badgeClassName: string; textClassName: string }
+> = {
+  "On Process": {
+    badgeClassName: "bg-blue-100 text-blue-700 border-blue-200",
+    textClassName: "font-bold text-blue-700",
+  },
+  Pending: {
+    badgeClassName: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    textClassName: "font-bold text-yellow-700",
+  },
+  Completed: {
+    badgeClassName: "bg-green-100 text-green-700 border-green-200",
+    textClassName: "font-bold text-green-700",
+  },
+  Overdue: {
+    badgeClassName: "bg-red-100 text-red-700 border-red-200",
+    textClassName: "font-bold text-red-700",
+  },
+  HELD: {
+    badgeClassName: "bg-gray-100 text-gray-700 border-gray-200",
+    textClassName: "font-bold text-gray-700",
+  },
+  SOLD: {
+    badgeClassName: "bg-green-100 text-green-700 border-green-200",
+    textClassName: "font-bold text-green-700",
+  },
+  "PAID WITH LTO": {
+    badgeClassName: "bg-blue-100 text-blue-700 border-blue-200",
+    textClassName: "font-bold text-blue-700",
+  },
+  "FOR LTO PROCESSING": {
+    badgeClassName: "bg-orange-100 text-orange-700 border-orange-200",
+    textClassName: "font-bold text-orange-700",
+  },
+  "ON HOLD": {
+    badgeClassName: "bg-gray-100 text-green-700 border-gray-200",
+    textClassName: "font-bold text-yellow-700",
+  },
+  "ON TRACK": {
+    badgeClassName: "bg-green-100 text-green-700 border-green-200",
+    textClassName: "font-bold text-green-700",
+  },
+  "IN TRANSIT": {
+    badgeClassName: "bg-purple-100 text-purple-700 border-purple-200",
+    textClassName: "font-bold text-purple-700",
+  },
+};
 
 // ─── DetailRow is defined OUTSIDE the parent component to prevent re-mounting on each render ───
 
@@ -144,15 +195,15 @@ function DetailRow({
   updateField,
   modelOptions = [],
 }: DetailRowProps) {
-  const renderValue = () => {
+  const renderValue = (): ReactNode => {
     if (!isEditMode || type === "readonly") {
       if (value instanceof Date) {
         return format(value, "MMM dd, yyyy");
       }
-      return value || "-";
+      return value == null ? "-" : (value as ReactNode);
     }
 
-    if (!field) return value || "-";
+    if (!field) return value == null ? "-" : (value as ReactNode);
 
     switch (type) {
       case "text":
@@ -261,7 +312,7 @@ function DetailRow({
       }
 
       default:
-        return value || "-";
+        return value == null ? "-" : (value as ReactNode);
     }
   };
 
@@ -300,7 +351,10 @@ export function VehicleDetailsModal({
   const currentVehicle = isEditMode && editedVehicle ? editedVehicle : vehicle;
 
   const handleEditClick = () => {
-    setEditedVehicle({ ...vehicle });
+    setEditedVehicle({
+      ...vehicle,
+      status: normalizeStatus(vehicle.status),
+    });
     setIsEditMode(true);
   };
 
@@ -331,25 +385,20 @@ export function VehicleDetailsModal({
   const normalizeStatus = (status: VehicleData["status"]) =>
     status === "AVAILABLE" ? "ON TRACK" : status;
 
+  const getEditableStatus = (status: VehicleData["status"]) => {
+    const normalizedStatus = normalizeStatus(status);
+    return STATUS_OPTIONS.includes(normalizedStatus)
+      ? normalizedStatus
+      : STATUS_OPTIONS[0];
+  };
+
   const getStatusBadge = (status: VehicleData["status"]) => {
     const normalizedStatus = normalizeStatus(status);
-    const variants: Record<string, { className: string }> = {
-      "On Process": { className: "bg-blue-100 text-blue-700 border-blue-200" },
-      Pending: { className: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-      Completed: { className: "bg-green-100 text-green-700 border-green-200" },
-      Overdue: { className: "bg-red-100 text-red-700 border-red-200" },
-      HELD: { className: "bg-gray-100 text-gray-700 border-gray-200" },
-      SOLD: { className: "bg-green-100 text-green-700 border-green-200" },
-      "PAID WITH LTO": { className: "bg-blue-100 text-blue-700 border-blue-200" },
-      "FOR LTO PROCESSING": { className: "bg-orange-100 text-orange-700 border-orange-200" },
-      "ON HOLD": { className: "bg-gray-100 text-green-700 border-gray-200" },
-      "ON TRACK": { className: "bg-green-100 text-green-700 border-green-200" },
-      "IN TRANSIT": { className: "bg-purple-100 text-purple-700 border-purple-200" },
-    };
+    const variant = STATUS_VARIANTS[normalizedStatus] ?? STATUS_VARIANTS["ON TRACK"];
     return (
       <Badge
         variant="outline"
-        className={variants[normalizedStatus].className}
+        className={variant.badgeClassName}
       >
         {normalizedStatus}
       </Badge>
@@ -358,25 +407,33 @@ export function VehicleDetailsModal({
 
   const setStatusColor = (status: VehicleData["status"]) => {
     const normalizedStatus = normalizeStatus(status);
-    const variants: Record<string, { className: string }> = {
-      "On Process": { className: "font-bold text-blue-700" },
-      Pending: { className: "font-bold text-yellow-700" },
-      Completed: { className: "font-bold text-green-700" },
-      Overdue: { className: "font-bold text-red-700" },
-      HELD: { className: "font-bold text-gray-700" },
-      SOLD: { className: "font-bold text-green-700" },
-      "PAID WITH LTO": { className: "font-bold text-blue-700" },
-      "FOR LTO PROCESSING": { className: "font-bold text-orange-700" },
-      "ON HOLD": { className: "font-bold text-yellow-700" },
-      "ON TRACK": { className: "font-bold text-green-700" },
-      "IN TRANSIT": { className: "font-bold text-purple-700" },
-    };
+    const variant = STATUS_VARIANTS[normalizedStatus] ?? STATUS_VARIANTS["ON TRACK"];
     return (
-      <div className={variants[normalizedStatus].className}>
+      <div className={variant.textClassName}>
         {normalizedStatus}
       </div>
     );
   };
+
+  const renderEditableStatus = () => (
+    <Select
+      value={getEditableStatus(currentVehicle.status)}
+      onValueChange={(value) => updateField("status", value as VehicleData["status"])}
+    >
+      <SelectTrigger className="h-8 w-full text-sm">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent className="max-h-[300px]">
+        {STATUS_OPTIONS.slice()
+          .sort((a, b) => a.localeCompare(b, "en", { numeric: true, sensitivity: "base" }))
+          .map((status) => (
+            <SelectItem key={status} value={status}>
+              {status}
+            </SelectItem>
+          ))}
+      </SelectContent>
+    </Select>
+  );
 
   const calculateDays = () => differenceInDays(new Date(), currentVehicle.receivedDate);
 
@@ -398,7 +455,9 @@ export function VehicleDetailsModal({
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 {currentVehicle.model} • {currentVehicle.plateNumber} •
               </div>
-              <div className="text-sm px-1">{setStatusColor(currentVehicle.status)}</div>
+              <div className="min-w-[180px] px-1">
+                {isEditMode ? renderEditableStatus() : setStatusColor(currentVehicle.status)}
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -454,7 +513,7 @@ export function VehicleDetailsModal({
                 {...rowProps}
               />
               <DetailRow label="YEAR" value={currentVehicle.year} field="year" type="text" {...rowProps} />
-              <DetailRow label="MODEL RECEIVED DATE" value={currentVehicle.receivedDate} field="receivedDate" type="date" {...rowProps} />
+              <DetailRow label="RECEIVED DATE" value={currentVehicle.receivedDate} field="receivedDate" type="date" {...rowProps} />
               <DetailRow label="PO NUMBER" value={currentVehicle.poNumber} field="poNumber" type="text" {...rowProps} />
               <DetailRow label="CHASSIS NUMBER" value={currentVehicle.chassisNo} field="chassisNo" type="text" {...rowProps} />
               <DetailRow

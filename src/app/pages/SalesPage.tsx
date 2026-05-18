@@ -2,6 +2,7 @@ import { Header } from '../components/Header';
 import { TrendingUp, Package, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { useVehicles } from '../../lib/api';
+import { getColorHex } from '../components/utils/colorMapping';
 
 export function SalesPage() {
   const { vehicles } = useVehicles();
@@ -12,6 +13,24 @@ export function SalesPage() {
     const amount = v.invoiceAmount?.replace(/[₱,]/g, '') || '0';
     return sum + parseFloat(amount);
   }, 0);
+
+  const renderColorCell = (color?: string) => {
+    const displayColor = color || '-';
+
+    if (!color) {
+      return <span>{displayColor}</span>;
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <div
+          className="size-4 rounded-full border border-gray-300 shrink-0"
+          style={{ backgroundColor: getColorHex(color) }}
+        />
+        <span>{displayColor}</span>
+      </div>
+    );
+  };
 
   return (
     <>
@@ -106,7 +125,9 @@ export function SalesPage() {
                 {soldVehicles.map((vehicle) => (
                   <tr key={vehicle.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">{vehicle.model}</td>
-                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">{vehicle.color}</td>
+                    <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                      {renderColorCell(vehicle.color)}
+                    </td>
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap font-mono text-xs">{vehicle.chassisNo}</td>
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">{vehicle.engineNo || '-'}</td>
                     <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">{vehicle.csNo}</td>

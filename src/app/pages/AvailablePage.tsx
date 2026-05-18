@@ -6,6 +6,7 @@ import { useVehicles } from '../../lib/api';
 import { Button } from '../components/ui/button';
 import { AddAvailableVehicleModal, AvailableVehicleEntry } from '../components/AddAvailableVehicleModal';
 import { toast } from 'sonner';
+import { getColorHex } from '../components/utils/colorMapping';
 
 export function AvailablePage() {
   const { vehicles, addVehicle } = useVehicles();
@@ -13,6 +14,24 @@ export function AvailablePage() {
 
   const onTrackVehicles = vehicles.filter((v: any) => v.status === 'ON TRACK');
   const totalOnTrack = onTrackVehicles.length;
+
+  const renderColorCell = (color?: string) => {
+    const displayColor = color || '-';
+
+    if (!color) {
+      return <span>{displayColor}</span>;
+    }
+
+    return (
+      <div className="flex items-center gap-2">
+        <div
+          className="size-4 rounded-full border border-gray-300 shrink-0"
+          style={{ backgroundColor: getColorHex(color) }}
+        />
+        <span>{displayColor}</span>
+      </div>
+    );
+  };
 
   const handleAddEntry = async (entry: AvailableVehicleEntry) => {
     try {
@@ -106,7 +125,9 @@ export function AvailablePage() {
                   return (
                     <tr key={vehicle.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                       <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">{vehicle.model}</td>
-                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">{vehicle.color}</td>
+                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                        {renderColorCell(vehicle.color)}
+                      </td>
                       <td className="px-4 py-3 text-sm whitespace-nowrap font-mono text-xs text-gray-900 dark:text-gray-100">{vehicle.chassisNo}</td>
                       <td className="px-4 py-3 text-sm whitespace-nowrap text-gray-900 dark:text-gray-100">{vehicle.engineNo || '-'}</td>
                       <td className="px-4 py-3 text-sm max-w-xs truncate text-gray-900 dark:text-gray-100">{vehicle.remarks}</td>

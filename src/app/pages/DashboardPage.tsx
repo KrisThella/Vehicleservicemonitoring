@@ -29,12 +29,17 @@ export function DashboardPage() {
   const [detailsVehicle, setDetailsVehicle] = useState<VehicleData | null>(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [prefillVehicle, setPrefillVehicle] = useState<Partial<VehicleData> | null>(null);
   const [showFab, setShowFab] = useState(false);
 
-  // Handle navigation state from notification dropdown
+  // Handle navigation state from notification dropdown and demo set-as-sale flow
   useEffect(() => {
-    const state = location.state as { openVehicleId?: string; openHistoryId?: string } | null;
-    if (state?.openVehicleId) {
+    const state = location.state as { openVehicleId?: string; openHistoryId?: string; prefillVehicle?: Partial<VehicleData> } | null;
+    if (state?.prefillVehicle) {
+      setPrefillVehicle(state.prefillVehicle);
+      setShowAddModal(true);
+      window.history.replaceState({}, '');
+    } else if (state?.openVehicleId) {
       const vehicle = vehicles.find((v) => v.id === state.openVehicleId);
       if (vehicle) {
         setDetailsVehicle(vehicle);
@@ -228,8 +233,13 @@ export function DashboardPage() {
       {/* Add Vehicle Modal */}
       {showAddModal && (
         <AddVehicleModal
-          onClose={() => setShowAddModal(false)}
+          onClose={() => {
+            setShowAddModal(false);
+            setPrefillVehicle(null);
+          }}
           onSave={handleAddVehicle}
+          initialVehicle={prefillVehicle ?? undefined}
+          title={prefillVehicle ? "Continue Sale" : undefined}
         />
       )}
 

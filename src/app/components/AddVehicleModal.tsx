@@ -12,7 +12,7 @@ import {
 } from "./ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
-import { format } from "date-fns";
+import { differenceInDays, format } from "date-fns";
 import { toast } from "sonner";
 import { getColorHex } from "./utils/colorMapping";
 import {
@@ -27,6 +27,8 @@ import { GeneralManagerSelect, SalesConsultantSelect } from "./TeamSelect";
 interface AddVehicleModalProps {
   onClose: () => void;
   onSave: (vehicle: VehicleData) => void;
+  initialVehicle?: Partial<VehicleData>;
+  title?: string;
 }
 
 // Model options
@@ -318,7 +320,7 @@ function FormField({
 
 // ─── Main Modal Component ───────────────────────────────────────────────────
 
-export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
+export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddVehicleModalProps) {
   const { colors } = useColors();
   const { prices } = usePrices();
   const { managers } = useGeneralManagers();
@@ -330,26 +332,41 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
         .filter((model): model is string => Boolean(model)),
     ),
   );
-  const [formData, setFormData] = useState<Partial<VehicleData>>({
+  const [formData, setFormData] = useState<Partial<VehicleData>>(() => ({
     model: "",
     csNo: "",
     plateNumber: "",
     color: "",
-    year: new Date().getFullYear(),
-    receivedDate: new Date(),
+    year: initialVehicle?.year ?? new Date().getFullYear(),
+    receivedDate: initialVehicle?.receivedDate ?? new Date(),
     poNumber: "",
     vinNumber: "",
-    dealer: "BIÑAN",
-    status: "On Process",
+    dealer: initialVehicle?.dealer ?? "BIÑAN",
+    status: initialVehicle?.status ?? "On Process",
     remarks: "",
     location: "",
     unit: "",
     pullOut: undefined,
     overdue: false,
-    category: "DEMO",
+    category: initialVehicle?.category ?? "DEMO",
     chassisNo: "",
     engineNo: "",
-  });
+    ...initialVehicle,
+  }));
+
+  useEffect(() => {
+    if (initialVehicle) {
+      setFormData((prev) => ({
+        ...prev,
+        ...initialVehicle,
+        year: initialVehicle.year ?? prev.year,
+        receivedDate: initialVehicle.receivedDate ?? prev.receivedDate,
+        dealer: initialVehicle.dealer ?? prev.dealer,
+        status: initialVehicle.status ?? prev.status,
+        category: initialVehicle.category ?? prev.category,
+      }));
+    }
+  }, [initialVehicle]);
 
   const selectedManagerId = useMemo(() => {
     const selected = managers.find((m) => m.name === formData.generalManager);
@@ -362,6 +379,20 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
       : consultants;
     return list.map((c) => c.name);
   }, [consultants, selectedManagerId]);
+
+  const priceByModel = useMemo(
+    () => new Map(prices.map((p) => [p.model, p.srp])),
+    [prices],
+  );
+
+  const unitPriceDisplay = formData.model
+    ? `₱${priceByModel.get(formData.model) ?? "-"}`
+    : "-";
+
+  const calculateDays = () => {
+    const receivedDate = formData.receivedDate || new Date();
+    return differenceInDays(new Date(), receivedDate);
+  };
 
   const updateField = <K extends keyof VehicleData>(
     field: K,
@@ -443,7 +474,7 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-800 bg-gradient-to-r from-blue-50 dark:from-blue-950 to-white dark:to-gray-900">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Add New Vehicle
+              {title ?? "Add New Vehicle"}
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Fill in the vehicle details
@@ -478,14 +509,6 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               Basic Information
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-              <FormField
-                label="CATEGORY"
-                field="category"
-                type="select"
-                required
-                formData={formData}
-                updateField={updateField}
-              />
               <FormField
                 label="MODEL"
                 field="model"
@@ -546,20 +569,14 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
                 formData={formData}
                 updateField={updateField}
               />
-              <FormField
-                label="ENGINE NUMBER"
-                field="engineNo"
-                type="text"
-                formData={formData}
-                updateField={updateField}
-              />
-              <FormField
-                label="VIN NUMBER"
-                field="vinNumber"
-                type="text"
-                formData={formData}
-                updateField={updateField}
-              />
+              <div className="flex py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+                  UNIT PRICE (SRP)
+                </div>
+                <div className="w-2/3 text-sm flex items-center">
+                  {unitPriceDisplay}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -592,13 +609,6 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
                 updateField={updateField}
               />
               <FormField
-                label="LOCATION"
-                field="location"
-                type="select"
-                formData={formData}
-                updateField={updateField}
-              />
-              <FormField
                 label="UNIT"
                 field="unit"
                 type="text"
@@ -616,12 +626,20 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
             </h3>
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <FormField
-                label="PULL OUT DATE"
+                label="PULL OUT"
                 field="pullOut"
                 type="date"
                 formData={formData}
                 updateField={updateField}
               />
+              <div className="flex py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+                  DAYS (AUTO)
+                </div>
+                <div className="w-2/3 text-sm flex items-center">
+                  {calculateDays()} days
+                </div>
+              </div>
               <FormField
                 label="INVOICE DATE"
                 field="invoiceDate"
@@ -630,7 +648,7 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
                 updateField={updateField}
               />
               <FormField
-                label="RELEASED DATE"
+                label="RELEASE DATE"
                 field="releaseDate"
                 type="date"
                 formData={formData}
@@ -816,6 +834,13 @@ export function AddVehicleModal({ onClose, onSave }: AddVehicleModalProps) {
               <FormField
                 label="LTO DOCUMENTS TRANSMITTAL"
                 field="ltoDocumentsTransmittal"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="VIN NUMBER"
+                field="vinNumber"
                 type="text"
                 formData={formData}
                 updateField={updateField}
