@@ -189,7 +189,7 @@ export function Header() {
                         onClick={() => { setNotifOpen(false); navigate('/'); }}
                         className="text-xs text-blue-600 hover:text-blue-800 font-medium w-full text-center"
                       >
-                        View all in Dashboard
+                        View all in Allocation
                       </button>
                     </div>
                   )}

@@ -49,6 +49,7 @@ db.exec(`
     description TEXT NOT NULL,
     sph_allocation INTEGER NOT NULL DEFAULT 0,
     date_of_confirmation TEXT NOT NULL DEFAULT '',
+    allocation_table_id INTEGER,
     confirmed_units INTEGER NOT NULL DEFAULT 0,
     pulled_out INTEGER NOT NULL DEFAULT 0,
     sort_order INTEGER NOT NULL DEFAULT 0
@@ -81,6 +82,25 @@ db.exec(`
     hex TEXT NOT NULL,
     sort_order INTEGER NOT NULL DEFAULT 0,
     updated_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS model_color_assignments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    price_id INTEGER NOT NULL,
+    color_id INTEGER NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    FOREIGN KEY(price_id) REFERENCES prices(id) ON DELETE CASCADE,
+    FOREIGN KEY(color_id) REFERENCES colors(id) ON DELETE CASCADE,
+    UNIQUE(price_id, color_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS allocation_tables (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    date_of_confirmation TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL DEFAULT (strftime('%s','now')),
+    sort_order INTEGER NOT NULL DEFAULT 0
   );
 
   CREATE TABLE IF NOT EXISTS general_managers (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { X, Edit2, Save, XCircle, Calendar as CalendarIcon } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { getColorHex, colorHexMap } from "./utils/colorMapping";
-import { usePrices } from "../../lib/api";
+import { useAllocationTables, useColors, useModelColors, usePrices, type ColorRecord } from "../../lib/api";
 import { toast } from "sonner";
 
 interface VehicleDetailsModalProps {
@@ -53,7 +53,6 @@ const MODEL_OPTIONS = [
   "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
 ];
 
-const COLOR_OPTIONS = Object.keys(colorHexMap);
 const DEALER_OPTIONS = ["BIÑAN"];
 const STATUS_OPTIONS: VehicleData["status"][] = [
   "On Process",
@@ -69,9 +68,6 @@ const STATUS_OPTIONS: VehicleData["status"][] = [
   "IN TRANSIT",
 ];
 const LOCATION_OPTIONS = [
-  "TEAM JM",
-  "TEAM AARON",
-  "TEAM JAY-R",
   "CLIENT DELIVERED",
   "IN TRANSIT",
   "HELD - ALLOCATION",
@@ -178,11 +174,12 @@ interface DetailRowProps {
   label: string;
   value: string | number | Date | null | undefined | ReactNode;
   field?: keyof VehicleData;
-  type?: "text" | "select" | "date" | "readonly" | "color";
+  type?: "text" | "select" | "date" | "readonly" | "color" | "terms";
   isEditMode: boolean;
   currentVehicle: VehicleData;
   updateField: <K extends keyof VehicleData>(field: K, value: VehicleData[K]) => void;
   modelOptions?: string[];
+  colorOptions?: ColorRecord[];
 }
 
 function DetailRow({
@@ -194,6 +191,7 @@ function DetailRow({
   currentVehicle,
   updateField,
   modelOptions = [],
+  colorOptions = [],
 }: DetailRowProps) {
   const renderValue = (): ReactNode => {
     if (!isEditMode || type === "readonly") {
@@ -247,10 +245,19 @@ function DetailRow({
         );
       }
 
-      case "color":
+      case "color": {
+        const selectedColor = (currentVehicle[field] as string) || "";
+        const availableColors = colorOptions.length
+          ? colorOptions
+          : Object.entries(colorHexMap).map(([name, hex], index) => ({ id: index + 1, name, hex, sort_order: index }));
+        const resolvedColors =
+          selectedColor && !availableColors.some((color) => color.name === selectedColor)
+            ? ([{ id: -1, name: selectedColor, hex: getColorHex(selectedColor), sort_order: -1 } as ColorRecord, ...availableColors])
+            : availableColors;
+
         return (
           <Select
-            value={(currentVehicle[field] as string) || ""}
+            value={selectedColor}
             onValueChange={(v) => updateField(field, v as any)}
           >
             <SelectTrigger className="h-8 text-sm">
@@ -258,32 +265,80 @@ function DetailRow({
                 <div className="flex items-center gap-2">
                   <div
                     className="size-4 rounded-full border border-gray-300"
-                    style={{
-                      backgroundColor: getColorHex(currentVehicle[field] as string),
-                    }}
+                    style={{ backgroundColor: getColorHex(selectedColor) }}
                   />
-                  {currentVehicle[field] as string}
+                  {selectedColor}
                 </div>
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {COLOR_OPTIONS
+              {resolvedColors
                 .slice()
-                .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }))
                 .map((color) => (
-                <SelectItem key={color} value={color}>
+                <SelectItem key={color.id} value={color.name}>
                   <div className="flex items-center gap-2">
                     <div
                       className="size-4 rounded-full border border-gray-300"
-                      style={{ backgroundColor: getColorHex(color) }}
+                      style={{ backgroundColor: color.hex }}
                     />
-                    {color}
+                    {color.name}
                   </div>
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         );
+      }
+
+      case "terms": {
+        const currentValue = (currentVehicle[field] as string) || "";
+        const isOther = currentValue !== "60 Months" && currentValue !== "36 Months";
+        const otherMonths = isOther ? parseInt(currentValue.replace(/[^0-9]/g, ''), 10) || '' : '';
+
+        return (
+          <div className="space-y-2">
+            <Select
+              value={isOther ? "Others" : currentValue}
+              onValueChange={(value) => {
+                if (value === "Others") {
+                  updateField(field!, "" as any);
+                } else {
+                  updateField(field!, value as any);
+                }
+              }}
+            >
+              <SelectTrigger className="h-8 text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {[
+                  "60 Months",
+                  "36 Months",
+                  "Others",
+                ].map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isOther && (
+              <Input
+                type="number"
+                value={otherMonths}
+                min={1}
+                onChange={(e) => {
+                  const months = Number(e.target.value);
+                  updateField(field!, months > 0 ? `${months} Months` as any : "" as any);
+                }}
+                className="h-8 text-sm"
+                placeholder="Enter months"
+              />
+            )}
+          </div>
+        );
+      }
 
       case "date": {
         const dateValue = currentVehicle[field] as Date | null | undefined;
@@ -334,8 +389,11 @@ export function VehicleDetailsModal({
   onClose,
   onSave,
 }: VehicleDetailsModalProps) {
+  const { colors } = useColors();
+  const { assignments } = useModelColors();
   const { prices } = usePrices();
-  const modelOptions = Array.from(
+  const { tables } = useAllocationTables();
+  const modelOptions: string[] = Array.from(
     new Set(
       prices
         .map((p) => p.model)
@@ -343,8 +401,29 @@ export function VehicleDetailsModal({
     )
   );
   const priceByModel = new Map(prices.map((p) => [p.model, p.srp]));
+  const tableNameById = new Map<string, string>(tables.map((t) => [String(t.id), t.name]));
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedVehicle, setEditedVehicle] = useState<VehicleData | null>(null);
+  const activeModel = (isEditMode && editedVehicle ? editedVehicle.model : vehicle?.model) || "";
+
+  const modelColorOptions = useMemo(() => {
+    const baseColors = colors.length
+      ? colors
+      : Object.entries(colorHexMap).map(([name, hex], index) => ({ id: index + 1, name, hex, sort_order: index }));
+
+    if (!activeModel) return baseColors;
+
+    const matchedPrice = prices.find((price) => price.model === activeModel);
+    if (!matchedPrice) return baseColors;
+
+    const assignedColorIds = new Set(
+      assignments.filter((assignment) => assignment.price_id === matchedPrice.id).map((assignment) => assignment.color_id),
+    );
+
+    if (assignedColorIds.size === 0) return baseColors;
+
+    return baseColors.filter((color) => assignedColorIds.has(color.id));
+  }, [activeModel, assignments, colors, prices]);
 
   if (!isOpen || !vehicle) return null;
 
@@ -381,6 +460,12 @@ export function VehicleDetailsModal({
   ) => {
     setEditedVehicle((prev) => (prev ? { ...prev, [field]: value } : null));
   };
+
+  useEffect(() => {
+    if (!isEditMode || !editedVehicle?.color) return;
+    if (modelColorOptions.some((color) => color.name === editedVehicle.color)) return;
+    updateField("color", (modelColorOptions[0]?.name ?? "") as any);
+  }, [editedVehicle?.color, isEditMode, modelColorOptions]);
 
   const normalizeStatus = (status: VehicleData["status"]) =>
     status === "AVAILABLE" ? "ON TRACK" : status;
@@ -438,7 +523,7 @@ export function VehicleDetailsModal({
   const calculateDays = () => differenceInDays(new Date(), currentVehicle.receivedDate);
 
   // Shared props passed down to every DetailRow
-  const rowProps = { isEditMode, currentVehicle, updateField, modelOptions };
+  const rowProps = { isEditMode, currentVehicle, updateField, modelOptions, colorOptions: modelColorOptions };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -458,6 +543,29 @@ export function VehicleDetailsModal({
               <div className="min-w-[180px] px-1">
                 {isEditMode ? renderEditableStatus() : setStatusColor(currentVehicle.status)}
               </div>
+            </div>
+            <div className="mt-2 w-72">
+              {isEditMode ? (
+                <Select
+                  value={currentVehicle.allocationTable || ""}
+                  onValueChange={(value) => updateField("allocationTable", value as any)}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Select allocation table" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tables.map((table) => (
+                      <SelectItem key={table.id} value={String(table.id)}>
+                        {table.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="text-xs text-gray-600 dark:text-gray-300">
+                  Allocation Table: {tableNameById.get(String(currentVehicle.allocationTable || "")) ?? "Unassigned"}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -516,6 +624,14 @@ export function VehicleDetailsModal({
               <DetailRow label="RECEIVED DATE" value={currentVehicle.receivedDate} field="receivedDate" type="date" {...rowProps} />
               <DetailRow label="PO NUMBER" value={currentVehicle.poNumber} field="poNumber" type="text" {...rowProps} />
               <DetailRow label="CHASSIS NUMBER" value={currentVehicle.chassisNo} field="chassisNo" type="text" {...rowProps} />
+              <DetailRow label="ENGINE NUMBER" value={currentVehicle.engineNo} field="engineNo" type="text" {...rowProps} />
+              <DetailRow label="VIN NUMBER" value={currentVehicle.vinNumber} field="vinNumber" type="text" {...rowProps} />
+              <DetailRow
+                label="ALLOCATION TABLE"
+                value={tableNameById.get(String(currentVehicle.allocationTable || "")) ?? "Unassigned"}
+                type="readonly"
+                {...rowProps}
+              />
               <DetailRow
                 label="UNIT PRICE (SRP)"
                 value={priceByModel.get(currentVehicle.model) ? `₱${priceByModel.get(currentVehicle.model)}` : "-"}
@@ -615,8 +731,7 @@ export function VehicleDetailsModal({
                 <div className="h-1 w-8 bg-blue-600 rounded" />
                 Allocation & On Track Information
               </h3>
-              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                <DetailRow label="ENGINE NUMBER" value={currentVehicle.engineNo} field="engineNo" type="text" {...rowProps} />
+              <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">                
                 <DetailRow label="REMARKS" value={currentVehicle.remarks} field="remarks" type="text" {...rowProps} />
                 <DetailRow label="DEALER" value={currentVehicle.dealer} field="dealer" type="select" {...rowProps} />
                 <DetailRow label="TAGGING ACCOUNT" value={currentVehicle.taggingAccount} field="taggingAccount" type="text" {...rowProps} />
@@ -636,7 +751,6 @@ export function VehicleDetailsModal({
             <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
               <DetailRow label="EXTENDED WARRANTY" value={currentVehicle.extendedWarranty} field="extendedWarranty" type="text" {...rowProps} />
               <DetailRow label="LTO DOCUMENTS TRANSMITTAL" value={currentVehicle.ltoDocumentsTransmittal} field="ltoDocumentsTransmittal" type="text" {...rowProps} />
-              <DetailRow label="VIN NUMBER" value={currentVehicle.vinNumber} field="vinNumber" type="text" {...rowProps} />
             </div>
           </div>
 

@@ -18,8 +18,10 @@ import { getColorHex } from "./utils/colorMapping";
 import {
   useColors,
   usePrices,
+  useAllocationTables,
   useGeneralManagers,
   useSalesConsultants,
+  useModelColors,
   type ColorRecord,
 } from "../../lib/api";
 import { GeneralManagerSelect, SalesConsultantSelect } from "./TeamSelect";
@@ -78,9 +80,6 @@ const STATUS_OPTIONS: VehicleData["status"][] = [
   "IN TRANSIT",
 ];
 const LOCATION_OPTIONS = [
-  "TEAM JM",
-  "TEAM AARON",
-  "TEAM JAY-R",
   "CLIENT DELIVERED",
   "IN TRANSIT",
   "HELD - ALLOCATION",
@@ -145,7 +144,7 @@ const BANK_OPTIONS = [
 interface FormFieldProps {
   label: string;
   field: keyof VehicleData;
-  type?: "text" | "select" | "date" | "color" | "number";
+  type?: "text" | "select" | "date" | "color" | "number" | "terms";
   required?: boolean;
   formData: Partial<VehicleData>;
   updateField: <K extends keyof VehicleData>(
@@ -153,6 +152,7 @@ interface FormFieldProps {
     value: VehicleData[K],
   ) => void;
   colors?: ColorRecord[];
+  colorOptions?: ColorRecord[];
   modelOptions?: string[];
 }
 
@@ -164,6 +164,7 @@ function FormField({
   formData,
   updateField,
   colors = [],
+  colorOptions = [],
   modelOptions = [],
 }: FormFieldProps) {
   const renderInput = () => {
@@ -228,8 +229,13 @@ function FormField({
 
       case "color": {
         const selectedName = (formData[field] as string) || "";
+        const availableColors = colorOptions.length ? colorOptions : colors;
+        const resolvedColors =
+          selectedName && !availableColors.some((c) => c.name === selectedName)
+            ? ([{ id: -1, name: selectedName, hex: getColorHex(selectedName), sort_order: -1 } as ColorRecord, ...availableColors])
+            : availableColors;
         const selectedHex =
-          colors.find((c) => c.name === selectedName)?.hex ??
+          resolvedColors.find((c) => c.name === selectedName)?.hex ??
           getColorHex(selectedName);
         return (
           <Select
@@ -250,7 +256,7 @@ function FormField({
               </SelectValue>
             </SelectTrigger>
             <SelectContent className="max-h-[300px]">
-              {colors
+              {resolvedColors
                 .slice()
                 .sort((a, b) =>
                   a.name.localeCompare(b.name, "en", {
@@ -302,6 +308,51 @@ function FormField({
         );
       }
 
+      case "terms": {
+        const currentValue = (formData[field] as string) || "";
+        const isOther = currentValue !== "60 Months" && currentValue !== "36 Months";
+        const otherMonths = isOther ? parseInt(currentValue.replace(/[^0-9]/g, ''), 10) || '' : '';
+
+        return (
+          <div className="space-y-2">
+            <Select
+              value={isOther ? "Others" : currentValue}
+              onValueChange={(value) => {
+                if (value === "Others") {
+                  updateField(field, "" as any);
+                } else {
+                  updateField(field, value as any);
+                }
+              }}
+            >
+              <SelectTrigger className="h-9 text-sm">
+                <SelectValue placeholder={`Select ${label.toLowerCase()}`} />
+              </SelectTrigger>
+              <SelectContent className="max-h-[300px]">
+                {["60 Months", "36 Months", "Others"].map((option) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isOther && (
+              <Input
+                type="number"
+                value={String(otherMonths)}
+                min={1}
+                onChange={(e) => {
+                  const months = Number(e.target.value);
+                  updateField(field, months > 0 ? `${months} Months` as any : "" as any);
+                }}
+                className="h-9 text-sm"
+                placeholder="Enter months"
+              />
+            )}
+          </div>
+        );
+      }
+
       default:
         return null;
     }
@@ -323,6 +374,8 @@ function FormField({
 export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddVehicleModalProps) {
   const { colors } = useColors();
   const { prices } = usePrices();
+  const { assignments } = useModelColors();
+  const { tables } = useAllocationTables();
   const { managers } = useGeneralManagers();
   const { consultants } = useSalesConsultants();
   const modelOptions: string[] = Array.from(
@@ -345,7 +398,6 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
     status: initialVehicle?.status ?? "On Process",
     remarks: "",
     location: "",
-    unit: "",
     pullOut: undefined,
     overdue: false,
     category: initialVehicle?.category ?? "DEMO",
@@ -385,9 +437,24 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
     [prices],
   );
 
+  const modelColorOptions = useMemo(() => {
+    if (!formData.model) return colors;
+    const matchedPrice = prices.find((price) => price.model === formData.model);
+    if (!matchedPrice) return colors;
+
+    const assignedColorIds = new Set(
+      assignments.filter((assignment) => assignment.price_id === matchedPrice.id).map((assignment) => assignment.color_id),
+    );
+
+    if (assignedColorIds.size === 0) return colors;
+
+    return colors.filter((color) => assignedColorIds.has(color.id));
+  }, [assignments, colors, formData.model, prices]);
+
   const unitPriceDisplay = formData.model
     ? `₱${priceByModel.get(formData.model) ?? "-"}`
     : "-";
+  const tableNameById = new Map<string, string>(tables.map((t) => [String(t.id), t.name]));
 
   const calculateDays = () => {
     const receivedDate = formData.receivedDate || new Date();
@@ -410,9 +477,20 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
     }
   }, [formData.salesConsultant, filteredConsultantNames, updateField]);
 
+  useEffect(() => {
+    if (!formData.color) return;
+    if (modelColorOptions.some((color) => color.name === formData.color)) return;
+    updateField("color", (modelColorOptions[0]?.name ?? "") as any);
+  }, [formData.color, modelColorOptions, updateField]);
+
   const handleSave = () => {
     if (!formData.model || !formData.csNo || !formData.category) {
       toast.error("Please all required fields");
+      return;
+    }
+
+    if (formData.category === "ALLOCATION" && !formData.allocationTable) {
+      toast.error("Please select Allocation Table");
       return;
     }
 
@@ -430,7 +508,6 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
       status: formData.status || "On Process",
       remarks: formData.remarks || "",
       location: formData.location || "",
-      unit: formData.unit || "",
       pullOut: formData.pullOut || null,
       overdue: formData.overdue || false,
       category: formData.category || "DEMO",
@@ -457,6 +534,7 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
       allocationTeam: formData.allocationTeam,
       dateTagged: formData.dateTagged,
       monthDeclared: formData.monthDeclared,
+      allocationTable: formData.allocationTable,
     };
 
     onSave(newVehicle);
@@ -479,6 +557,23 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Fill in the vehicle details
             </p>
+            <div className="mt-2 w-72">
+              <Select
+                value={formData.allocationTable || ""}
+                onValueChange={(value) => updateField("allocationTable", value as any)}
+              >
+                <SelectTrigger className="h-8 text-xs">
+                  <SelectValue placeholder="Select allocation table" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tables.map((table) => (
+                    <SelectItem key={table.id} value={String(table.id)}>
+                      {table.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -518,6 +613,16 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
                 updateField={updateField}
                 modelOptions={modelOptions}
               />
+              {formData.allocationTable && (
+                <div className="flex py-3 border-b border-gray-100 dark:border-gray-700 last:border-0">
+                  <div className="w-1/3 text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center">
+                    TABLE NAME
+                  </div>
+                  <div className="w-2/3 text-sm flex items-center">
+                    {tableNameById.get(String(formData.allocationTable)) ?? "-"}
+                  </div>
+                </div>
+              )}
               <FormField
                 label="CS NUMBER"
                 field="csNo"
@@ -540,6 +645,7 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
                 formData={formData}
                 updateField={updateField}
                 colors={colors}
+                colorOptions={modelColorOptions}
               />
               <FormField
                 label="YEAR"
@@ -565,6 +671,20 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
               <FormField
                 label="CHASSIS NUMBER"
                 field="chassisNo"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="ENGINE NUMBER"
+                field="engineNo"
+                type="text"
+                formData={formData}
+                updateField={updateField}
+              />
+              <FormField
+                label="VIN NUMBER"
+                field="vinNumber"
                 type="text"
                 formData={formData}
                 updateField={updateField}
@@ -604,13 +724,6 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
               <FormField
                 label="REMARKS"
                 field="remarks"
-                type="text"
-                formData={formData}
-                updateField={updateField}
-              />
-              <FormField
-                label="UNIT"
-                field="unit"
                 type="text"
                 formData={formData}
                 updateField={updateField}
@@ -714,7 +827,7 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
               <FormField
                 label="TERMS"
                 field="terms"
-                type="text"
+                type="terms"
                 formData={formData}
                 updateField={updateField}
               />
@@ -837,14 +950,7 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
                 type="text"
                 formData={formData}
                 updateField={updateField}
-              />
-              <FormField
-                label="VIN NUMBER"
-                field="vinNumber"
-                type="text"
-                formData={formData}
-                updateField={updateField}
-              />
+              />              
             </div>
           </div>
         </div>

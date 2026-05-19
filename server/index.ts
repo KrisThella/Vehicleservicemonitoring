@@ -165,6 +165,80 @@ app.delete('/api/colors/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// ── Model-Color Assignments ─────────────────────────────────────────────
+app.get('/api/model-colors', (_req, res) => {
+  const rows = db.prepare(
+    `SELECT mca.id, mca.price_id, mca.color_id, p.model AS model, c.name AS color_name, c.hex AS color_hex
+     FROM model_color_assignments mca
+     JOIN prices p ON p.id = mca.price_id
+     JOIN colors c ON c.id = mca.color_id
+     ORDER BY mca.sort_order, mca.id`
+  ).all();
+  res.json(rows);
+});
+
+app.post('/api/model-colors', (req, res) => {
+  const { price_id, color_id } = req.body || {};
+  if (!price_id || !color_id) return res.status(400).json({ error: 'price_id and color_id required' });
+  const maxOrder = (db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM model_color_assignments').get() as { m: number }).m;
+  try {
+    const r = db.prepare(
+      'INSERT INTO model_color_assignments (price_id, color_id, sort_order) VALUES (?,?,?)'
+    ).run(price_id, color_id, maxOrder + 1);
+    res.status(201).json(db.prepare('SELECT * FROM model_color_assignments WHERE id = ?').get(r.lastInsertRowid));
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.delete('/api/model-colors/:id', (req, res) => {
+  const r = db.prepare('DELETE FROM model_color_assignments WHERE id = ?').run(req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
+// ── Allocation Tables ───────────────────────────────────────────────────
+app.get('/api/allocation-tables', (_req, res) => {
+  const rows = db.prepare('SELECT * FROM allocation_tables ORDER BY sort_order, id').all();
+  res.json(rows);
+});
+
+app.post('/api/allocation-tables', (req, res) => {
+  const { name, date_of_confirmation } = req.body || {};
+  if (!name || !date_of_confirmation) return res.status(400).json({ error: 'name and date_of_confirmation required' });
+  const maxOrder = (db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM allocation_tables').get() as { m: number }).m;
+  try {
+    const r = db.prepare(
+      'INSERT INTO allocation_tables (name, date_of_confirmation, sort_order) VALUES (?,?,?)'
+    ).run(name, date_of_confirmation, maxOrder + 1);
+    res.status(201).json(db.prepare('SELECT * FROM allocation_tables WHERE id = ?').get(r.lastInsertRowid));
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.put('/api/allocation-tables/:id', (req, res) => {
+  const { name, date_of_confirmation } = req.body || {};
+  if (!name || !date_of_confirmation) return res.status(400).json({ error: 'name and date_of_confirmation required' });
+  const r = db.prepare(
+    'UPDATE allocation_tables SET name = ?, date_of_confirmation = ? WHERE id = ?'
+  ).run(name, date_of_confirmation, req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json(db.prepare('SELECT * FROM allocation_tables WHERE id = ?').get(req.params.id));
+});
+
+app.delete('/api/allocation-tables/:id', (req, res) => {
+  const hasVehicles = db.prepare(
+    "SELECT COUNT(*) AS c FROM vehicles WHERE json_extract(data, '$.allocationTable') = ?"
+  ).get(req.params.id) as { c: number };
+  if (hasVehicles.c > 0) {
+    return res.status(400).json({ error: 'Cannot delete allocation table with assigned vehicles' });
+  }
+  const r = db.prepare('DELETE FROM allocation_tables WHERE id = ?').run(req.params.id);
+  if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
+  res.json({ ok: true });
+});
+
 // ── Team Management ──────────────────────────────────────────────────────
 app.get('/api/general-managers', (_req, res) => {
   const rows = db
@@ -315,19 +389,37 @@ app.get('/api/pull-outs', (_req, res) => {
 });
 
 app.post('/api/pull-outs', (req, res) => {
-  const { description = '', sph_allocation = 0, date_of_confirmation = '', confirmed_units = 0, pulled_out = 0 } = req.body || {};
+  const {
+    description = '',
+    sph_allocation = 0,
+    date_of_confirmation = '',
+    allocation_table_id = null,
+    confirmed_units = 0,
+    pulled_out = 0,
+  } = req.body || {};
   const maxOrder = (db.prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM pull_outs').get() as { m: number }).m;
   const r = db.prepare(
-    'INSERT INTO pull_outs (description, sph_allocation, date_of_confirmation, confirmed_units, pulled_out, sort_order) VALUES (?,?,?,?,?,?)'
-  ).run(description, sph_allocation, date_of_confirmation, confirmed_units, pulled_out, maxOrder + 1);
+    'INSERT INTO pull_outs (description, sph_allocation, date_of_confirmation, allocation_table_id, confirmed_units, pulled_out, sort_order) VALUES (?,?,?,?,?,?,?)'
+  ).run(description, sph_allocation, date_of_confirmation, allocation_table_id, confirmed_units, pulled_out, maxOrder + 1);
   res.status(201).json(db.prepare('SELECT * FROM pull_outs WHERE id = ?').get(r.lastInsertRowid));
 });
 
 app.put('/api/pull-outs/:id', (req, res) => {
-  const { description, sph_allocation, date_of_confirmation, confirmed_units, pulled_out } = req.body || {};
+  const current = db.prepare('SELECT * FROM pull_outs WHERE id = ?').get(req.params.id) as any;
+  if (!current) return res.status(404).json({ error: 'Not found' });
+
+  const {
+    description = current.description,
+    sph_allocation = current.sph_allocation,
+    date_of_confirmation = current.date_of_confirmation,
+    allocation_table_id = current.allocation_table_id,
+    confirmed_units = current.confirmed_units,
+    pulled_out = current.pulled_out,
+  } = req.body || {};
+
   const r = db.prepare(
-    'UPDATE pull_outs SET description=?, sph_allocation=?, date_of_confirmation=?, confirmed_units=?, pulled_out=? WHERE id = ?'
-  ).run(description, sph_allocation, date_of_confirmation, confirmed_units, pulled_out, req.params.id);
+    'UPDATE pull_outs SET description=?, sph_allocation=?, date_of_confirmation=?, allocation_table_id=?, confirmed_units=?, pulled_out=? WHERE id = ?'
+  ).run(description, sph_allocation, date_of_confirmation, allocation_table_id, confirmed_units, pulled_out, req.params.id);
   if (r.changes === 0) return res.status(404).json({ error: 'Not found' });
   res.json(db.prepare('SELECT * FROM pull_outs WHERE id = ?').get(req.params.id));
 });

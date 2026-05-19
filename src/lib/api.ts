@@ -43,6 +43,7 @@ export interface VehicleRecord {
   ltoDocumentsTransmittal?: string;
   poAmount?: string;
   nameOfClient?: string;
+  allocationTable?: string;
   [k: string]: unknown;
 }
 
@@ -215,23 +216,35 @@ export function usePrices() {
 
   useEffect(() => { refetch(); }, [refetch]);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handle = () => {
+      refetch();
+    };
+    window.addEventListener('prices:changed', handle);
+    return () => window.removeEventListener('prices:changed', handle);
+  }, [refetch]);
+
   const addPrice = useCallback(async (p: Partial<PriceRecord>) => {
     const created = await send<PriceRecord>('/prices', 'POST', p);
     setPrices((prev) => [...prev, created].sort((a, b) =>
       a.category.localeCompare(b.category) || a.model.localeCompare(b.model)
     ));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('prices:changed'));
     return created;
   }, []);
 
   const updatePrice = useCallback(async (id: number, p: Partial<PriceRecord>) => {
     const updated = await send<PriceRecord>(`/prices/${id}`, 'PUT', p);
     setPrices((prev) => prev.map((x) => (x.id === id ? updated : x)));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('prices:changed'));
     return updated;
   }, []);
 
   const removePrice = useCallback(async (id: number) => {
     await send(`/prices/${id}`, 'DELETE');
     setPrices((prev) => prev.filter((x) => x.id !== id));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('prices:changed'));
   }, []);
 
   return { prices, loading, refetch, addPrice, updatePrice, removePrice };
@@ -347,6 +360,7 @@ export interface PullOutRecord {
   description: string;
   sph_allocation: number;
   date_of_confirmation: string;
+  allocation_table_id?: number | null;
   confirmed_units: number;
   pulled_out: number;
   sort_order: number;
@@ -381,7 +395,25 @@ export function usePullOuts() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => { refetch(); }, [refetch]);
-  return { rows, loading, refetch };
+
+  const addRow = useCallback(async (input: Partial<PullOutRecord>) => {
+    const created = await post<PullOutRecord>('/pull-outs', input);
+    setRows((prev) => [...prev, created]);
+    return created;
+  }, []);
+
+  const updateRow = useCallback(async (id: number, input: Partial<PullOutRecord>) => {
+    const updated = await put<PullOutRecord>(`/pull-outs/${id}`, input);
+    setRows((prev) => prev.map((r) => (r.id === id ? updated : r)));
+    return updated;
+  }, []);
+
+  const removeRow = useCallback(async (id: number) => {
+    await del(`/pull-outs/${id}`);
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  return { rows, loading, refetch, addRow, updateRow, removeRow };
 }
 
 export function usePayments() {
@@ -499,6 +531,82 @@ export function useColors() {
   }, []);
 
   return { colors, loading, refetch, addColor, updateColor, removeColor };
+}
+
+export interface AllocationTableRecord {
+  id: number;
+  name: string;
+  date_of_confirmation: string;
+  created_at: number;
+  sort_order: number;
+}
+
+export interface ModelColorAssignmentRecord {
+  id: number;
+  price_id: number;
+  color_id: number;
+  model: string;
+  color_name: string;
+  color_hex: string;
+  sort_order: number;
+}
+
+export function useAllocationTables() {
+  const [tables, setTables] = useState<AllocationTableRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try { setTables(await get<AllocationTableRecord[]>('/allocation-tables')); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { refetch(); }, [refetch]);
+
+  const addTable = useCallback(async (input: Omit<AllocationTableRecord, 'id' | 'created_at' | 'sort_order'>) => {
+    const created = await post<AllocationTableRecord>('/allocation-tables', input);
+    setTables((prev) => [...prev, created]);
+    return created;
+  }, []);
+
+  const updateTable = useCallback(async (id: number, input: Omit<AllocationTableRecord, 'id' | 'created_at' | 'sort_order'>) => {
+    const updated = await put<AllocationTableRecord>(`/allocation-tables/${id}`, input);
+    setTables((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    return updated;
+  }, []);
+
+  const removeTable = useCallback(async (id: number) => {
+    await del(`/allocation-tables/${id}`);
+    setTables((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  return { tables, loading, refetch, addTable, updateTable, removeTable };
+}
+
+export function useModelColors() {
+  const [assignments, setAssignments] = useState<ModelColorAssignmentRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try { setAssignments(await get<ModelColorAssignmentRecord[]>('/model-colors')); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { refetch(); }, [refetch]);
+
+  const addAssignment = useCallback(async (price_id: number, color_id: number) => {
+    const created = await post<ModelColorAssignmentRecord>('/model-colors', { price_id, color_id });
+    setAssignments((prev) => [...prev, created]);
+    return created;
+  }, []);
+
+  const removeAssignment = useCallback(async (id: number) => {
+    await del(`/model-colors/${id}`);
+    setAssignments((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
+  return { assignments, loading, refetch, addAssignment, removeAssignment };
 }
 
 export function useProfile() {

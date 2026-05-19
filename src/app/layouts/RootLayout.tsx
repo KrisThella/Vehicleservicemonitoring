@@ -8,7 +8,7 @@ export function RootLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
-    { path: "/", label: "DASHBOARD", icon: LayoutDashboard },
+    { path: "/", label: "ALLOCATION", icon: LayoutDashboard },
     { path: "/sales", label: "SALES", icon: TrendingUp },
     { path: "/available", label: "AVAILABLE", icon: Package },
     { path: "/demo", label: "DEMO", icon: Box },

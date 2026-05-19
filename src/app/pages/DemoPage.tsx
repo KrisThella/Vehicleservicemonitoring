@@ -182,11 +182,7 @@ export function DemoPage() {
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-5">
             <p className="text-sm text-gray-500 dark:text-gray-400">Showing</p>
             <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-100">{filteredVehicles.length}</p>
-          </div>
-          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-5">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Search term</p>
-            <p className="mt-2 text-3xl font-semibold text-gray-900 dark:text-gray-100">{searchTerm || "—"}</p>
-          </div>
+          </div>          
         </div>
 
         <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 overflow-hidden">

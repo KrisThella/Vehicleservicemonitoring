@@ -8,7 +8,10 @@
     "dev": "concurrently -n api,web -c blue,green \"tsx watch server/index.ts\" \"vite\"",
     "tauri": "pnpm exec tauri",
     "tauri:dev": "pnpm exec tauri dev",
-    "tauri:build": "pnpm exec tauri build"
+    "tauri:build": "pnpm exec tauri build",
+    "reset-db": "node ./scripts/reset-db.js",
+    "prune-db": "node ./scripts/prune-db.js",
+    "prepare-seed-db": "pnpm run prune-db || true"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
