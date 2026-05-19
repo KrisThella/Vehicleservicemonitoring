@@ -108,6 +108,18 @@ const SEED_TEAMS = [
   },
 ];
 
+// Map of model -> list of color names to seed as available for that model
+const SEED_MODEL_COLORS: { model: string; colors: string[] }[] = [
+  { model: 'APV 1.6 GA MT', colors: ['PEARL PURE WHITE', 'MIDNIGHT BLACK', 'SUPERIOR WHITE'] },
+  { model: 'APV 1.6 GLX MT', colors: ['PEARL PURE WHITE', 'PHOENIX RED PEARL', 'MIDNIGHT BLACK'] },
+  { model: 'CELERIO 1.0 GL AGS', colors: ['ALLURING BLUE PEARL METALLIC', 'PEARL PURE WHITE'] },
+  { model: 'DZIRE GL CVT - HYBRID', colors: ['PEARL SNOW WHITE', 'GRAPHITE GREY METALLIC'] },
+  { model: 'FRONX GL AT', colors: ['PRIME CERULEAN BLUE 2', 'SUPERIOR WHITE', 'MIDNIGHT BLACK'] },
+  { model: 'SWIFT 1.2 GL CVT', colors: ['RADIANT RED PEARL', 'SILKY SILVER METALLIC', 'PEARL PURE WHITE'] },
+  { model: 'XL7 1.5 GLX AT - HYBRID (MONOTONE)', colors: ['OXFORD BLUE PEARL METALLIC', 'PEARL ARCTIC WHITE 1'] },
+  { model: 'JIMNY 1.5 GL MT SS', colors: ['GALLANT RED PEARL METALLIC', 'PEARL SUPER BLACK', 'PEARL PURE WHITE'] },
+];
+
 export function seedDatabase() {
   const seedState = db.prepare('SELECT value FROM settings WHERE key = ?').get('defaults_seed_version') as { value: string } | undefined;
   if (seedState?.value === DEFAULT_SEED_VERSION) {
@@ -143,6 +155,28 @@ export function seedDatabase() {
   const newColorCount = (db.prepare('SELECT COUNT(*) AS c FROM colors').get() as { c: number }).c;
   const added = newColorCount - existingColorCount;
   if (added > 0) console.log(`[seed] Added ${added} default colors (had ${existingColorCount}, now ${newColorCount})`);
+
+  // Seed model -> color assignments (idempotent)
+  const insertAssignment = db.prepare(
+    'INSERT OR IGNORE INTO model_color_assignments (price_id, color_id, sort_order) VALUES (?,?,?)'
+  );
+  const getPriceId = db.prepare('SELECT id FROM prices WHERE model = ?');
+  const getColorId = db.prepare('SELECT id FROM colors WHERE name = ?');
+
+  const assignmentTxn = db.transaction(() => {
+    let globalOrder = 0;
+    for (const item of SEED_MODEL_COLORS) {
+      const priceRow = getPriceId.get(item.model) as { id: number } | undefined;
+      if (!priceRow) continue; // price not present yet
+      const priceId = priceRow.id;
+      for (const colorName of item.colors) {
+        const colorRow = getColorId.get(colorName) as { id: number } | undefined;
+        if (!colorRow) continue; // color may not exist (user may have customized list)
+        insertAssignment.run(priceId, colorRow.id, globalOrder++);
+      }
+    }
+  });
+  assignmentTxn();
 
   // Insert default teams (general managers + sales consultants) idempotently
   const gmBefore = (db.prepare('SELECT COUNT(*) AS c FROM general_managers').get() as { c: number }).c;
