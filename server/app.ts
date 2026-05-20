@@ -524,6 +524,10 @@ app.put('/api/inventory', (req, res) => {
 });
 
 const PORT = Number(process.env.PORT ?? 3001);
-app.listen(PORT, '127.0.0.1', () => {
-  console.log(`[api] listening on http://127.0.0.1:${PORT}`);
-});
+if (!process.env.VERCEL) {
+  app.listen(PORT, '127.0.0.1', () => {
+    console.log(`[api] listening on http://127.0.0.1:${PORT}`);
+  });
+}
+
+export { app };
