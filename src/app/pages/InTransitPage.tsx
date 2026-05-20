@@ -1142,9 +1142,7 @@ export function InTransitPage() {
                     "PO Number",
                     "PO Amount",
                     "Pull Out Date",
-                    "Color Code",
                     "Declared Month",
-                    "Current Location",
                     "DP / Reservation",
                     "Status",
                     "Target Release",
@@ -1163,7 +1161,7 @@ export function InTransitPage() {
                 {filtered.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={20}
+                      colSpan={18}
                       className="px-4 py-12 text-center text-gray-400 dark:text-gray-500"
                     >
                       No units match the current filters.
@@ -1322,22 +1320,9 @@ export function InTransitPage() {
                           {unit.pullOutDate}
                         </td>
 
-                        {/* Color Code */}
-                        <td className="px-3 py-3 text-gray-600 dark:text-gray-400 font-mono text-xs">
-                          {unit.colorCode}
-                        </td>
-
                         {/* Declared Month */}
                         <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
                           {unit.declaredMonth}
-                        </td>
-
-                        {/* Current Location */}
-                        <td
-                          className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap max-w-[180px] truncate"
-                          title={unit.currentLocation}
-                        >
-                          {unit.currentLocation}
                         </td>
 
                         {/* DP / Reservation */}
@@ -1390,7 +1375,7 @@ export function InTransitPage() {
                         filtered.reduce((s, u) => s + u.poAmount, 0),
                       )}
                     </td>
-                    <td colSpan={8} />
+                    <td colSpan={6} />
                   </tr>
                 </tfoot>
               )}
