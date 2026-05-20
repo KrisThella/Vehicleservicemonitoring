@@ -85,23 +85,67 @@ export interface SalesConsultantRecord {
 
 const BASE = (() => {
   if (typeof window === 'undefined') return '/api';
-  const protocol = window.location.protocol;
-  if (protocol === 'http:' || protocol === 'https:') return '/api';
+  const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV;
+  if (isDev) return '/api';
   return 'http://127.0.0.1:3001/api';
 })();
 
+const BASE_FALLBACKS = (() => {
+  const bases = [BASE];
+  if (BASE === '/api') {
+    bases.push('http://127.0.0.1:3001/api');
+  } else {
+    bases.push('/api');
+  }
+  return Array.from(new Set(bases));
+})();
+
+async function fetchWithFallback(path: string, init?: RequestInit): Promise<Response> {
+  let lastError: unknown;
+  for (const base of BASE_FALLBACKS) {
+    const url = `${base}${path}`;
+    try {
+      const response = await fetch(url, init);
+      // If HTTP error, capture and try next
+      if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        lastError = new Error(`HTTP ${response.status} from ${url} - ${body.slice(0,200)}`);
+        continue;
+      }
+
+      // If response content-type is HTML (index), treat as wrong host and try next
+      const ct = response.headers.get('content-type') || '';
+      if (!ct.includes('application/json') && !ct.includes('application/ld+json') && response.status !== 204) {
+        const body = await response.text().catch(() => '');
+        lastError = new Error(`Non-JSON response from ${url}: ${body.slice(0,200)}`);
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
 async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const ct = response.headers.get('content-type') || '';
+  if (!ct.includes('application/json') && !ct.includes('application/ld+json')) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Expected JSON response but got '${ct || 'unknown'}' from ${response.url}. Response body: ${body.slice(0,200)}`);
+  }
   const text = await response.text();
   if (!text) return {} as T;
   try {
     return JSON.parse(text) as T;
   } catch (error: any) {
-    throw new Error(`Failed to parse JSON response: ${error.message}. Response body: ${text.slice(0, 200)}`);
+    throw new Error(`Failed to parse JSON response from ${response.url}: ${error.message}. Response body: ${text.slice(0, 200)}`);
   }
 }
 
 async function get<T>(path: string): Promise<T> {
-  const r = await fetch(`${BASE}${path}`);
+  const r = await fetchWithFallback(path);
   if (!r.ok) {
     const body = await r.text();
     throw new Error(`GET ${path} failed: ${r.status}${body ? ` - ${body}` : ''}`);
@@ -109,7 +153,7 @@ async function get<T>(path: string): Promise<T> {
   return parseJsonResponse<T>(r);
 }
 async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
-  const r = await fetch(`${BASE}${path}`, {
+  const r = await fetchWithFallback(path, {
     method,
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,

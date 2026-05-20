@@ -24,6 +24,46 @@ pub fn run() {
         }
       });
 
+      // Attempt to spawn a bundled backend server executable if present.
+      // This is non-fatal — if not found, the app will continue and the
+      // frontend will attempt to reach an external backend (127.0.0.1:3001).
+      std::thread::spawn({
+        let _app_handle = app.handle();
+        move || {
+          // Resolve a plausible path for a bundled server binary next to the app executable.
+          if let Ok(mut exe_path) = std::env::current_exe() {
+            // exe_path -> .../Resources/<app>/ or the exe location
+            if exe_path.pop() {
+              // Try `server/server(.exe)` relative to exe location
+              #[cfg(target_os = "windows")]
+              let candidate = exe_path.join("server").join("server.exe");
+              #[cfg(not(target_os = "windows"))]
+              let candidate = exe_path.join("server").join("server");
+
+              if candidate.exists() {
+                match std::process::Command::new(&candidate)
+                  .stdout(std::process::Stdio::null())
+                  .stderr(std::process::Stdio::null())
+                  .spawn()
+                {
+                  Ok(child) => {
+                    log::info!("spawned bundled server: {:?}", candidate);
+                    // We intentionally do not wait; child will continue until exit.
+                    // Optionally we could store the Child handle somewhere to kill on exit.
+                    let _ = child;
+                  }
+                  Err(e) => {
+                    log::error!("failed to spawn bundled server {:?}: {}", candidate, e);
+                  }
+                }
+              } else {
+                log::info!("bundled server binary not found at {:?}", candidate);
+              }
+            }
+          }
+        }
+      });
+
       Ok(())
     })
     .run(tauri::generate_context!())
