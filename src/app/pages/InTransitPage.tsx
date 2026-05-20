@@ -190,9 +190,29 @@ export function InTransitPage() {
   const [filterStatus, setFilterStatus] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
-  const formatShort = (d: Date) =>
-    d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+  const toIsoDate = (d: Date | null | undefined): string => {
+    if (!d || !(d instanceof Date) || isNaN(d.getTime())) return '';
+    return d.toISOString().slice(0, 10);
+  };
+  
+  const formatShort = (d: Date | null | undefined): string => {
+    if (!d || !(d instanceof Date) || isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+  };
+
+  const formatShortValue = (
+    value: Date | string | null | undefined
+  ): string => {
+    if (!value) return '';
+    if (value instanceof Date) return formatShort(value);
+    const parsed = new Date(value);
+    if (isNaN(parsed.getTime())) return '';
+    return parsed.toLocaleDateString('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    });
+  };
 
   const parseStatus = (value: string | undefined): TransitStatus => {
     const status = (value ?? '').toUpperCase();
@@ -208,18 +228,31 @@ export function InTransitPage() {
     return vehicles
       .filter((vehicle: any) => String(vehicle.status ?? '').toUpperCase() !== 'ON TRACK')
       .map((vehicle: any): InTransitUnit => {
-        const pullOutDateRaw =
-          vehicle.pullOut instanceof Date
-            ? vehicle.pullOut
-            : vehicle.pullOut
-            ? new Date(vehicle.pullOut)
-            : new Date();
-        const targetReleaseDateRaw =
-          vehicle.targetRelease instanceof Date
-            ? vehicle.targetRelease
-            : vehicle.targetRelease
-            ? new Date(vehicle.targetRelease)
-            : pullOutDateRaw;
+        let pullOutDateRaw: Date;
+        let targetReleaseDateRaw: Date;
+
+        // Safe date parsing
+        if (vehicle.pullOut instanceof Date && !isNaN(vehicle.pullOut.getTime())) {
+          pullOutDateRaw = vehicle.pullOut;
+        } else if (vehicle.pullOut) {
+          const parsed = new Date(vehicle.pullOut);
+          pullOutDateRaw = isNaN(parsed.getTime()) ? new Date() : parsed;
+        } else {
+          pullOutDateRaw = new Date();
+        }
+
+        if (vehicle.targetRelease instanceof Date && !isNaN(vehicle.targetRelease.getTime())) {
+          targetReleaseDateRaw = vehicle.targetRelease;
+        } else if (vehicle.targetRelease) {
+          const parsed = new Date(vehicle.targetRelease);
+          targetReleaseDateRaw = isNaN(parsed.getTime()) ? pullOutDateRaw : parsed;
+        } else {
+          targetReleaseDateRaw = pullOutDateRaw;
+        }
+
+        // Ensure formatted strings are never null/undefined/Date
+        const pullOutDateFormatted = formatShort(pullOutDateRaw) || '';
+        const targetReleaseDateFormatted = formatShort(targetReleaseDateRaw) || '';
 
         return {
           id: vehicle.id,
@@ -228,7 +261,6 @@ export function InTransitPage() {
           chassisNo: vehicle.chassisNo ?? '',
           engineNo: vehicle.engineNo ?? '',
           remarks: vehicle.remarks ?? '',
-          pullOutLocation: vehicle.pullOutLocation ?? vehicle.pullOut ?? '',
           csNo: vehicle.csNo ?? '',
           yearModel:
             Number(vehicle.yearModel ?? vehicle.year) || new Date().getFullYear(),
@@ -238,14 +270,15 @@ export function InTransitPage() {
           salesConsultant: vehicle.salesConsultant ?? '',
           poNumber: vehicle.poNumber ?? '',
           poAmount: Number(vehicle.poAmount ?? 0),
-          pullOutDate: formatShort(pullOutDateRaw),
+          pullOutDate: pullOutDateFormatted,
           pullOutDateRaw,
           colorCode: vehicle.colorCode ?? '',
           declaredMonth: vehicle.declaredMonth ?? '',
+          pullOutLocation: vehicle.pullOutLocation ?? '',
           currentLocation: vehicle.location ?? vehicle.currentLocation ?? '',
           dpReservation: vehicle.dpReservation ?? '',
           status: parseStatus(vehicle.status),
-          targetReleaseDate: formatShort(targetReleaseDateRaw),
+          targetReleaseDate: targetReleaseDateFormatted,
           targetReleaseDateRaw,
           remarks2: vehicle.remarks2 ?? vehicle.remarks ?? '',
         };
@@ -1068,7 +1101,7 @@ export function InTransitPage() {
 
                         {/* Pull Out Date */}
                         <td className="px-3 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                          {unit.pullOutDate}
+                          {formatShortValue(unit.pullOutDate) || '-'}
                         </td>
 
                         {/* Declared Month */}
@@ -1096,7 +1129,7 @@ export function InTransitPage() {
                             }`}
                           >
                             {overdue && <AlertTriangle className="size-3" />}
-                            {unit.targetReleaseDate}
+                            {formatShortValue(unit.targetReleaseDate) || '-'}
                           </span>
                         </td>
 

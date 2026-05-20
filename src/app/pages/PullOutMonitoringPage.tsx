@@ -22,6 +22,19 @@ const MONTHS = [
 const displayNum = (n: number | null) =>
   n === null || n === undefined ? <span className="text-gray-300 dark:text-gray-600">–</span> : n;
 
+const formatDisplayDate = (
+  value: string | Date | null | undefined,
+) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-PH", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
+
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
 function SectionCard({
@@ -195,7 +208,7 @@ export function PullOutMonitoringPage() {
                       <tr key={row.table.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                         <Td>{row.table.name}</Td>
                         <Td right>{row.sphAllocation}</Td>
-                        <Td>{row.table.date_of_confirmation}</Td>
+                        <Td>{formatDisplayDate(row.table.date_of_confirmation) || "—"}</Td>
                         <Td right>
                           <input
                             type="number"

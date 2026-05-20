@@ -126,12 +126,23 @@ const EMPTY: Omit<PaymentRow, "id"> = {
 const RANGE_FIRST_HALF = "1-15";
 const RANGE_SECOND_HALF = "16-";
 
-const toDateOnly = (value: string) => {
+const toDateOnly = (value: string | Date | null | undefined) => {
   if (!value) return null;
-  const date = new Date(value);
+  const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   date.setHours(0, 0, 0, 0);
   return date;
+};
+
+const formatDisplayDate = (value: string | Date | null | undefined) => {
+  const date = toDateOnly(value);
+  return date
+    ? date.toLocaleDateString("en-PH", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      })
+    : "";
 };
 
 const getMonthLabel = (date: Date) =>
@@ -500,7 +511,7 @@ export function NextCutOffPage() {
                           {formatPhp(totalAmount)}
                         </td>
                         <td className="px-4 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                          {row.dateOfPayment}
+                          {formatDisplayDate(row.dateOfPayment) || "—"}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span

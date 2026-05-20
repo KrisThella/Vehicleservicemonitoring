@@ -23,6 +23,20 @@ export function DashboardPage() {
   const { tables, addTable, removeTable } = useAllocationTables();
   const normalizeStatus = (status: string) =>
     status === 'AVAILABLE' ? 'ON TRACK' : status;
+
+  const formatDisplayDate = (
+    value: string | Date | null | undefined,
+  ) => {
+    if (!value) return "";
+    const date = value instanceof Date ? value : new Date(value);
+    if (Number.isNaN(date.getTime())) return "";
+    return date.toLocaleDateString("en-PH", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModel, setSelectedModel] = useState('all');
   const [selectedDealer, setSelectedDealer] = useState('all');
@@ -173,7 +187,7 @@ export function DashboardPage() {
       table,
       vehicles: allocationVehicles.filter((v) => String(v.allocationTable || '') === String(table.id)),
     }));
-  const unassignedAllocationVehicles = allocationVehicles.filter((v) => !v.allocationTable);
+  
 
   const handleCreateTable = async () => {
     if (!newTableName.trim() || !newTableDate) {
@@ -250,7 +264,9 @@ export function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">{table.name}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Date of Confirmation: {table.date_of_confirmation}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Date of Confirmation: {formatDisplayDate(table.date_of_confirmation) || "—"}
+                </p>
               </div>
               <Button
                 variant="outline"
@@ -270,13 +286,7 @@ export function DashboardPage() {
           </section>
         ))}
 
-        <section className="space-y-3">
-          <div>
-            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">Unassigned Allocation Units</h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Units with no allocation table selected.</p>
-          </div>
-          <VehicleTable data={unassignedAllocationVehicles} onViewHistory={handleViewHistory} onViewDetails={handleViewDetails} />
-        </section>
+        
 
         {tableVehicles.length === 0 && (
           <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-12 text-center">
