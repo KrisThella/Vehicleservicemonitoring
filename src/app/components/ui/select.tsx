@@ -60,6 +60,14 @@ function SelectContent({
   position = "popper",
   ...props
 }: React.ComponentProps<typeof SelectPrimitive.Content>) {
+  const viewportRef = React.useRef<HTMLDivElement>(null);
+
+  const forceScrollTop = () => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    viewport.scrollTop = 0;
+  };
+
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -74,9 +82,24 @@ function SelectContent({
         onWheel={(e) => e.stopPropagation()}
         onTouchMove={(e) => e.stopPropagation()}
         {...props}
+        onOpenAutoFocus={(event) => {
+          // Prevent Radix from focusing the selected item (which auto-scrolls it into view)
+          event.preventDefault();
+
+          // Radix can still measure/scroll after open; force scroll-to-top across a few ticks.
+          requestAnimationFrame(() => {
+            forceScrollTop();
+            requestAnimationFrame(() => forceScrollTop());
+            setTimeout(() => forceScrollTop(), 0);
+            setTimeout(() => forceScrollTop(), 50);
+          });
+
+          props.onOpenAutoFocus?.(event);
+        }}
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
+          ref={viewportRef}
           className={cn(
             "p-1",
             position === "popper" &&
