@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { DEFAULT_PRICES, DEFAULT_COLORS, DEFAULT_TEAMS } from './defaults';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -213,6 +214,27 @@ export function usePrices() {
     try { setPrices(await get<PriceRecord[]>('/prices')); }
     finally { setLoading(false); }
   }, []);
+  
+  // If server has no prices, seed from bundled defaults (best-effort)
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await get<PriceRecord[]>('/prices');
+        if (!rows || rows.length === 0) {
+          // Show client-side defaults immediately
+          setPrices(DEFAULT_PRICES.map((p, i) => ({ id: -(i+1), ...p } as any)));
+          // Attempt to persist defaults to server (idempotent-ish)
+          for (const p of DEFAULT_PRICES) {
+            try { await post('/prices', p); } catch (e) { /* ignore errors */ }
+          }
+          // refresh from server to get real IDs
+          setPrices(await get<PriceRecord[]>('/prices'));
+        }
+      } catch (e) {
+        // network error -> keep client defaults; refetch will still run
+      }
+    })();
+  }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
 
@@ -266,6 +288,27 @@ export function useGeneralManagers() {
     setLoading(true);
     try { setManagers(await get<GeneralManagerRecord[]>('/general-managers')); }
     finally { setLoading(false); }
+  }, []);
+  
+  // If server has no managers, seed from bundled defaults (best-effort)
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await get<GeneralManagerRecord[]>('/general-managers');
+        if (!rows || rows.length === 0) {
+          // show client-side defaults immediately
+          setManagers(DEFAULT_TEAMS.map((t, i) => ({ id: -(i+1), name: t.manager, sort_order: i })));
+          // try to persist to server
+          for (const t of DEFAULT_TEAMS) {
+            try { await send('/general-managers', 'POST', { name: t.manager, consultants: t.consultants }); } catch (e) { /* ignore */ }
+          }
+          // refresh to get real data
+          setManagers(await get<GeneralManagerRecord[]>('/general-managers'));
+        }
+      } catch (e) {
+        // network error -> keep client defaults
+      }
+    })();
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
@@ -509,6 +552,24 @@ export function useColors() {
     setLoading(true);
     try { setColors(await get<ColorRecord[]>('/colors')); }
     finally { setLoading(false); }
+  }, []);
+  
+  // If server has no colors, seed from bundled defaults (best-effort)
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await get<ColorRecord[]>('/colors');
+        if (!rows || rows.length === 0) {
+          setColors(DEFAULT_COLORS.map((c, i) => ({ id: -(i+1), name: c.name, hex: c.hex, sort_order: i })));
+          for (const c of DEFAULT_COLORS) {
+            try { await post('/colors', c); } catch (e) { /* ignore */ }
+          }
+          setColors(await get<ColorRecord[]>('/colors'));
+        }
+      } catch (e) {
+        // network error -> keep client defaults
+      }
+    })();
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
