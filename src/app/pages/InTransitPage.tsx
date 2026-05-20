@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { Header } from "../components/Header";
 import {
@@ -37,6 +37,7 @@ import {
 } from "../components/AddInTransitModal";
 import { toast } from "sonner";
 import { exportToExcel, todayStamp } from "../../lib/exportExcel";
+import { useVehicles } from "../../lib/api";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -85,302 +86,9 @@ interface AllocationRow {
 
 // ── Mock Data ──────────────────────────────────────────────────────────────────
 
-const today = new Date("2026-04-10");
+// In-transit units are now loaded from the database via useVehicles().
 
-const mockTransitUnits: InTransitUnit[] = [
-  {
-    id: "it-001",
-    model: "ERTIGA 1.5 GL MT HYBRID",
-    color: "METALLIC PREMIUM SILVER",
-    chassisNo: "MAFHA21SXM7100221",
-    engineNo: "G15B-ZA1002211",
-    remarks: "For fleet client",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00112",
-    yearModel: 2026,
-    clientName: "LBC EXPRESS INC.",
-    dealer: "TEAM AARON",
-    poNumber: "PO30112",
-    poAmount: 1_022_833.3,
-    pullOutDate: "Apr 02, 2026",
-    pullOutDateRaw: new Date("2026-04-02"),
-    colorCode: "ZMC",
-    declaredMonth: "April 2026",
-    currentLocation: "NLEX – PAMPANGA AREA",
-    dpReservation: "₱88,000",
-    status: "IN TRANSIT",
-    targetReleaseDate: "Apr 12, 2026",
-    targetReleaseDateRaw: new Date("2026-04-12"),
-    remarks2: "ETA 2 days",
-  },
-  {
-    id: "it-002",
-    model: "DZIRE GL CVT HYBRID",
-    color: "SOLID FIRE RED",
-    chassisNo: "MAFMG22SXM7200445",
-    engineNo: "K14B-ZA2004451",
-    remarks: "Bank financing – BPI",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00289",
-    yearModel: 2026,
-    clientName: "MS. ANNA REYES",
-    dealer: "TEAM JAY-R",
-    poNumber: "PO30234",
-    poAmount: 811_162.5,
-    pullOutDate: "Apr 03, 2026",
-    pullOutDateRaw: new Date("2026-04-03"),
-    colorCode: "ZHH",
-    declaredMonth: "April 2026",
-    currentLocation: "TSMPC SHAW – PARKING",
-    dpReservation: "₱50,000",
-    status: "ARRIVED – FOR INSPECTION",
-    targetReleaseDate: "Apr 10, 2026",
-    targetReleaseDateRaw: new Date("2026-04-10"),
-    remarks2: "Inspection ongoing",
-  },
-  {
-    id: "it-003",
-    model: "SWIFT GL CVT",
-    color: "METALLIC MAGMA GRAY 2",
-    chassisNo: "MAFZD51SXM7300678",
-    engineNo: "Z12E-ZA3006781",
-    remarks: "Cash transaction",
-    pullOutLocation: "SPH BATANGAS HUB",
-    csNo: "UE00301",
-    yearModel: 2026,
-    clientName: "MR. CARLOS DELA CRUZ",
-    dealer: "TEAM JM",
-    poNumber: "PO30345",
-    poAmount: 842_880.27,
-    pullOutDate: "Apr 01, 2026",
-    pullOutDateRaw: new Date("2026-04-01"),
-    colorCode: "ZJJ",
-    declaredMonth: "April 2026",
-    currentLocation: "TSMPC SHAW – FOR RELEASE",
-    dpReservation: "₱85,000",
-    status: "PENDING RELEASE",
-    targetReleaseDate: "Apr 09, 2026",
-    targetReleaseDateRaw: new Date("2026-04-09"),
-    remarks2: "LTO docs pending – 1 pcs",
-  },
-  {
-    id: "it-004",
-    model: "S-PRESSO 1.0 GL AGS",
-    color: "SOLID SIZZLING ORANGE",
-    chassisNo: "MAFAA22SXM7400112",
-    engineNo: "X01B-ZA4001121",
-    remarks: "Demo unit pullout",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00088",
-    yearModel: 2026,
-    clientName: "— (DEMO)",
-    dealer: "TEAM AARON",
-    poNumber: "PO30056",
-    poAmount: 588_919.11,
-    pullOutDate: "Mar 28, 2026",
-    pullOutDateRaw: new Date("2026-03-28"),
-    colorCode: "ZQF",
-    declaredMonth: "March 2026",
-    currentLocation: "TSMPC SHAW – SHOWROOM",
-    dpReservation: "—",
-    status: "RELEASED",
-    targetReleaseDate: "Apr 05, 2026",
-    targetReleaseDateRaw: new Date("2026-04-05"),
-    remarks2: "Placed in showroom display",
-  },
-  {
-    id: "it-005",
-    model: "FRONX GLX AT HYBRID",
-    color: "METALLIC GRANDEUR GRAY",
-    chassisNo: "MAFFY22SXM7500339",
-    engineNo: "Z12E-ZA5003391",
-    remarks: "Financing – RCBC",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00422",
-    yearModel: 2026,
-    clientName: "ATTY. JOSE MIRANDA",
-    dealer: "TEAM JM",
-    poNumber: "PO30489",
-    poAmount: 1_120_833.84,
-    pullOutDate: "Apr 05, 2026",
-    pullOutDateRaw: new Date("2026-04-05"),
-    colorCode: "ZLH",
-    declaredMonth: "April 2026",
-    currentLocation: "EN ROUTE – SLEX",
-    dpReservation: "₱116,500",
-    status: "IN TRANSIT",
-    targetReleaseDate: "Apr 11, 2026",
-    targetReleaseDateRaw: new Date("2026-04-11"),
-    remarks2: "Driver: Romy – 09171234567",
-  },
-  {
-    id: "it-006",
-    model: "CELERIO 1.0 GL AGS",
-    color: "PEARL METALLIC ORANGE RED",
-    chassisNo: "MAFLA31SXM7600554",
-    engineNo: "Z10A-ZA6005541",
-    remarks: "Late pickup – loading delayed",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00199",
-    yearModel: 2026,
-    clientName: "MR. RODEL BAUTISTA",
-    dealer: "TEAM JAY-R",
-    poNumber: "PO30200",
-    poAmount: 652_832.5,
-    pullOutDate: "Mar 25, 2026",
-    pullOutDateRaw: new Date("2026-03-25"),
-    colorCode: "ZQQ",
-    declaredMonth: "March 2026",
-    currentLocation: "TSMPC SHAW – HOLDING AREA",
-    dpReservation: "₱30,000",
-    status: "DELAYED",
-    targetReleaseDate: "Apr 05, 2026",
-    targetReleaseDateRaw: new Date("2026-04-05"),
-    remarks2: "Bank OR/CR not yet ready",
-  },
-  {
-    id: "it-007",
-    model: "ERTIGA 1.5 GA MT HYBRID",
-    color: "SOLID WHITE",
-    chassisNo: "MAFHA21SXM7700788",
-    engineNo: "G15B-ZA7007881",
-    remarks: "Fleet – govt unit",
-    pullOutLocation: "SPH BATANGAS HUB",
-    csNo: "UE00512",
-    yearModel: 2026,
-    clientName: "MAKATI CITY LGU",
-    dealer: "TEAM AARON",
-    poNumber: "PO30560",
-    poAmount: 892_756.61,
-    pullOutDate: "Apr 04, 2026",
-    pullOutDateRaw: new Date("2026-04-04"),
-    colorCode: "ZW4",
-    declaredMonth: "April 2026",
-    currentLocation: "EN ROUTE – STAR TOLLWAY",
-    dpReservation: "—",
-    status: "IN TRANSIT",
-    targetReleaseDate: "Apr 14, 2026",
-    targetReleaseDateRaw: new Date("2026-04-14"),
-    remarks2: "With COA inspection schedule",
-  },
-  {
-    id: "it-008",
-    model: "DZIRE GLX CVT HYBRID",
-    color: "METALLIC PREMIUM SILVER",
-    chassisNo: "MAFMG22SXM7800901",
-    engineNo: "K14B-ZA8009011",
-    remarks: "High-value unit – bank repo replacement",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00633",
-    yearModel: 2026,
-    clientName: "SECURITY BANK",
-    dealer: "TEAM JM",
-    poNumber: "PO30622",
-    poAmount: 874_199.82,
-    pullOutDate: "Apr 06, 2026",
-    pullOutDateRaw: new Date("2026-04-06"),
-    colorCode: "ZMC",
-    declaredMonth: "April 2026",
-    currentLocation: "TSMPC SHAW – PARKING B",
-    dpReservation: "—",
-    status: "ARRIVED – FOR INSPECTION",
-    targetReleaseDate: "Apr 13, 2026",
-    targetReleaseDateRaw: new Date("2026-04-13"),
-    remarks2: "SB coordinator: 09281112233",
-  },
-  {
-    id: "it-009",
-    model: "JIMNY 1.5 GL MT SS",
-    color: "SOLID JUNGLE GREEN",
-    chassisNo: "MAFSN51SXM7901234",
-    engineNo: "M15A-ZA9012341",
-    remarks: "Priority client – expedite LTO",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00701",
-    yearModel: 2026,
-    clientName: "MR. DIEGO SANTOS",
-    dealer: "TEAM JAY-R",
-    poNumber: "PO30710",
-    poAmount: 1_190_864.8,
-    pullOutDate: "Apr 07, 2026",
-    pullOutDateRaw: new Date("2026-04-07"),
-    colorCode: "Z6S",
-    declaredMonth: "April 2026",
-    currentLocation: "TSMPC SHAW – FOR RELEASE",
-    dpReservation: "₱139,800",
-    status: "PENDING RELEASE",
-    targetReleaseDate: "Apr 11, 2026",
-    targetReleaseDateRaw: new Date("2026-04-11"),
-    remarks2: "Waiting for OR/CR – PSB",
-  },
-  {
-    id: "it-012",
-    model: "FRONX GLX HYBRID (TWO-TONW)",
-    color: "METALLIC MINERAL GRAY",
-    chassisNo: "MAFFY22SXM8200780",
-    engineNo: "Z12E-ZA2007801",
-    remarks: "Delayed due to weather",
-    pullOutLocation: "SPH LAGUNA WAREHOUSE",
-    csNo: "UE00944",
-    yearModel: 2026,
-    clientName: "MRS. ELENA QUISUMBING",
-    dealer: "TEAM JAY-R",
-    poNumber: "PO30950",
-    poAmount: 1_130_191.88,
-    pullOutDate: "Mar 30, 2026",
-    pullOutDateRaw: new Date("2026-03-30"),
-    colorCode: "ZLG",
-    declaredMonth: "March 2026",
-    currentLocation: "HOLDING – FLOODED AREA BYPASS",
-    dpReservation: "₱123,000",
-    status: "DELAYED",
-    targetReleaseDate: "Apr 08, 2026",
-    targetReleaseDateRaw: new Date("2026-04-08"),
-    remarks2: "Road clearance awaited",
-  },
-];
-
-// ── Allocation Summary data ────────────────────────────────────────────────────
-
-const allocationData: AllocationRow[] = [
-  {
-    model: "Ertiga GL/GA",
-    allocation: 15,
-    inTransit: 2,
-    totalReceived: 13,
-    open: 2,
-  },
-  {
-    model: "Dzire GL/GLX",
-    allocation: 12,
-    inTransit: 2,
-    totalReceived: 10,
-    open: 2,
-  },
-  {
-    model: "Swift GL/CVT",
-    allocation: 10,
-    inTransit: 2,
-    totalReceived: 8,
-    open: 2,
-  },
-  { model: "S-Presso", allocation: 8, inTransit: 1, totalReceived: 7, open: 1 },
-  {
-    model: "Fronx GL/GL+",
-    allocation: 10,
-    inTransit: 2,
-    totalReceived: 8,
-    open: 2,
-  },
-  {
-    model: "Celerio GL",
-    allocation: 6,
-    inTransit: 1,
-    totalReceived: 5,
-    open: 1,
-  },
-  { model: "Jimny GL", allocation: 5, inTransit: 1, totalReceived: 4, open: 1 },
-];
+const today = new Date();
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
@@ -473,6 +181,7 @@ function StatusBadge({ status }: { status: TransitStatus }) {
 
 export function InTransitPage() {
   const navigate = useNavigate();
+  const { vehicles, addVehicle, removeVehicle } = useVehicles();
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [search, setSearch] = useState("");
   const [filterModel, setFilterModel] = useState("all");
@@ -480,51 +189,68 @@ export function InTransitPage() {
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addedUnits, setAddedUnits] = useState<InTransitUnit[]>([]);
-  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
 
   const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
   const formatShort = (d: Date) =>
     d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
 
-  const entryToUnit = (entry: InTransitEntry): InTransitUnit => {
-    const pullOutRaw = entry.pullOutDate ? new Date(entry.pullOutDate) : new Date();
-    const targetRaw = entry.targetRelease ? new Date(entry.targetRelease) : pullOutRaw;
-    const po = Number(String(entry.poAmount ?? '').replace(/[^0-9.]/g, ''));
-
-    return {
-      id: `it-added-${crypto.randomUUID()}`,
-      model: entry.model,
-      color: entry.color,
-      chassisNo: entry.chassisNo,
-      engineNo: entry.engineNo,
-      remarks: entry.remarks,
-      pullOutLocation: entry.pullOutLocation,
-      csNo: entry.csNo,
-      yearModel: Number(entry.yearModel) || new Date().getFullYear(),
-      clientName: entry.clientName,
-      dealer: entry.dealer,
-      generalManager: entry.generalManager,
-      salesConsultant: entry.salesConsultant,
-      poNumber: entry.poNumber,
-      poAmount: Number.isFinite(po) ? po : 0,
-      pullOutDateRaw: pullOutRaw,
-      pullOutDate: formatShort(pullOutRaw),
-      colorCode: '',
-      declaredMonth: entry.declaredMonth,
-      currentLocation: '',
-      dpReservation: entry.dpReservation,
-      status: (entry.status as TransitStatus) || 'IN TRANSIT',
-      targetReleaseDateRaw: targetRaw,
-      targetReleaseDate: formatShort(targetRaw),
-      remarks2: entry.remarks,
-    };
+  const parseStatus = (value: string | undefined): TransitStatus => {
+    const status = (value ?? '').toUpperCase();
+    if (status === 'IN TRANSIT') return 'IN TRANSIT';
+    if (status === 'ARRIVED – FOR INSPECTION') return 'ARRIVED – FOR INSPECTION';
+    if (status === 'PENDING RELEASE') return 'PENDING RELEASE';
+    if (status === 'RELEASED') return 'RELEASED';
+    if (status === 'DELAYED') return 'DELAYED';
+    return 'IN TRANSIT';
   };
 
   const allUnits = useMemo(() => {
-    const combined = [...addedUnits, ...mockTransitUnits];
-    return combined.filter((u) => !deletedIds.has(u.id));
-  }, [addedUnits, deletedIds]);
+    return vehicles
+      .filter((vehicle: any) => String(vehicle.status ?? '').toUpperCase() !== 'ON TRACK')
+      .map((vehicle: any): InTransitUnit => {
+        const pullOutDateRaw =
+          vehicle.pullOut instanceof Date
+            ? vehicle.pullOut
+            : vehicle.pullOut
+            ? new Date(vehicle.pullOut)
+            : new Date();
+        const targetReleaseDateRaw =
+          vehicle.targetRelease instanceof Date
+            ? vehicle.targetRelease
+            : vehicle.targetRelease
+            ? new Date(vehicle.targetRelease)
+            : pullOutDateRaw;
+
+        return {
+          id: vehicle.id,
+          model: vehicle.model ?? '',
+          color: vehicle.color ?? '',
+          chassisNo: vehicle.chassisNo ?? '',
+          engineNo: vehicle.engineNo ?? '',
+          remarks: vehicle.remarks ?? '',
+          pullOutLocation: vehicle.pullOutLocation ?? vehicle.pullOut ?? '',
+          csNo: vehicle.csNo ?? '',
+          yearModel:
+            Number(vehicle.yearModel ?? vehicle.year) || new Date().getFullYear(),
+          clientName: vehicle.clientName ?? '',
+          dealer: vehicle.dealer ?? '',
+          generalManager: vehicle.generalManager ?? '',
+          salesConsultant: vehicle.salesConsultant ?? '',
+          poNumber: vehicle.poNumber ?? '',
+          poAmount: Number(vehicle.poAmount ?? 0),
+          pullOutDate: formatShort(pullOutDateRaw),
+          pullOutDateRaw,
+          colorCode: vehicle.colorCode ?? '',
+          declaredMonth: vehicle.declaredMonth ?? '',
+          currentLocation: vehicle.location ?? vehicle.currentLocation ?? '',
+          dpReservation: vehicle.dpReservation ?? '',
+          status: parseStatus(vehicle.status),
+          targetReleaseDate: formatShort(targetReleaseDateRaw),
+          targetReleaseDateRaw,
+          remarks2: vehicle.remarks2 ?? vehicle.remarks ?? '',
+        };
+      });
+  }, [vehicles]);
 
   // Unique filter options
   const uniqueModels = Array.from(
@@ -605,6 +331,31 @@ export function InTransitPage() {
   const releasedCount = allUnits.filter(
     (u) => u.status === "RELEASED",
   ).length;
+
+  const allocationData = useMemo<AllocationRow[]>(() => {
+    const map = new Map<string, AllocationRow>();
+    for (const unit of allUnits) {
+      const model = unit.model || "Unknown";
+      const existing = map.get(model) ?? {
+        model,
+        allocation: 0,
+        inTransit: 0,
+        totalReceived: 0,
+        open: 0,
+      };
+      existing.allocation += 1;
+      if (unit.status === "RELEASED") {
+        existing.totalReceived += 1;
+      } else {
+        existing.inTransit += 1;
+      }
+      map.set(model, existing);
+    }
+    for (const row of map.values()) {
+      row.open = row.allocation - row.totalReceived;
+    }
+    return Array.from(map.values());
+  }, [allUnits]);
 
   // Allocation totals
   const allotTotal = allocationData.reduce((s, r) => s + r.allocation, 0);
@@ -1189,14 +940,14 @@ export function InTransitPage() {
                                   size="icon"
                                   aria-label="Delete"
                                   className="h-7 w-7 text-red-600 border-red-200 hover:bg-red-50"
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (!confirm(`Delete ${unit.model}?`)) return;
-                                    setDeletedIds((prev) => {
-                                      const next = new Set(prev);
-                                      next.add(unit.id);
-                                      return next;
-                                    });
-                                    toast.success("Deleted");
+                                    try {
+                                      await removeVehicle(unit.id);
+                                      toast.success("Deleted");
+                                    } catch (error: any) {
+                                      toast.error(`Delete failed: ${error?.message ?? error}`);
+                                    }
                                   }}
                                 >
                                   <Trash2 className="size-4" />
@@ -1388,9 +1139,30 @@ export function InTransitPage() {
       {showAddModal && (
         <AddInTransitModal
           onClose={() => setShowAddModal(false)}
-          onSave={(entry) => {
-            const unit = entryToUnit(entry);
-            setAddedUnits((prev) => [unit, ...prev]);
+          onSave={async (entry) => {
+            await addVehicle({
+              model: entry.model,
+              color: entry.color,
+              chassisNo: entry.chassisNo,
+              engineNo: entry.engineNo,
+              remarks: entry.remarks,
+              pullOutLocation: entry.pullOutLocation,
+              csNo: entry.csNo,
+              yearModel: Number(entry.yearModel) || new Date().getFullYear(),
+              clientName: entry.clientName,
+              dealer: entry.dealer,
+              generalManager: entry.generalManager,
+              salesConsultant: entry.salesConsultant,
+              poNumber: entry.poNumber,
+              poAmount: entry.poAmount,
+              pullOut: entry.pullOutDate ? new Date(entry.pullOutDate) : null,
+              declaredMonth: entry.declaredMonth,
+              dpReservation: entry.dpReservation,
+              status: entry.status || "IN TRANSIT",
+              targetRelease: entry.targetRelease,
+              remarks2: entry.remarks,
+              location: entry.pullOutLocation,
+            });
           }}
         />
       )}

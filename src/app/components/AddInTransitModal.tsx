@@ -275,11 +275,19 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!validate()) { toast.error('Please fill in all required fields'); return; }
-    onSave(form);
-    toast.success('In Transit unit added successfully!');
-    onClose();
+  const handleSubmit = async () => {
+    if (!validate()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await onSave(form);
+      toast.success('In Transit unit added successfully!');
+      onClose();
+    } catch (error: any) {
+      toast.error(`Failed to add In Transit unit: ${error?.message ?? error}`);
+    }
   };
 
   useEffect(() => {
