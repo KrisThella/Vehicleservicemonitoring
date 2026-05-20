@@ -63,7 +63,12 @@ app.delete('/api/vehicles/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// ── Prices ────────────────────────────────────────────────────────────────
+app.use((err: any, _req: any, res: any, _next: any) => {
+  console.error('[api error]', err);
+  res.status(err?.status || 500).json({ error: err?.message ?? 'Internal Server Error' });
+});
+
+// ── Prices ────────────────────────────────────────────────
 app.get('/api/prices', (_req, res) => {
   const rows = db.prepare('SELECT * FROM prices ORDER BY category, model').all();
   res.json(rows);

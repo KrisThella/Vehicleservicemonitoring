@@ -16,11 +16,11 @@
       "handle": "filesystem"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/[...slug]"
+      "src": "^/api/(.*)$",
+      "dest": "/api/[...slug].ts"
     },
     {
-      "src": "/(.*)",
+      "src": "^/(.*)$",
       "dest": "/index.html"
     }
   ]
