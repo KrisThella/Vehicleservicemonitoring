@@ -85,9 +85,13 @@ export interface SalesConsultantRecord {
 
 const BASE = (() => {
   if (typeof window === 'undefined') return '/api';
-  const isDev = typeof import.meta !== 'undefined' && (import.meta as any).env?.DEV;
+  const env = typeof import.meta !== 'undefined' ? (import.meta as any).env || {} : {};
+  const isDev = !!env.DEV;
+
+  // In development use the Vite proxy. In production, use relative path so the deployed
+  // app can call the host's API endpoint instead of trying to reach localhost.
   if (isDev) return '/api';
-  return 'http://127.0.0.1:3001/api';
+  return env.VITE_API_BASE_URL || '/api';
 })();
 
 const BASE_FALLBACKS = (() => {
