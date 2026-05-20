@@ -24,6 +24,7 @@ import { DemoUnitModal } from "../components/DemoUnitModal";
 import { useVehicles } from "../../lib/api";
 import { format, differenceInDays } from "date-fns";
 import { VehicleData } from "../components/VehicleTable";
+import { sortAlphaNumeric } from "../components/utils/sortOptions";
 
 const STATUS_OPTIONS: VehicleData["status"][] = [
   "On Process",
@@ -54,7 +55,7 @@ export function DemoPage() {
   );
 
   const modelOptions = useMemo(
-    () => Array.from(new Set(demoVehicles.map((vehicle) => vehicle.model).filter(Boolean))).sort(),
+    () => sortAlphaNumeric(Array.from(new Set(demoVehicles.map((vehicle) => vehicle.model).filter(Boolean)))),
     [demoVehicles],
   );
 

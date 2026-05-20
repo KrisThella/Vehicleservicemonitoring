@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { toast } from "sonner";
 import { getColorHex } from "./utils/colorMapping";
+import { sortAlphaNumeric } from "./utils/sortOptions";
 import { useColors } from "../../lib/api";
 import { VehicleData } from "./VehicleTable";
 
@@ -22,7 +23,7 @@ interface DemoUnitModalProps {
   initialVehicle?: Partial<VehicleData>;
 }
 
-const MODEL_OPTIONS = [
+const MODEL_OPTIONS = sortAlphaNumeric([
   "APV 1.6 GA MT",
   "APV 1.6 GLX MT",
   "CARRY CAB & CHASSIS",
@@ -52,7 +53,7 @@ const MODEL_OPTIONS = [
   "XL7 1.5 GLX AT - HYBRID (TWO-TONE)",
   "XL7 1.5 GLX AT - HYBRID BLACK EDITION",
   "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
-];
+]);
 
 const STATUS_OPTIONS: VehicleData["status"][] = [
   "On Process",

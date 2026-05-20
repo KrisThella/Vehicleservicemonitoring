@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
+import { sortAlphaNumeric } from './utils/sortOptions';
 
 interface FiltersProps {
   searchTerm: string;
@@ -53,7 +54,7 @@ export function Filters({
   const [isExpanded, setIsExpanded] = useState(true);
 
   const hasActiveFilters = selectedModel !== 'all' || selectedDealer !== 'all' || selectedStatus !== 'all' || !!dateFrom || !!dateTo || !!searchTerm;
-  const defaultModelOptions = [
+  const defaultModelOptions = sortAlphaNumeric([
     "APV 1.6 GA MT",
     "APV 1.6 GLX MT",
     "CARRY CAB & CHASSIS",
@@ -84,7 +85,7 @@ export function Filters({
     "XL7 1.5 GLX AT - HYBRID (TWO-TONE)",
     "XL7 1.5 GLX AT - HYBRID BLACK EDITION",
     "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
-  ];
+  ]);
   const dealerDefaults = ["TEAM JM", "TEAM AARON", "TEAM JAY-R"];
   const statusDefaults = [
     "Completed",

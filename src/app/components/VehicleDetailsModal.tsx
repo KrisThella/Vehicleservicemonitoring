@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import { Calendar } from "./ui/calendar";
 import { getColorHex, colorHexMap } from "./utils/colorMapping";
+import { sortAlphaNumeric } from "./utils/sortOptions";
 import { useAllocationTables, useColors, useModelColors, usePrices, type ColorRecord } from "../../lib/api";
 import { toast } from "sonner";
 
@@ -21,7 +22,7 @@ interface VehicleDetailsModalProps {
 }
 
 // Model options
-const MODEL_OPTIONS = [
+const MODEL_OPTIONS = sortAlphaNumeric([
   "APV 1.6 GA MT",
   "APV 1.6 GLX MT",
   "CARRY CAB & CHASSIS",
@@ -51,7 +52,7 @@ const MODEL_OPTIONS = [
   "XL7 1.5 GLX AT - HYBRID (TWO-TONE)",
   "XL7 1.5 GLX AT - HYBRID BLACK EDITION",
   "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
-];
+]);
 
 const DEALER_OPTIONS = ["BIÑAN"];
 const STATUS_OPTIONS: VehicleData["status"][] = [
