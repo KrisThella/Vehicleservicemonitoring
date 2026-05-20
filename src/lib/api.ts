@@ -83,12 +83,30 @@ export interface SalesConsultantRecord {
 
 // ── HTTP helpers ──────────────────────────────────────────────────────────
 
-const BASE = '/api';
+const BASE = (() => {
+  if (typeof window === 'undefined') return '/api';
+  const protocol = window.location.protocol;
+  if (protocol === 'http:' || protocol === 'https:') return '/api';
+  return 'http://127.0.0.1:3001/api';
+})();
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const text = await response.text();
+  if (!text) return {} as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch (error: any) {
+    throw new Error(`Failed to parse JSON response: ${error.message}. Response body: ${text.slice(0, 200)}`);
+  }
+}
 
 async function get<T>(path: string): Promise<T> {
   const r = await fetch(`${BASE}${path}`);
-  if (!r.ok) throw new Error(`GET ${path} failed: ${r.status}`);
-  return r.json();
+  if (!r.ok) {
+    const body = await r.text();
+    throw new Error(`GET ${path} failed: ${r.status}${body ? ` - ${body}` : ''}`);
+  }
+  return parseJsonResponse<T>(r);
 }
 async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
   const r = await fetch(`${BASE}${path}`, {
@@ -96,8 +114,11 @@ async function send<T>(path: string, method: string, body?: unknown): Promise<T>
     headers: { 'Content-Type': 'application/json' },
     body: body ? JSON.stringify(body) : undefined,
   });
-  if (!r.ok) throw new Error(`${method} ${path} failed: ${r.status}`);
-  return r.json();
+  if (!r.ok) {
+    const body = await r.text();
+    throw new Error(`${method} ${path} failed: ${r.status}${body ? ` - ${body}` : ''}`);
+  }
+  return parseJsonResponse<T>(r);
 }
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
