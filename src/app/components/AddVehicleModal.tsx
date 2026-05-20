@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { X, Save, Calendar as CalendarIcon } from "lucide-react";
 import { VehicleData } from "./VehicleTable";
 import { Button } from "./ui/button";
@@ -467,6 +467,63 @@ export function AddVehicleModal({ onClose, onSave, initialVehicle, title }: AddV
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  const lastAutoFilledPricingRef = useRef<{
+    dnp?: string;
+    wsSubsidy?: string;
+    dnpLessWsSubsidy?: string;
+    ewt?: string;
+    poAmount?: string;
+  }>({});
+
+  useEffect(() => {
+    if (!formData.model) return;
+    const matched = prices.find((p) => p.model === formData.model);
+    if (!matched) return;
+
+    const normalize = (v: string | undefined) => {
+      const s = (v ?? "").trim();
+      return !s || s === "-" ? "" : s;
+    };
+
+    const next = {
+      dnp: normalize(matched.dnp),
+      wsSubsidy: normalize(matched.ws_subsidy),
+      dnpLessWsSubsidy: normalize(matched.dnp_less_ws_subsidy),
+      ewt: normalize(matched.ewt),
+      poAmount: normalize(matched.po_amount),
+    };
+
+    setFormData((prev) => {
+      const updated: Partial<VehicleData> = { ...prev };
+      const apply = (field: keyof typeof next) => {
+        const newVal = next[field];
+        if (!newVal) return;
+
+        const current = (prev[field as keyof VehicleData] as any) as string | undefined;
+        const lastAuto = (lastAutoFilledPricingRef.current as any)[field] as string | undefined;
+        if (!current || current === lastAuto) {
+          (updated as any)[field] = newVal;
+        }
+      };
+
+      apply("dnp");
+      apply("wsSubsidy");
+      apply("dnpLessWsSubsidy");
+      apply("ewt");
+      apply("poAmount");
+
+      lastAutoFilledPricingRef.current = {
+        dnp: next.dnp || lastAutoFilledPricingRef.current.dnp,
+        wsSubsidy: next.wsSubsidy || lastAutoFilledPricingRef.current.wsSubsidy,
+        dnpLessWsSubsidy: next.dnpLessWsSubsidy || lastAutoFilledPricingRef.current.dnpLessWsSubsidy,
+        ewt: next.ewt || lastAutoFilledPricingRef.current.ewt,
+        poAmount: next.poAmount || lastAutoFilledPricingRef.current.poAmount,
+      };
+
+      return updated as any;
+    });
+  }, [formData.model, prices]);
 
   useEffect(() => {
     if (

@@ -14,7 +14,7 @@ import { Calendar } from "./ui/calendar";
 import { toast } from "sonner";
 import { getColorHex } from "./utils/colorMapping";
 import { sortAlphaNumeric } from "./utils/sortOptions";
-import { useColors } from "../../lib/api";
+import { useColors, useModelColors, usePrices } from "../../lib/api";
 import { VehicleData } from "./VehicleTable";
 
 interface DemoUnitModalProps {
@@ -78,6 +78,7 @@ interface FormFieldProps {
   updateField: <K extends keyof VehicleData>(field: K, value: VehicleData[K]) => void;
   modelOptions?: string[];
   colors?: string[];
+  colorHexByName?: Record<string, string>;
 }
 
 function FormField({
@@ -89,6 +90,7 @@ function FormField({
   updateField,
   modelOptions = [],
   colors = [],
+  colorHexByName,
 }: FormFieldProps) {
   const renderInput = () => {
     if (type === "select") {
@@ -116,7 +118,7 @@ function FormField({
                   <div className="flex items-center gap-2">
                     <div
                       className="size-4 rounded-full border border-gray-300"
-                      style={{ backgroundColor: getColorHex(option) }}
+                      style={{ backgroundColor: colorHexByName?.[option] ?? getColorHex(option) }}
                     />
                     {option}
                   </div>
@@ -185,8 +187,23 @@ function FormField({
 
 export function DemoUnitModal({ onClose, onSave, initialVehicle }: DemoUnitModalProps) {
   const { colors } = useColors();
-  const colorNames = useMemo(
-    () => colors.map((color) => color.name).sort((a, b) => a.localeCompare(b)),
+  const { prices } = usePrices();
+  const { assignments } = useModelColors();
+
+  const colorHexByName = useMemo(() => {
+    const entries = colors
+      .filter((c) => c.name && c.hex)
+      .map((c) => [c.name, c.hex] as const);
+    return Object.fromEntries(entries);
+  }, [colors]);
+
+  const modelOptions = useMemo(() => {
+    const fromDb = Array.from(new Set(prices.map((p) => p.model).filter(Boolean)));
+    return fromDb.length ? sortAlphaNumeric(fromDb) : MODEL_OPTIONS;
+  }, [prices]);
+
+  const baseColorNames = useMemo(
+    () => colors.map((color) => color.name).slice().sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' })),
     [colors],
   );
 
@@ -218,6 +235,35 @@ export function DemoUnitModal({ onClose, onSave, initialVehicle }: DemoUnitModal
       }));
     }
   }, [initialVehicle]);
+
+  const modelColorNames = useMemo(() => {
+    if (!formData.model) return baseColorNames;
+    const matchedPrice = prices.find((p) => p.model === formData.model);
+    if (!matchedPrice) return baseColorNames;
+
+    const assignedColorIds = new Set(
+      assignments
+        .filter((a) => a.price_id === matchedPrice.id)
+        .map((a) => a.color_id),
+    );
+
+    if (assignedColorIds.size === 0) return baseColorNames;
+
+    return colors
+      .filter((c) => assignedColorIds.has(c.id))
+      .map((c) => c.name)
+      .slice()
+      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }));
+  }, [assignments, baseColorNames, colors, formData.model, prices]);
+
+  useEffect(() => {
+    if (!formData.model) return;
+    const next = modelColorNames;
+    if (!next.length) return;
+
+    if (formData.color && next.includes(formData.color)) return;
+    setFormData((prev) => ({ ...prev, color: next[0] }));
+  }, [formData.model, formData.color, modelColorNames]);
 
   const updateField = <K extends keyof VehicleData>(field: K, value: VehicleData[K]) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -268,7 +314,7 @@ export function DemoUnitModal({ onClose, onSave, initialVehicle }: DemoUnitModal
             required
             formData={formData}
             updateField={updateField}
-            modelOptions={MODEL_OPTIONS}
+            modelOptions={modelOptions}
           />
           <FormField
             label="CS NUMBER"
@@ -291,7 +337,8 @@ export function DemoUnitModal({ onClose, onSave, initialVehicle }: DemoUnitModal
             type="select"
             formData={formData}
             updateField={updateField}
-            colors={colorNames}
+            colors={modelColorNames}
+            colorHexByName={colorHexByName}
           />
           <FormField
             label="MODEL YEAR"

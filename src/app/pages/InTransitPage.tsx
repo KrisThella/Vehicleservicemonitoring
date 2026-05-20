@@ -1,5 +1,11 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import { Header } from "../components/Header";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../components/ui/tooltip";
 import {
   Truck,
   Filter,
@@ -13,6 +19,8 @@ import {
   TrendingUp,
   Search,
   RefreshCw,
+  Trash2,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
@@ -51,6 +59,8 @@ interface InTransitUnit {
   yearModel: number;
   clientName: string;
   dealer: string;
+  generalManager?: string;
+  salesConsultant?: string;
   poNumber: string;
   poAmount: number;
   pullOutDate: string;
@@ -462,6 +472,7 @@ function StatusBadge({ status }: { status: TransitStatus }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function InTransitPage() {
+  const navigate = useNavigate();
   const [filtersOpen, setFiltersOpen] = useState(true);
   const [search, setSearch] = useState("");
   const [filterModel, setFilterModel] = useState("all");
@@ -469,25 +480,69 @@ export function InTransitPage() {
   const [filterLocation, setFilterLocation] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
   const [showAddModal, setShowAddModal] = useState(false);
-  const [addedEntries, setAddedEntries] = useState<InTransitEntry[]>([]);
+  const [addedUnits, setAddedUnits] = useState<InTransitUnit[]>([]);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
+
+  const toIsoDate = (d: Date) => d.toISOString().slice(0, 10);
+  const formatShort = (d: Date) =>
+    d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' });
+
+  const entryToUnit = (entry: InTransitEntry): InTransitUnit => {
+    const pullOutRaw = entry.pullOutDate ? new Date(entry.pullOutDate) : new Date();
+    const targetRaw = entry.targetRelease ? new Date(entry.targetRelease) : pullOutRaw;
+    const po = Number(String(entry.poAmount ?? '').replace(/[^0-9.]/g, ''));
+
+    return {
+      id: `it-added-${crypto.randomUUID()}`,
+      model: entry.model,
+      color: entry.color,
+      chassisNo: entry.chassisNo,
+      engineNo: entry.engineNo,
+      remarks: entry.remarks,
+      pullOutLocation: entry.pullOutLocation,
+      csNo: entry.csNo,
+      yearModel: Number(entry.yearModel) || new Date().getFullYear(),
+      clientName: entry.clientName,
+      dealer: entry.dealer,
+      generalManager: entry.generalManager,
+      salesConsultant: entry.salesConsultant,
+      poNumber: entry.poNumber,
+      poAmount: Number.isFinite(po) ? po : 0,
+      pullOutDateRaw: pullOutRaw,
+      pullOutDate: formatShort(pullOutRaw),
+      colorCode: '',
+      declaredMonth: entry.declaredMonth,
+      currentLocation: '',
+      dpReservation: entry.dpReservation,
+      status: (entry.status as TransitStatus) || 'IN TRANSIT',
+      targetReleaseDateRaw: targetRaw,
+      targetReleaseDate: formatShort(targetRaw),
+      remarks2: entry.remarks,
+    };
+  };
+
+  const allUnits = useMemo(() => {
+    const combined = [...addedUnits, ...mockTransitUnits];
+    return combined.filter((u) => !deletedIds.has(u.id));
+  }, [addedUnits, deletedIds]);
 
   // Unique filter options
   const uniqueModels = Array.from(
-    new Set(mockTransitUnits.map((u) => u.model)),
+    new Set(allUnits.map((u) => u.model)),
   ).sort();
   const uniqueDealers = Array.from(
-    new Set(mockTransitUnits.map((u) => u.dealer)),
+    new Set(allUnits.map((u) => u.dealer)),
   ).sort();
   const uniqueLocations = Array.from(
-    new Set(mockTransitUnits.map((u) => u.currentLocation)),
+    new Set(allUnits.map((u) => u.currentLocation)),
   ).sort();
   const uniqueStatuses = Array.from(
-    new Set(mockTransitUnits.map((u) => u.status)),
+    new Set(allUnits.map((u) => u.status)),
   ).sort();
 
   // Filtered units
   const filtered = useMemo(() => {
-    return mockTransitUnits.filter((u) => {
+    return allUnits.filter((u) => {
       if (filterModel !== "all" && u.model !== filterModel) return false;
       if (filterDealer !== "all" && u.dealer !== filterDealer) return false;
       if (filterLocation !== "all" && u.currentLocation !== filterLocation)
@@ -507,7 +562,7 @@ export function InTransitPage() {
       }
       return true;
     });
-  }, [search, filterModel, filterDealer, filterLocation, filterStatus]);
+  }, [allUnits, search, filterModel, filterDealer, filterLocation, filterStatus]);
 
   const resetFilters = () => {
     setSearch("");
@@ -542,12 +597,12 @@ export function InTransitPage() {
   };
 
   // Summary counts
-  const totalUnits = mockTransitUnits.length;
-  const inTransitCount = mockTransitUnits.filter(
+  const totalUnits = allUnits.length;
+  const inTransitCount = allUnits.filter(
     (u) => u.status === "IN TRANSIT",
   ).length;
-  const delayedCount = mockTransitUnits.filter((u) => isOverdue(u)).length;
-  const releasedCount = mockTransitUnits.filter(
+  const delayedCount = allUnits.filter((u) => isOverdue(u)).length;
+  const releasedCount = allUnits.filter(
     (u) => u.status === "RELEASED",
   ).length;
 
@@ -989,7 +1044,7 @@ export function InTransitPage() {
                     <SelectItem value="all">All Models</SelectItem>
                     {uniqueModels
                       .slice()
-                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .sort((a: string, b: string) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
                       .map((m) => (
                       <SelectItem key={m} value={m}>
                         {m}
@@ -1006,7 +1061,7 @@ export function InTransitPage() {
                     <SelectItem value="all">All Dealers</SelectItem>
                     {uniqueDealers
                       .slice()
-                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .sort((a: string, b: string) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
                       .map((d) => (
                       <SelectItem key={d} value={d}>
                         {d}
@@ -1023,7 +1078,7 @@ export function InTransitPage() {
                     <SelectItem value="all">All Statuses</SelectItem>
                     {uniqueStatuses
                       .slice()
-                      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
+                      .sort((a: string, b: string) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
                       .map((s) => (
                       <SelectItem key={s} value={s}>
                         {s}
@@ -1039,7 +1094,7 @@ export function InTransitPage() {
                 </span>{" "}
                 of{" "}
                 <span className="font-semibold text-gray-700 dark:text-gray-300">
-                  {mockTransitUnits.length}
+                  {allUnits.length}
                 </span>{" "}
                 units
                 {delayedCount > 0 && (
@@ -1074,7 +1129,7 @@ export function InTransitPage() {
               <thead>
                 <tr className="border-b border-gray-200 dark:border-slate-700">
                   {[
-                    "#",
+                    "Action",
                     "Model",
                     "Color",
                     "Chassis No.",
@@ -1126,9 +1181,83 @@ export function InTransitPage() {
                             : "hover:bg-gray-50 dark:hover:bg-slate-700/50"
                         }`}
                       >
-                        {/* # */}
-                        <td className="px-3 py-3 text-gray-400 dark:text-gray-500 font-mono text-xs">
-                          {idx + 1}
+                        {/* Action */}
+                        <td className="px-3 py-3 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  aria-label="Delete"
+                                  className="h-7 w-7 text-red-600 border-red-200 hover:bg-red-50"
+                                  onClick={() => {
+                                    if (!confirm(`Delete ${unit.model}?`)) return;
+                                    setDeletedIds((prev) => {
+                                      const next = new Set(prev);
+                                      next.add(unit.id);
+                                      return next;
+                                    });
+                                    toast.success("Deleted");
+                                  }}
+                                >
+                                  <Trash2 className="size-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" sideOffset={6}>
+                                Delete
+                              </TooltipContent>
+                            </Tooltip>
+
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  aria-label="Set as Available"
+                                  className="h-7 w-7"
+                                  onClick={() => {
+                                    navigate("/available", {
+                                      state: {
+                                        openAddModal: true,
+                                        initialData: {
+                                          id: crypto.randomUUID(),
+                                          model: unit.model,
+                                          color: unit.color,
+                                          chassisNo: unit.chassisNo,
+                                          engineNo: unit.engineNo,
+                                          remarks: unit.remarks2 || unit.remarks || "",
+                                          csNo: unit.csNo,
+                                          yearModel: String(unit.yearModel ?? ""),
+                                          taggingAccount: "",
+                                          allocationTeam: "",
+                                          dealer: unit.dealer,
+                                          generalManager: unit.generalManager ?? "",
+                                          salesConsultant: unit.salesConsultant ?? "",
+                                          poNumber: unit.poNumber,
+                                          poAmount: String(unit.poAmount ?? ""),
+                                          pullOutDate: unit.pullOutDateRaw
+                                            ? toIsoDate(unit.pullOutDateRaw)
+                                            : "",
+                                          dateTagged: "",
+                                          monthDeclared: "",
+                                          location: "",
+                                          unitAge: 0,
+                                          gracePeriod: "90",
+                                          status: "ON TRACK",
+                                        },
+                                      },
+                                    });
+                                  }}
+                                >
+                                  <ArrowRight className="size-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" sideOffset={6}>
+                                Set as Available
+                              </TooltipContent>
+                            </Tooltip>
+                          </div>
                         </td>
 
                         {/* Model */}
@@ -1274,7 +1403,10 @@ export function InTransitPage() {
       {showAddModal && (
         <AddInTransitModal
           onClose={() => setShowAddModal(false)}
-          onSave={(entry) => setAddedEntries((prev) => [...prev, entry])}
+          onSave={(entry) => {
+            const unit = entryToUnit(entry);
+            setAddedUnits((prev) => [unit, ...prev]);
+          }}
         />
       )}
     </>
