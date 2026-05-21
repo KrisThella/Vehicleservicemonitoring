@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DATA_DIR = process.env.VERCEL
+const DATA_DIR = process.env.VERCEL || process.env.NETLIFY
   ? path.resolve('/tmp', 'data')
   : path.resolve(process.cwd(), 'data');
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });

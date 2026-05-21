@@ -120,6 +120,40 @@ const SEED_MODEL_COLORS: { model: string; colors: string[] }[] = [
   { model: 'JIMNY 1.5 GL MT SS', colors: ['GALLANT RED PEARL METALLIC', 'PEARL SUPER BLACK', 'PEARL PURE WHITE'] },
 ];
 
+const SEED_PULL_OUTS: {
+  description: string;
+  sph_allocation: number;
+  date_of_confirmation: string;
+  confirmed_units: number;
+  pulled_out: number;
+}[] = [];
+
+const SEED_PAYMENTS: {
+  description: string;
+  number_of_units: number;
+  total_amount: number;
+  date_of_payment: string;
+  remarks: string;
+}[] = [];
+
+const SEED_NEXT_CUT_OFF: {
+  description: string;
+  number_of_units: number;
+  unit_price: number;
+  total_amount: number;
+  date_of_payment: string;
+  remarks: string;
+  status: string;
+}[] = [];
+
+const SEED_INVENTORY_2026: {
+  month_index: number;
+  beginning: number | null;
+  wholesale: number | null;
+  retail_sales: number | null;
+  actual_wholesales: number | null;
+}[] = [];
+
 export function seedDatabase() {
   const seedState = db.prepare('SELECT value FROM settings WHERE key = ?').get('defaults_seed_version') as { value: string } | undefined;
   if (seedState?.value === DEFAULT_SEED_VERSION) {
