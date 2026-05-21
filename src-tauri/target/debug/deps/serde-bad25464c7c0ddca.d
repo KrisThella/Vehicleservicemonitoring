@@ -1,0 +1,14 @@
+/workspaces/Vehicleservicemonitoring/src-tauri/target/debug/deps/serde-bad25464c7c0ddca.d: /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /workspaces/Vehicleservicemonitoring/src-tauri/target/debug/build/serde-3eceff10943d83fb/out/private.rs
+
+/workspaces/Vehicleservicemonitoring/src-tauri/target/debug/deps/libserde-bad25464c7c0ddca.rlib: /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /workspaces/Vehicleservicemonitoring/src-tauri/target/debug/build/serde-3eceff10943d83fb/out/private.rs
+
+/workspaces/Vehicleservicemonitoring/src-tauri/target/debug/deps/libserde-bad25464c7c0ddca.rmeta: /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /workspaces/Vehicleservicemonitoring/src-tauri/target/debug/build/serde-3eceff10943d83fb/out/private.rs
+
+/home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/codespace/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/workspaces/Vehicleservicemonitoring/src-tauri/target/debug/build/serde-3eceff10943d83fb/out/private.rs:
+
+# env-dep:OUT_DIR=/workspaces/Vehicleservicemonitoring/src-tauri/target/debug/build/serde-3eceff10943d83fb/out

@@ -5,7 +5,11 @@
 
   ## Running the code
 
-  Run `npm i` to install the dependencies.
+  Run `pnpm install` to install the dependencies.
 
-  Run `npm run dev` to start the development server.
+  Run `pnpm dev` to start the Tauri app in development mode.
+
+  The desktop app stores its SQLite database in the local app data directory. The first launch copies the existing workspace database from `data/tsmpc.db` when available, then continues using the Tauri-managed local DB.
+
+  If you want the web-only fallback, use `pnpm web:dev`.
   

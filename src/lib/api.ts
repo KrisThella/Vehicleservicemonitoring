@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { invoke } from '@tauri-apps/api/tauri';
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -79,23 +80,129 @@ export interface SalesConsultantRecord {
   sort_order: number;
 }
 
-// ── HTTP helpers ──────────────────────────────────────────────────────────
+// ── Tauri command helpers ────────────────────────────────────────────────
 
-const BASE = '/api';
+function normalizeError(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
+async function call<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+  try {
+    return await invoke<T>(command, args);
+  } catch (error) {
+    throw new Error(normalizeError(error, `Command ${command} failed`));
+  }
+}
 
 async function get<T>(path: string): Promise<T> {
-  const r = await fetch(`${BASE}${path}`);
-  if (!r.ok) throw new Error(`GET ${path} failed: ${r.status}`);
-  return r.json();
+  const [route, queryString] = path.split('?');
+  const query = new URLSearchParams(queryString ?? '');
+
+  switch (route) {
+    case '/vehicles':
+      return call<T>('get_vehicles');
+    case '/prices':
+      return call<T>('get_prices');
+    case '/general-managers':
+      return call<T>('get_general_managers');
+    case '/sales-consultants':
+      return query.has('manager_id')
+        ? call<T>('get_sales_consultants', { manager_id: Number(query.get('manager_id')) })
+        : call<T>('get_sales_consultants');
+    case '/pull-outs':
+      return call<T>('get_pull_outs');
+    case '/payments':
+      return call<T>('get_payments');
+    case '/next-cut-off':
+      return call<T>('get_next_cut_off_payments');
+    case '/inventory':
+      return call<T>('get_inventory', {
+        year: query.has('year') ? Number(query.get('year')) : new Date().getFullYear(),
+      });
+    case '/colors':
+      return call<T>('get_colors');
+    case '/profile':
+      return call<T>('get_profile');
+    default:
+      throw new Error(`GET ${path} is not supported in the Tauri runtime`);
+  }
 }
+
+function numericId(path: string) {
+  const id = path.split('/').filter(Boolean).pop();
+  if (!id) throw new Error(`Missing id in path ${path}`);
+  const numeric = Number(id);
+  return Number.isNaN(numeric) ? id : numeric;
+}
+
 async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
-  const r = await fetch(`${BASE}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  if (!r.ok) throw new Error(`${method} ${path} failed: ${r.status}`);
-  return r.json();
+  const [route] = path.split('?');
+
+  switch (`${method} ${route}`) {
+    case 'POST /vehicles':
+      return call<T>('create_vehicle', { vehicle: body });
+    case 'POST /prices':
+      return call<T>('create_price', { price: body });
+    case 'PUT /profile':
+      return call<T>('save_profile', { profile: body });
+    case 'POST /colors':
+      return call<T>('create_color', { color: body });
+    case 'POST /general-managers':
+      return call<T>('create_general_manager', { input: body });
+    case 'POST /sales-consultants':
+      return call<T>('create_sales_consultant', { input: body });
+    case 'POST /pull-outs':
+      return call<T>('create_pull_out', { input: body });
+    case 'POST /payments':
+      return call<T>('create_payment', { input: body });
+    case 'POST /next-cut-off':
+      return call<T>('create_next_cut_off_payment', { input: body });
+    case 'PUT /inventory':
+      return call<T>('upsert_inventory', { input: body });
+  }
+
+  if (route.startsWith('/vehicles/')) {
+    const id = String(numericId(route));
+    if (method === 'PUT') return call<T>('update_vehicle', { id, vehicle: body });
+    if (method === 'DELETE') return call<T>('delete_vehicle', { id });
+  }
+  if (route.startsWith('/prices/')) {
+    const id = Number(numericId(route));
+    if (method === 'PUT') return call<T>('update_price', { id, price: body });
+    if (method === 'DELETE') return call<T>('delete_price', { id });
+  }
+  if (route.startsWith('/colors/')) {
+    const id = Number(numericId(route));
+    if (method === 'PUT') return call<T>('update_color', { id, color: body });
+    if (method === 'DELETE') return call<T>('delete_color', { id });
+  }
+  if (route.startsWith('/general-managers/')) {
+    const id = Number(numericId(route));
+    if (method === 'PUT') return call<T>('update_general_manager', { id, input: body });
+    if (method === 'DELETE') return call<T>('delete_general_manager', { id });
+  }
+  if (route.startsWith('/sales-consultants/')) {
+    const id = Number(numericId(route));
+    if (method === 'PUT') return call<T>('update_sales_consultant', { id, input: body });
+    if (method === 'DELETE') return call<T>('delete_sales_consultant', { id });
+  }
+  if (route.startsWith('/pull-outs/')) {
+    const id = Number(numericId(route));
+    if (method === 'PUT') return call<T>('update_pull_out', { id, input: body });
+    if (method === 'DELETE') return call<T>('delete_pull_out', { id });
+  }
+  if (route.startsWith('/payments/')) {
+    const id = Number(numericId(route));
+    if (method === 'PUT') return call<T>('update_payment', { id, input: body });
+    if (method === 'DELETE') return call<T>('delete_payment', { id });
+  }
+  if (route.startsWith('/next-cut-off/')) {
+    const id = Number(numericId(route));
+    if (method === 'PUT') return call<T>('update_next_cut_off_payment', { id, input: body });
+    if (method === 'DELETE') return call<T>('delete_next_cut_off_payment', { id });
+  }
+
+  throw new Error(`Unsupported route ${method} ${path}`);
 }
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
