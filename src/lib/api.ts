@@ -1,9 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-<<<<<<< HEAD
-import { invoke } from '@tauri-apps/api/tauri';
-=======
 import { DEFAULT_PRICES, DEFAULT_COLORS, DEFAULT_TEAMS } from './defaults';
->>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -87,17 +83,6 @@ export interface SalesConsultantRecord {
 
 // ── Tauri command helpers ────────────────────────────────────────────────
 
-<<<<<<< HEAD
-function normalizeError(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
-}
-
-async function call<T>(command: string, args?: Record<string, unknown>): Promise<T> {
-  try {
-    return await invoke<T>(command, args);
-  } catch (error) {
-    throw new Error(normalizeError(error, `Command ${command} failed`));
-=======
 const env = typeof import.meta !== 'undefined' ? (import.meta as any).env || {} : {};
 const isDev = !!env.DEV;
 
@@ -159,51 +144,16 @@ async function parseJsonResponse<T>(response: Response): Promise<T> {
     return JSON.parse(text) as T;
   } catch (error: any) {
     throw new Error(`Failed to parse JSON response from ${response.url}: ${error.message}. Response body: ${text.slice(0, 200)}`);
->>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
   }
 }
 
 async function get<T>(path: string): Promise<T> {
-<<<<<<< HEAD
-  const [route, queryString] = path.split('?');
-  const query = new URLSearchParams(queryString ?? '');
-
-  switch (route) {
-    case '/vehicles':
-      return call<T>('get_vehicles');
-    case '/prices':
-      return call<T>('get_prices');
-    case '/general-managers':
-      return call<T>('get_general_managers');
-    case '/sales-consultants':
-      return query.has('manager_id')
-        ? call<T>('get_sales_consultants', { manager_id: Number(query.get('manager_id')) })
-        : call<T>('get_sales_consultants');
-    case '/pull-outs':
-      return call<T>('get_pull_outs');
-    case '/payments':
-      return call<T>('get_payments');
-    case '/next-cut-off':
-      return call<T>('get_next_cut_off_payments');
-    case '/inventory':
-      return call<T>('get_inventory', {
-        year: query.has('year') ? Number(query.get('year')) : new Date().getFullYear(),
-      });
-    case '/colors':
-      return call<T>('get_colors');
-    case '/profile':
-      return call<T>('get_profile');
-    default:
-      throw new Error(`GET ${path} is not supported in the Tauri runtime`);
-  }
-=======
   const r = await fetchWithFallback(path);
   if (!r.ok) {
     const body = await r.text();
     throw new Error(`GET ${path} failed: ${r.status}${body ? ` - ${body}` : ''}`);
   }
   return parseJsonResponse<T>(r);
->>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
 }
 
 function numericId(path: string) {
@@ -214,75 +164,6 @@ function numericId(path: string) {
 }
 
 async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
-<<<<<<< HEAD
-  const [route] = path.split('?');
-
-  switch (`${method} ${route}`) {
-    case 'POST /vehicles':
-      return call<T>('create_vehicle', { vehicle: body });
-    case 'POST /prices':
-      return call<T>('create_price', { price: body });
-    case 'PUT /profile':
-      return call<T>('save_profile', { profile: body });
-    case 'POST /colors':
-      return call<T>('create_color', { color: body });
-    case 'POST /general-managers':
-      return call<T>('create_general_manager', { input: body });
-    case 'POST /sales-consultants':
-      return call<T>('create_sales_consultant', { input: body });
-    case 'POST /pull-outs':
-      return call<T>('create_pull_out', { input: body });
-    case 'POST /payments':
-      return call<T>('create_payment', { input: body });
-    case 'POST /next-cut-off':
-      return call<T>('create_next_cut_off_payment', { input: body });
-    case 'PUT /inventory':
-      return call<T>('upsert_inventory', { input: body });
-  }
-
-  if (route.startsWith('/vehicles/')) {
-    const id = String(numericId(route));
-    if (method === 'PUT') return call<T>('update_vehicle', { id, vehicle: body });
-    if (method === 'DELETE') return call<T>('delete_vehicle', { id });
-  }
-  if (route.startsWith('/prices/')) {
-    const id = Number(numericId(route));
-    if (method === 'PUT') return call<T>('update_price', { id, price: body });
-    if (method === 'DELETE') return call<T>('delete_price', { id });
-  }
-  if (route.startsWith('/colors/')) {
-    const id = Number(numericId(route));
-    if (method === 'PUT') return call<T>('update_color', { id, color: body });
-    if (method === 'DELETE') return call<T>('delete_color', { id });
-  }
-  if (route.startsWith('/general-managers/')) {
-    const id = Number(numericId(route));
-    if (method === 'PUT') return call<T>('update_general_manager', { id, input: body });
-    if (method === 'DELETE') return call<T>('delete_general_manager', { id });
-  }
-  if (route.startsWith('/sales-consultants/')) {
-    const id = Number(numericId(route));
-    if (method === 'PUT') return call<T>('update_sales_consultant', { id, input: body });
-    if (method === 'DELETE') return call<T>('delete_sales_consultant', { id });
-  }
-  if (route.startsWith('/pull-outs/')) {
-    const id = Number(numericId(route));
-    if (method === 'PUT') return call<T>('update_pull_out', { id, input: body });
-    if (method === 'DELETE') return call<T>('delete_pull_out', { id });
-  }
-  if (route.startsWith('/payments/')) {
-    const id = Number(numericId(route));
-    if (method === 'PUT') return call<T>('update_payment', { id, input: body });
-    if (method === 'DELETE') return call<T>('delete_payment', { id });
-  }
-  if (route.startsWith('/next-cut-off/')) {
-    const id = Number(numericId(route));
-    if (method === 'PUT') return call<T>('update_next_cut_off_payment', { id, input: body });
-    if (method === 'DELETE') return call<T>('delete_next_cut_off_payment', { id });
-  }
-
-  throw new Error(`Unsupported route ${method} ${path}`);
-=======
   const r = await fetchWithFallback(path, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -293,7 +174,6 @@ async function send<T>(path: string, method: string, body?: unknown): Promise<T>
     throw new Error(`${method} ${path} failed: ${r.status}${body ? ` - ${body}` : ''}`);
   }
   return parseJsonResponse<T>(r);
->>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
 }
 
 async function post<T>(path: string, body?: unknown): Promise<T> {

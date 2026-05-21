@@ -1,57 +1,27 @@
 {
-<<<<<<< HEAD
-  "build": {
-    "beforeDevCommand": "pnpm web:dev",
-    "beforeBuildCommand": "pnpm web:build",
-    "devPath": "http://localhost:5173",
-    "distDir": "../dist"
-  },
-  "package": {
-    "productName": "Vehicle Service Monitoring",
-    "version": "0.0.1"
-  },
-  "tauri": {
-    "allowlist": {
-      "all": false
-    },
-    "bundle": {
-      "active": true,
-      "identifier": "com.kristhella.vehicleservicemonitoring",
-      "targets": "all"
-    },
-    "windows": [
-      {
-        "title": "Vehicle Service Monitoring",
-        "width": 1440,
-        "height": 900,
-        "resizable": true
-=======
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Vehicle Service Monitoring",
   "version": "0.1.1",
-  "identifier": "com.vehicleservicemonitoring",
+  "identifier": "com.kristhella.vehicleservicemonitoring",
   "build": {
     "frontendDist": "../dist",
-    "devUrl": "http://localhost:5000",
-    "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build"
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "pnpm web:dev",
+    "beforeBuildCommand": "pnpm web:build"
   },
   "app": {
     "windows": [
       {
         "title": "Vehicle Service Monitoring",
-        "width": 800,
-        "height": 600,
+        "width": 1440,
+        "height": 900,
         "resizable": true,
         "fullscreen": false
->>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
       }
     ],
     "security": {
       "csp": null
     }
-<<<<<<< HEAD
-=======
   },
   "bundle": {
     "active": true,
@@ -66,6 +36,6 @@
     "android": {
       "debugApplicationIdSuffix": ".debug"
     }
->>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
-  }
+  },
+  "plugins": {}
 }
