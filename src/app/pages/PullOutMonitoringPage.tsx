@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Header } from '../components/Header';
-import { usePullOuts, useInventory } from '../../lib/api';
+import { useAllocationTables, usePullOuts, useInventory, useVehicles } from '../../lib/api';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -21,6 +21,19 @@ const MONTHS = [
 
 const displayNum = (n: number | null) =>
   n === null || n === undefined ? <span className="text-gray-300 dark:text-gray-600">–</span> : n;
+
+const formatDisplayDate = (
+  value: string | Date | null | undefined,
+) => {
+  if (!value) return "";
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-PH", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+  });
+};
 
 // ── Sub-components ─────────────────────────────────────────────────────────────
 
@@ -81,7 +94,9 @@ export function PullOutMonitoringPage() {
   const currentYear = new Date().getFullYear();
   const [inventoryYear, setInventoryYear] = useState(currentYear);
 
-  const { rows: pullOutRows, loading: poLoading } = usePullOuts();
+  const { rows: pullOutRows, loading: poLoading, addRow, updateRow } = usePullOuts();
+  const { tables, loading: tablesLoading } = useAllocationTables();
+  const { vehicles } = useVehicles();
   const { rows: inventoryDbRows, loading: invLoading } = useInventory(inventoryYear);
 
   // Build display rows for all 12 months, filling in DB values when present
@@ -96,14 +111,50 @@ export function PullOutMonitoringPage() {
     };
   });
 
-  // Pull Out totals (remainingUnits = confirmed - pulled_out, clamped at 0)
-  const poTotalSphAllocation = pullOutRows.reduce((s, r) => s + r.sph_allocation, 0);
-  const poTotalConfirmed = pullOutRows.reduce((s, r) => s + r.confirmed_units, 0);
-  const poTotalPulledOut = pullOutRows.reduce((s, r) => s + r.pulled_out, 0);
-  const poTotalRemaining = pullOutRows.reduce(
-    (s, r) => s + Math.max(0, r.confirmed_units - r.pulled_out),
-    0
-  );
+  const allocationRows = tables
+    .slice()
+    .sort((a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name))
+    .map((table) => {
+      const tableVehicles = vehicles.filter(
+        (v: any) => v.category === 'ALLOCATION' && String(v.allocationTable || '') === String(table.id),
+      );
+      const pulledOut = tableVehicles.filter((v: any) => v.status === 'SOLD').length;
+      const existing = pullOutRows.find((r) => Number(r.allocation_table_id) === Number(table.id));
+      const confirmedUnits = existing?.confirmed_units ?? 0;
+      return {
+        table,
+        existing,
+        sphAllocation: tableVehicles.length,
+        pulledOut,
+        confirmedUnits,
+        remainingUnits: tableVehicles.filter((v: any) => v.status !== 'SOLD').length,
+      };
+    });
+
+  const poTotalSphAllocation = allocationRows.reduce((s, r) => s + r.sphAllocation, 0);
+  const poTotalConfirmed = allocationRows.reduce((s, r) => s + r.confirmedUnits, 0);
+  const poTotalPulledOut = allocationRows.reduce((s, r) => s + r.pulledOut, 0);
+  const poTotalRemaining = allocationRows.reduce((s, r) => s + r.remainingUnits, 0);
+
+  const upsertConfirmedUnits = async (tableId: number, confirmedUnits: number) => {
+    const target = allocationRows.find((r) => r.table.id === tableId);
+    if (!target) return;
+
+    const payload = {
+      description: target.table.name,
+      sph_allocation: target.sphAllocation,
+      date_of_confirmation: target.table.date_of_confirmation,
+      allocation_table_id: target.table.id,
+      confirmed_units: Math.max(0, confirmedUnits),
+      pulled_out: target.pulledOut,
+    };
+
+    if (target.existing) {
+      await updateRow(target.existing.id, payload);
+      return;
+    }
+    await addRow(payload);
+  };
 
   // Year selector: 2016 .. currentYear + 2
   const yearOptions: number[] = [];
@@ -139,37 +190,47 @@ export function PullOutMonitoringPage() {
                 </tr>
               </thead>
               <tbody>
-                {poLoading && pullOutRows.length === 0 ? (
+                {poLoading || tablesLoading ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
                       Loading…
                     </td>
                   </tr>
-                ) : pullOutRows.length === 0 ? (
+                ) : allocationRows.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="px-4 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
-                      No pull-out records yet.
+                      No allocation tables yet.
                     </td>
                   </tr>
                 ) : (
-                  pullOutRows.map((row) => {
-                    const remaining = Math.max(0, row.confirmed_units - row.pulled_out);
+                  allocationRows.map((row) => {
                     return (
-                      <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
-                        <Td>{row.description}</Td>
-                        <Td right>{row.sph_allocation}</Td>
-                        <Td>{row.date_of_confirmation}</Td>
-                        <Td right>{row.confirmed_units}</Td>
-                        <Td right>{row.pulled_out}</Td>
+                      <tr key={row.table.id} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+                        <Td>{row.table.name}</Td>
+                        <Td right>{row.sphAllocation}</Td>
+                        <Td>{formatDisplayDate(row.table.date_of_confirmation) || "—"}</Td>
+                        <Td right>
+                          <input
+                            type="number"
+                            min={0}
+                            defaultValue={row.confirmedUnits}
+                            onBlur={(e) => {
+                              const value = Number(e.target.value || 0);
+                              void upsertConfirmedUnits(row.table.id, value);
+                            }}
+                            className="w-24 text-right px-2 py-1 rounded border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900"
+                          />
+                        </Td>
+                        <Td right>{row.pulledOut}</Td>
                         <Td right>
                           <span
                             className={
-                              remaining > 0
+                              row.remainingUnits > 0
                                 ? 'text-orange-600 dark:text-orange-500 font-medium'
                                 : 'text-green-600 dark:text-green-500 font-medium'
                             }
                           >
-                            {remaining}
+                            {row.remainingUnits}
                           </span>
                         </Td>
                       </tr>
@@ -177,7 +238,7 @@ export function PullOutMonitoringPage() {
                   })
                 )}
                 {/* Totals row */}
-                {pullOutRows.length > 0 && (
+                {allocationRows.length > 0 && (
                   <tr className="bg-blue-50 dark:bg-slate-800 border-t-2 border-blue-200 dark:border-slate-700">
                     <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300">Total</td>
                     <td className="px-4 py-3 text-sm font-bold text-blue-800 dark:text-blue-300 text-right">

@@ -1,84 +1,5 @@
 import { db } from './db';
 
-const SEED_VEHICLES = [
-  {
-    id: 'sold-1', model: 'S-PRESSO 1.0 GL AGS', csNo: 'UD9868', plateNumber: 'NCT5532',
-    color: 'SOLID FIRE RED', year: 2024, receivedDate: '2024-05-25', poNumber: 'PO2859',
-    vinNumber: 'MAFAA22CM18J139137', dealer: 'TEAM AARON', status: 'SOLD',
-    remarks: 'SOLD TO MR. Edson Domayug', location: 'CLIENT DELIVERED', unit: 'SOLD UNIT',
-    pullOut: '2024-11-15', overdue: false, category: 'SALES',
-    chassisNo: 'MAFAA22CM18J139137', engineNo: 'X12345',
-    invoiceDate: '2024-11-15', nameOfClient: 'MR. EDSON DOMAYUG',
-    invoiceNumber: 'PHS01281', releaseDate: '2024-11-17', jc: '2024-087',
-    arm: 'BASA', terms: 'FINANCING', bank: 'PSB',
-    invoiceAmount: '₱248,000.00', statementDeposit: '2024-11-18',
-    ltoBankTransmittal: '2024-11-20', salesConsultant: 'JOHN SANTOS',
-    generalManager: 'MR. ROBERTO CRUZ', grossProfit: '₱18,500.00',
-    extendedWarranty: 'YES - 3 YEARS',
-    ltoDocumentsTransmittal: 'TRANSMITTED - 2024-11-22', poAmount: '₱229,500.00',
-  },
-  {
-    id: 'sold-2', model: 'DZIRE GLX CVT - HYBRID', csNo: 'UD25702', plateNumber: 'NCU7223',
-    color: 'METALLIC MAGMA GRAY 2', year: 2024, receivedDate: '2024-02-26', poNumber: 'PO09166',
-    vinNumber: 'MAFMG22CM70J110284', dealer: 'TEAM JAY-R', status: 'SOLD',
-    remarks: 'SOLD TO MA. Mary Lou Laxina (Service)', location: 'CLIENT DELIVERED',
-    unit: 'SOLD UNIT', pullOut: '2024-03-01', overdue: false, category: 'SALES',
-    chassisNo: 'MAFMG22CM70J110284', engineNo: 'Y98765',
-    invoiceDate: '2024-03-01', nameOfClient: 'MA. MARY LOU LAXINA',
-    invoiceNumber: 'PHS01498', releaseDate: '2024-03-03', jc: '2024-012',
-    arm: 'BASA', terms: 'FINANCING', bank: 'PSB',
-    invoiceAmount: '₱1,088,000.00', statementDeposit: '2024-03-04',
-    ltoBankTransmittal: '2024-03-06', salesConsultant: 'MARIA RIVERA',
-    generalManager: 'MR. ROBERTO CRUZ', grossProfit: '₱42,300.00',
-    extendedWarranty: 'YES - 5 YEARS',
-    ltoDocumentsTransmittal: 'TRANSMITTED - 2024-03-10', poAmount: '₱1,045,700.00',
-  },
-  {
-    id: 'allocation-1', model: 'JIMNY 1.5 GL MT SS', csNo: 'UD46410', plateNumber: 'N/A UNIT',
-    color: 'MIDNIGHT BLACK', year: 2024, receivedDate: '2024-02-18', poNumber: 'PO11443',
-    vinNumber: 'MAEAZ6CM99J199665', dealer: 'TEAM JM', status: 'ON TRACK',
-    remarks: 'ALLOCATED FOR DEMO', location: 'TEAM JM', unit: 'DEMO UNIT',
-    pullOut: '2024-03-01', overdue: false, category: 'AVAILABLE',
-    chassisNo: 'MAEAZ6CM99J199665', engineNo: 'Z88888',
-    taggingAccount: 'DEMO-2024-001', allocationTeam: 'TEAM JM',
-    dateTagged: '2024-02-20', monthDeclared: 'FEBRUARY 2024',
-  },
-  {
-    id: 'intransit-1', model: 'ERTIGA 1.5 GL AT - HYBRID', csNo: 'UD98765', plateNumber: 'N/A UNIT',
-    color: 'PEARL SUPER BLACK 2', year: 2024, receivedDate: '2024-03-15', poNumber: 'PO12345',
-    vinNumber: 'MAEAZ6CM88J188654', dealer: 'TEAM JAY-R', status: 'IN TRANSIT',
-    remarks: 'IN TRANSIT TO SHOWROOM', location: 'IN TRANSIT', unit: 'NEW STOCK',
-    pullOut: null, overdue: false, category: 'IN TRANSIT',
-    chassisNo: 'MAEAZ6CM88J188654', engineNo: 'P99988',
-  },
-  {
-    id: 'available-1', model: 'SWIFT 1.2 GL CVT', csNo: 'HD50642', plateNumber: 'N/A UNIT',
-    color: 'PEARL SUPER BLACK 2', year: 2024, receivedDate: '2024-03-28', poNumber: 'PO10000054',
-    vinNumber: 'MAEAZ6CM99J199662', dealer: 'TEAM JM', status: 'ON TRACK',
-    remarks: 'AVAILABLE FOR SALE', location: 'SHOWROOM', unit: 'AVAILABLE UNIT',
-    pullOut: null, overdue: false, category: 'AVAILABLE',
-    chassisNo: 'MAEAZ6CM99J199662', engineNo: 'Q11199',
-    taggingAccount: 'AVAIL-2024-005', allocationTeam: 'TEAM JM',
-    dateTagged: '2024-03-29', monthDeclared: 'MARCH 2024',
-  },
-  {
-    id: 'overdue-1', model: 'CELERIO GL CVT', csNo: 'UD25906', plateNumber: 'N/A UNIT',
-    color: 'PEARL SUPER BLACK 2', year: 2024, receivedDate: '2024-01-24', poNumber: 'PO22001',
-    vinNumber: 'MAEAZ6CM99J100022', dealer: 'TEAM JM', status: 'Overdue',
-    remarks: 'PENDING PAPERS', location: 'SERVICE BAY 3 • TUAZON-BURIAS',
-    unit: 'PENDING UNIT', pullOut: null, overdue: true, category: 'PULL OUT MONITORING',
-    chassisNo: 'MAEAZ6CM99J100022', engineNo: 'C90011',
-  },
-  {
-    id: 'overdue-2', model: 'XL7 1.5 GLX MT - HYBRID', csNo: 'UD44331', plateNumber: 'N/A UNIT',
-    color: 'PEARL SUPER BLACK 2', year: 2024, receivedDate: '2024-02-05', poNumber: 'PO22002',
-    vinNumber: 'MAEAZ6CM99J100023', dealer: 'TEAM JM', status: 'IN TRANSIT',
-    remarks: 'PENDING PAPERS', location: 'SERVICE BAY 4', unit: 'PENDING UNIT',
-    pullOut: null, overdue: true, category: 'IN TRANSIT',
-    chassisNo: 'MAEAZ6CM99J100023', engineNo: 'X11122',
-  },
-];
-
 const SEED_PRICES = [
   { category: 'APV', model: 'APV 1.6 GA MT', srp: '763,000.00', dnp: '717,220.00', ws_subsidy: '35,000.00', dnp_less_ws_subsidy: '682,220.00', ewt: '3,045.63', po_amount: '679,174.38' },
   { category: 'APV', model: 'APV 1.6 GLX MT', srp: '975,000.00', dnp: '916,500.00', ws_subsidy: '80,000.00', dnp_less_ws_subsidy: '836,500.00', ewt: '3,734.68', po_amount: '832,765.32' },
@@ -147,6 +68,8 @@ const SEED_COLORS = [
   { name: 'WHITE', hex: '#FFFFFF' },
 ];
 
+const DEFAULT_SEED_VERSION = '2026-05-19-core-defaults';
+
 const SEED_TEAMS = [
   {
     manager: 'MR. AARON QUIROGA',
@@ -185,60 +108,70 @@ const SEED_TEAMS = [
   },
 ];
 
-const SEED_PULL_OUTS = [
-  { description: 'Suzuki Ertiga 1.5 GA MT',  sph_allocation: 10, date_of_confirmation: 'Mar 05, 2026', confirmed_units: 8, pulled_out: 6 },
-  { description: 'Suzuki Dzire GL MT',       sph_allocation: 8,  date_of_confirmation: 'Mar 10, 2026', confirmed_units: 6, pulled_out: 4 },
-  { description: 'Suzuki Swift GL MT',       sph_allocation: 5,  date_of_confirmation: 'Mar 12, 2026', confirmed_units: 5, pulled_out: 5 },
-  { description: 'Suzuki Celerio GL MT',     sph_allocation: 6,  date_of_confirmation: 'Mar 15, 2026', confirmed_units: 4, pulled_out: 3 },
-  { description: 'Suzuki Fronx GL Hybrid',   sph_allocation: 4,  date_of_confirmation: 'Mar 18, 2026', confirmed_units: 4, pulled_out: 2 },
-  { description: 'Suzuki S-Presso GL MT',    sph_allocation: 7,  date_of_confirmation: 'Mar 20, 2026', confirmed_units: 5, pulled_out: 5 },
+// Map of model -> list of color names to seed as available for that model
+const SEED_MODEL_COLORS: { model: string; colors: string[] }[] = [
+  { model: 'APV 1.6 GA MT', colors: ['PEARL PURE WHITE', 'MIDNIGHT BLACK', 'SUPERIOR WHITE'] },
+  { model: 'APV 1.6 GLX MT', colors: ['PEARL PURE WHITE', 'PHOENIX RED PEARL', 'MIDNIGHT BLACK'] },
+  { model: 'CELERIO 1.0 GL AGS', colors: ['ALLURING BLUE PEARL METALLIC', 'PEARL PURE WHITE'] },
+  { model: 'DZIRE GL CVT - HYBRID', colors: ['PEARL SNOW WHITE', 'GRAPHITE GREY METALLIC'] },
+  { model: 'FRONX GL AT', colors: ['PRIME CERULEAN BLUE 2', 'SUPERIOR WHITE', 'MIDNIGHT BLACK'] },
+  { model: 'SWIFT 1.2 GL CVT', colors: ['RADIANT RED PEARL', 'SILKY SILVER METALLIC', 'PEARL PURE WHITE'] },
+  { model: 'XL7 1.5 GLX AT - HYBRID (MONOTONE)', colors: ['OXFORD BLUE PEARL METALLIC', 'PEARL ARCTIC WHITE 1'] },
+  { model: 'JIMNY 1.5 GL MT SS', colors: ['GALLANT RED PEARL METALLIC', 'PEARL SUPER BLACK', 'PEARL PURE WHITE'] },
 ];
 
-const SEED_PAYMENTS = [
-  { description: 'Ertiga 1.5 GA MT – Batch 1', number_of_units: 4, total_amount: 3_480_000, date_of_payment: 'Apr 05, 2026', remarks: 'Paid via BDO' },
-  { description: 'Dzire GL MT – Batch 1',      number_of_units: 3, total_amount: 2_100_000, date_of_payment: 'Apr 07, 2026', remarks: 'Paid via BPI' },
-  { description: 'Swift GL MT – Full Pull',    number_of_units: 5, total_amount: 4_250_000, date_of_payment: 'Apr 10, 2026', remarks: 'Settled – Bank transfer' },
-  { description: 'S-Presso GL MT – Full Pull', number_of_units: 5, total_amount: 3_750_000, date_of_payment: 'Apr 10, 2026', remarks: 'Settled – Bank transfer' },
-];
+const SEED_PULL_OUTS: {
+  description: string;
+  sph_allocation: number;
+  date_of_confirmation: string;
+  confirmed_units: number;
+  pulled_out: number;
+}[] = [];
 
-const SEED_NEXT_CUT_OFF = [
-  { description: 'ERTIGA 1.5 GA MT',  number_of_units: 2, unit_price: 870_000,   total_amount: 1_740_000, date_of_payment: '2026-04-25', remarks: 'For BDO processing',         status: 'PENDING' },
-  { description: 'DZIRE GL MT',       number_of_units: 2, unit_price: 700_000,   total_amount: 1_400_000, date_of_payment: '2026-04-25', remarks: 'Pending bank confirmation',  status: 'PROCESSING' },
-  { description: 'CELERIO 1.0 GL MT', number_of_units: 1, unit_price: 595_000,   total_amount: 595_000,   date_of_payment: '2026-04-28', remarks: 'For BPI processing',         status: 'PENDING' },
-  { description: 'FRONX GL+ HYBRID',  number_of_units: 2, unit_price: 1_160_000, total_amount: 2_320_000, date_of_payment: '2026-04-28', remarks: 'Awaiting SPH invoice',       status: 'PENDING' },
-];
+const SEED_PAYMENTS: {
+  description: string;
+  number_of_units: number;
+  total_amount: number;
+  date_of_payment: string;
+  remarks: string;
+}[] = [];
 
-const SEED_INVENTORY_2026 = [
-  // Jan, Feb, Mar (past)
-  { month_index: 0, beginning: 45, wholesale: 12, retail_sales: 10, actual_wholesales: 11 },
-  { month_index: 1, beginning: 48, wholesale: 14, retail_sales: 11, actual_wholesales: 13 },
-  { month_index: 2, beginning: 51, wholesale: 16, retail_sales: 12, actual_wholesales: 15 },
-  // Apr (current — beginning known, others null)
-  { month_index: 3, beginning: 54, wholesale: null, retail_sales: null, actual_wholesales: null },
-];
+const SEED_NEXT_CUT_OFF: {
+  description: string;
+  number_of_units: number;
+  unit_price: number;
+  total_amount: number;
+  date_of_payment: string;
+  remarks: string;
+  status: string;
+}[] = [];
+
+const SEED_INVENTORY_2026: {
+  month_index: number;
+  beginning: number | null;
+  wholesale: number | null;
+  retail_sales: number | null;
+  actual_wholesales: number | null;
+}[] = [];
 
 export function seedDatabase() {
-  const vehiclesCount = (db.prepare('SELECT COUNT(*) AS c FROM vehicles').get() as { c: number }).c;
-  if (vehiclesCount === 0) {
-    const insert = db.prepare('INSERT INTO vehicles (id, data) VALUES (?, ?)');
-    const txn = db.transaction((rows: any[]) => {
-      for (const v of rows) insert.run(v.id, JSON.stringify(v));
-    });
-    txn(SEED_VEHICLES);
-    console.log(`[seed] Inserted ${SEED_VEHICLES.length} vehicles`);
+  const seedState = db.prepare('SELECT value FROM settings WHERE key = ?').get('defaults_seed_version') as { value: string } | undefined;
+  if (seedState?.value === DEFAULT_SEED_VERSION) {
+    return;
   }
 
-  const pricesCount = (db.prepare('SELECT COUNT(*) AS c FROM prices').get() as { c: number }).c;
-  if (pricesCount === 0) {
-    const insert = db.prepare(
-      'INSERT INTO prices (category, model, srp, dnp, ws_subsidy, dnp_less_ws_subsidy, ewt, po_amount) VALUES (?,?,?,?,?,?,?,?)'
-    );
-    const txn = db.transaction((rows: any[]) => {
-      for (const p of rows) insert.run(p.category, p.model, p.srp, p.dnp, p.ws_subsidy, p.dnp_less_ws_subsidy, p.ewt, p.po_amount);
-    });
-    txn(SEED_PRICES);
-    console.log(`[seed] Inserted ${SEED_PRICES.length} prices`);
-  }
+  // Ensure default prices exist. Use INSERT OR IGNORE so this is idempotent
+  const pricesBefore = (db.prepare('SELECT COUNT(*) AS c FROM prices').get() as { c: number }).c;
+  const insertPrice = db.prepare(
+    'INSERT OR IGNORE INTO prices (category, model, srp, dnp, ws_subsidy, dnp_less_ws_subsidy, ewt, po_amount) VALUES (?,?,?,?,?,?,?,?)'
+  );
+  const priceTxn = db.transaction((rows: any[]) => {
+    for (const p of rows) insertPrice.run(p.category, p.model, p.srp, p.dnp, p.ws_subsidy, p.dnp_less_ws_subsidy, p.ewt, p.po_amount);
+  });
+  priceTxn(SEED_PRICES);
+  const pricesAfter = (db.prepare('SELECT COUNT(*) AS c FROM prices').get() as { c: number }).c;
+  const pricesAdded = pricesAfter - pricesBefore;
+  if (pricesAdded > 0) console.log(`[seed] Added ${pricesAdded} default prices (had ${pricesBefore}, now ${pricesAfter})`);
 
   const profileExists = (db.prepare('SELECT COUNT(*) AS c FROM profile').get() as { c: number }).c;
   if (profileExists === 0) {
@@ -257,26 +190,49 @@ export function seedDatabase() {
   const added = newColorCount - existingColorCount;
   if (added > 0) console.log(`[seed] Added ${added} default colors (had ${existingColorCount}, now ${newColorCount})`);
 
-  const gmCount = (db.prepare('SELECT COUNT(*) AS c FROM general_managers').get() as { c: number }).c;
-  if (gmCount === 0) {
-    const insertManager = db.prepare(
-      'INSERT INTO general_managers (name, sort_order) VALUES (?, ?)'
-    );
-    const insertConsultant = db.prepare(
-      'INSERT INTO sales_consultants (manager_id, name, sort_order) VALUES (?, ?, ?)'
-    );
-    const txn = db.transaction(() => {
-      SEED_TEAMS.forEach((team, teamIndex) => {
-        const result = insertManager.run(team.manager, teamIndex);
-        const managerId = result.lastInsertRowid as number;
+  // Seed model -> color assignments (idempotent)
+  const insertAssignment = db.prepare(
+    'INSERT OR IGNORE INTO model_color_assignments (price_id, color_id, sort_order) VALUES (?,?,?)'
+  );
+  const getPriceId = db.prepare('SELECT id FROM prices WHERE model = ?');
+  const getColorId = db.prepare('SELECT id FROM colors WHERE name = ?');
+
+  const assignmentTxn = db.transaction(() => {
+    let globalOrder = 0;
+    for (const item of SEED_MODEL_COLORS) {
+      const priceRow = getPriceId.get(item.model) as { id: number } | undefined;
+      if (!priceRow) continue; // price not present yet
+      const priceId = priceRow.id;
+      for (const colorName of item.colors) {
+        const colorRow = getColorId.get(colorName) as { id: number } | undefined;
+        if (!colorRow) continue; // color may not exist (user may have customized list)
+        insertAssignment.run(priceId, colorRow.id, globalOrder++);
+      }
+    }
+  });
+  assignmentTxn();
+
+  // Insert default teams (general managers + sales consultants) idempotently
+  const gmBefore = (db.prepare('SELECT COUNT(*) AS c FROM general_managers').get() as { c: number }).c;
+  const insertManager = db.prepare('INSERT OR IGNORE INTO general_managers (name, sort_order) VALUES (?, ?)');
+  const getManagerId = db.prepare('SELECT id FROM general_managers WHERE name = ?');
+  const insertConsultant = db.prepare('INSERT OR IGNORE INTO sales_consultants (manager_id, name, sort_order) VALUES (?, ?, ?)');
+  const teamTxn = db.transaction(() => {
+    SEED_TEAMS.forEach((team, teamIndex) => {
+      insertManager.run(team.manager, teamIndex);
+      const row = getManagerId.get(team.manager) as { id: number } | undefined;
+      const managerId = row ? row.id : null;
+      if (managerId) {
         team.consultants.forEach((name, consultantIndex) => {
           insertConsultant.run(managerId, name, consultantIndex);
         });
-      });
+      }
     });
-    txn();
-    console.log(`[seed] Inserted ${SEED_TEAMS.length} general managers with consultants`);
-  }
+  });
+  teamTxn();
+  const gmAfter = (db.prepare('SELECT COUNT(*) AS c FROM general_managers').get() as { c: number }).c;
+  const gmAdded = gmAfter - gmBefore;
+  if (gmAdded > 0) console.log(`[seed] Added ${gmAdded} general managers (had ${gmBefore}, now ${gmAfter})`);
 
   const poCount = (db.prepare('SELECT COUNT(*) AS c FROM pull_outs').get() as { c: number }).c;
   if (poCount === 0) {
@@ -325,4 +281,9 @@ export function seedDatabase() {
     txn(SEED_INVENTORY_2026);
     console.log(`[seed] Inserted ${SEED_INVENTORY_2026.length} inventory rows`);
   }
+
+  db.prepare('INSERT INTO settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value')
+    .run('defaults_seed_version', DEFAULT_SEED_VERSION);
+
+  console.log('[seed] Default seed version recorded');
 }

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router";
-import { LayoutDashboard, TrendingUp, Package, Menu, X, FileBarChart, ExternalLink, Truck, CalendarClock } from "lucide-react";
+import { LayoutDashboard, TrendingUp, Package, Menu, X, FileBarChart, ExternalLink, Truck, CalendarClock, Box } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../components/ui/button";
 
@@ -8,9 +8,10 @@ export function RootLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const navItems = [
-    { path: "/", label: "DASHBOARD", icon: LayoutDashboard },
+    { path: "/", label: "ALLOCATION", icon: LayoutDashboard },
     { path: "/sales", label: "SALES", icon: TrendingUp },
     { path: "/available", label: "AVAILABLE", icon: Package },
+    { path: "/demo", label: "DEMO", icon: Box },
     { path: "/in-transit", label: "IN TRANSIT", icon: Truck },
     { path: "/pull-out-monitoring", label: "PULL OUT MONITORING", icon: ExternalLink },
     { path: "/next-cut-off", label: "NEXT CUT-OFF", icon: CalendarClock },

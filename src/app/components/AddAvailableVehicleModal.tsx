@@ -283,6 +283,25 @@ export function AddAvailableVehicleModal({
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: '' }));
   };
 
+  const lastAutoFilledPoAmountRef = useRef<string>('');
+
+  useEffect(() => {
+    if (!form.model) return;
+    const matched = prices.find((p) => p.model === form.model);
+    if (!matched) return;
+    const nextPo = (matched.po_amount ?? '').trim();
+    if (!nextPo || nextPo === '-') return;
+
+    setForm((prev) => {
+      const current = (prev.poAmount ?? '').trim();
+      if (!current || current === lastAutoFilledPoAmountRef.current) {
+        lastAutoFilledPoAmountRef.current = nextPo;
+        return { ...prev, poAmount: nextPo };
+      }
+      return prev;
+    });
+  }, [form.model, prices]);
+
   const selectedManagerId = useMemo(() => {
     const selected = managers.find((m) => m.name === form.generalManager);
     return selected?.id ?? null;

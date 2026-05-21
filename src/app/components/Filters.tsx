@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover';
 import { Calendar } from './ui/calendar';
 import { format } from 'date-fns';
+import { sortAlphaNumeric } from './utils/sortOptions';
 
 interface FiltersProps {
   searchTerm: string;
@@ -24,6 +25,9 @@ interface FiltersProps {
   onDateToChange: (date: Date | undefined) => void;
   onRefresh: () => void;
   onExport: () => void;
+  modelOptions?: string[];
+  dealerOptions?: string[];
+  statusOptions?: string[];
 }
 
 export function Filters({
@@ -43,11 +47,14 @@ export function Filters({
   onDateToChange,
   onRefresh,
   onExport,
+  modelOptions,
+  dealerOptions,
+  statusOptions,
 }: FiltersProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const hasActiveFilters = selectedModel !== 'all' || selectedDealer !== 'all' || selectedStatus !== 'all' || !!dateFrom || !!dateTo || !!searchTerm;
-  const modelOptions = [
+  const defaultModelOptions = sortAlphaNumeric([
     "APV 1.6 GA MT",
     "APV 1.6 GLX MT",
     "CARRY CAB & CHASSIS",
@@ -78,9 +85,9 @@ export function Filters({
     "XL7 1.5 GLX AT - HYBRID (TWO-TONE)",
     "XL7 1.5 GLX AT - HYBRID BLACK EDITION",
     "XL7 1.5 GLX AT - HYBRID (TWO-TONE) BLACK EDITION",
-  ];
-  const dealerOptions = ["TEAM JM", "TEAM AARON", "TEAM JAY-R"];
-  const statusOptions = [
+  ]);
+  const dealerDefaults = ["TEAM JM", "TEAM AARON", "TEAM JAY-R"];
+  const statusDefaults = [
     "Completed",
     "FOR LTO PROCESSING",
     "HELD",
@@ -93,7 +100,9 @@ export function Filters({
     "Pending",
     "SOLD",
   ];
-
+  const resolvedModelOptions = (modelOptions && modelOptions.length) ? modelOptions : defaultModelOptions;
+  const resolvedDealerOptions = (dealerOptions && dealerOptions.length) ? dealerOptions : dealerDefaults;
+  const resolvedStatusOptions = (statusOptions && statusOptions.length) ? statusOptions : statusDefaults;
   return (
     <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       {/* Collapsible Header Bar */}
@@ -240,7 +249,7 @@ export function Filters({
               </SelectTrigger>
               <SelectContent className="max-h-[400px]">
                 <SelectItem value="all">All Models</SelectItem>
-                {modelOptions
+                {resolvedModelOptions
                   .slice()
                   .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
                   .map((model) => (
@@ -258,7 +267,7 @@ export function Filters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Dealers</SelectItem>
-                {dealerOptions
+                {resolvedDealerOptions
                   .slice()
                   .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
                   .map((dealer) => (
@@ -276,7 +285,7 @@ export function Filters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                {statusOptions
+                {resolvedStatusOptions
                   .slice()
                   .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
                   .map((status) => (

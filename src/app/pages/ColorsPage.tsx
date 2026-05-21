@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router';
-import { ArrowLeft, Plus, Pencil, Trash2, X, Save, Paintbrush } from 'lucide-react';
+import { ArrowLeft, Plus, Pencil, Trash2, X, Save, Paintbrush, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { toast } from 'sonner';
-import { useColors, type ColorRecord } from '../../lib/api';
+import { useColors, useModelColors, usePrices, type ColorRecord } from '../../lib/api';
 
 // ── Color conversion helpers (HSV ↔ HEX) ─────────────────────────────────
 
@@ -311,8 +313,8 @@ function PredefinedColorDropdown({
   }, [open]);
 
   const filtered = colors
-    .filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
-    .sort((a, b) => a.name.localeCompare(b.name));
+    .filter((c) => (c.name ?? '').toLowerCase().includes(search.toLowerCase()))
+    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
 
   return (
     <div className="relative">
@@ -489,10 +491,39 @@ function ColorFormModal({
 export function ColorsPage() {
   const navigate = useNavigate();
   const { colors, loading, addColor, updateColor, removeColor } = useColors();
+  const { prices, loading: loadingPrices } = usePrices();
+  const {
+    assignments,
+    loading: loadingAssignments,
+    addAssignment,
+    removeAssignment,
+    refetch: refetchAssignments,
+  } = useModelColors();
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState<ColorRecord | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [pendingColorsByPriceId, setPendingColorsByPriceId] = useState<Record<number, Set<number>>>({});
+
+  const priceRows = useMemo(
+    () => prices
+      .slice()
+      .sort((a, b) => a.category.localeCompare(b.category) || a.model.localeCompare(b.model)),
+    [prices],
+  );
+
+  const assignmentsByPriceId = useMemo(() => {
+    const map = new Map<number, typeof assignments>();
+    assignments.forEach((assignment) => {
+      const list = map.get(assignment.price_id) ?? [];
+      list.push(assignment);
+      map.set(assignment.price_id, list);
+    });
+    for (const list of map.values()) {
+      list.sort((a, b) => (a.color_name ?? '').localeCompare(b.color_name ?? ''));
+    }
+    return map;
+  }, [assignments]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -527,6 +558,33 @@ export function ColorsPage() {
     }
   };
 
+  const handleAddModelColor = async (priceId: number) => {
+    const selectedColorIds = pendingColorsByPriceId[priceId] ?? new Set();
+    if (selectedColorIds.size === 0) {
+      toast.error('Please select at least one color to add');
+      return;
+    }
+    try {
+      for (const colorId of selectedColorIds) {
+        await addAssignment(priceId, colorId);
+      }
+      await refetchAssignments();
+      setPendingColorsByPriceId((prev) => ({ ...prev, [priceId]: new Set() }));
+      toast.success(`${selectedColorIds.size} color${selectedColorIds.size === 1 ? '' : 's'} assigned to model`);
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Failed to assign color');
+    }
+  };
+
+  const handleRemoveModelColor = async (assignmentId: number) => {
+    try {
+      await removeAssignment(assignmentId);
+      toast.success('Color removed from model');
+    } catch (e: any) {
+      toast.error(e?.message ?? 'Failed to remove color assignment');
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 min-h-0">
       <div className="flex-shrink-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-6 py-4">
@@ -558,15 +616,162 @@ export function ColorsPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 min-h-0">
-        <div className="max-w-4xl mx-auto w-full space-y-4 pb-6">
-          <Input
-            placeholder="Search by name or hex code…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-md"
-          />
+        <div className="max-w-6xl mx-auto w-full space-y-6 pb-6">
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="mb-4">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Colors per Unit Type</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Models are sourced from Price List. Add or remove available colors per model.
+              </p>
+            </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
+            {loadingPrices || loadingAssignments ? (
+              <div className="text-sm text-gray-500">Loading model-color assignments…</div>
+            ) : priceRows.length === 0 ? (
+              <div className="text-sm text-gray-500">No models found in Price List yet.</div>
+            ) : (
+              <div className="space-y-4 max-h-[440px] overflow-y-auto pr-1">
+                {priceRows.map((price) => {
+                  const modelAssignments = assignmentsByPriceId.get(price.id) ?? [];
+                  const assignedColorIds = new Set(modelAssignments.map((a) => a.color_id));
+                  const availableColors = colors
+                    .filter((color) => !assignedColorIds.has(color.id))
+                    .slice()
+                    .sort((a, b) => (a.name ?? '').localeCompare(b.name ?? ''));
+
+                  return (
+                    <div
+                      key={price.id}
+                      className="rounded-lg border border-gray-200 dark:border-gray-700 p-4"
+                    >
+                      <div className="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                          <h3 className="font-semibold text-gray-900 dark:text-gray-100">{price.model}</h3>
+                          <p className="text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            {price.category}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className="w-[260px] justify-between"
+                              >
+                                <span className="truncate">
+                                  {(pendingColorsByPriceId[price.id]?.size ?? 0) > 0
+                                    ? `${pendingColorsByPriceId[price.id]!.size} color${pendingColorsByPriceId[price.id]!.size === 1 ? '' : 's'} selected`
+                                    : 'Select colors to add'}
+                                </span>
+                                <ChevronDown className="size-4 ml-2 flex-shrink-0" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-72 p-3" align="start">
+                              <div className="space-y-2 max-h-64 overflow-y-auto">
+                                {availableColors.length === 0 ? (
+                                  <p className="text-xs text-gray-500 py-2">All colors already assigned.</p>
+                                ) : (
+                                  availableColors.map((color) => (
+                                    <label
+                                      key={color.id}
+                                      className="flex items-center gap-2 p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={(pendingColorsByPriceId[price.id] ?? new Set()).has(color.id)}
+                                        onChange={(e) => {
+                                          setPendingColorsByPriceId((prev) => {
+                                            const set = new Set(prev[price.id] ?? []);
+                                            if (e.target.checked) {
+                                              set.add(color.id);
+                                            } else {
+                                              set.delete(color.id);
+                                            }
+                                            return { ...prev, [price.id]: set };
+                                          });
+                                        }}
+                                        className="size-4 rounded border-gray-300 text-blue-600 cursor-pointer"
+                                      />
+                                      <span
+                                        className="inline-block size-3.5 rounded-sm border border-gray-300"
+                                        style={{ backgroundColor: color.hex }}
+                                      />
+                                      <span className="text-sm flex-1">{color.name}</span>
+                                    </label>
+                                  ))
+                                )}
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                          <Button
+                            size="sm"
+                            onClick={() => handleAddModelColor(price.id)}
+                            disabled={(pendingColorsByPriceId[price.id]?.size ?? 0) === 0 || availableColors.length === 0}
+                          >
+                            Add
+                          </Button>
+                          {availableColors.length === 0 && (
+                            <span className="text-xs text-gray-500">All colors already assigned.</span>
+                          )}
+                        </div>
+                      </div>
+
+                      {modelAssignments.length === 0 ? (
+                        <p className="text-sm text-gray-500 mb-3">No colors assigned yet.</p>
+                      ) : (
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {modelAssignments.map((assignment) => (
+                            <div
+                              key={assignment.id}
+                              className="inline-flex items-center gap-2 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 px-2.5 py-1.5"
+                            >
+                              <span
+                                className="inline-block size-3.5 rounded-sm border border-gray-300 dark:border-gray-600"
+                                style={{ backgroundColor: assignment.color_hex }}
+                                title={assignment.color_hex}
+                              />
+                              <span className="text-xs font-medium text-gray-800 dark:text-gray-200">{assignment.color_name}</span>
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveModelColor(assignment.id)}
+                                className="text-red-600 hover:text-red-700 text-xs"
+                                aria-label={`Remove ${assignment.color_name} from ${price.model}`}
+                              >
+                                Remove
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-800 p-6">
+            <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">List of All Colors</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  Manage the master list used for model assignments.
+                </p>
+              </div>
+              <Button onClick={openAdd} className="gap-2 bg-blue-600 hover:bg-blue-700">
+                <Plus className="size-4" />
+                Add Color
+              </Button>
+            </div>
+
+            <Input
+              placeholder="Search by name or hex code…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="max-w-md mb-4"
+            />
+
+            <div className="rounded-xl border border-gray-200 dark:border-gray-800 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -642,6 +847,7 @@ export function ColorsPage() {
                   )}
                 </tbody>
               </table>
+            </div>
             </div>
           </div>
         </div>

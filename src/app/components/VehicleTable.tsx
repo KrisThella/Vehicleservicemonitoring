@@ -54,7 +54,7 @@ export interface VehicleData {
     | "AVAILABLE";
   remarks: string;
   location: string;
-  unit: string;
+  unit?: string;
   pullOut: Date | null;
   overdue: boolean;
   category?:
@@ -77,6 +77,7 @@ export interface VehicleData {
   bodorCsnStatus?: string;
   dateOfDelivery?: Date | null;
   allocation?: string;
+  allocationTable?: string;
   pnNumber?: string;
   poAmount?: string;
   plateNoAtReceipt?: string;
@@ -382,7 +383,6 @@ export function VehicleTable({
               </TableHead>
               <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Remarks</TableHead>
               <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Location</TableHead>
-              <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Unit</TableHead>
               <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Pull Out</TableHead>
               <TableHead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">Days</TableHead>
               <TableHead className="w-[80px] sticky top-0 z-10 bg-gray-50 dark:bg-gray-800">
@@ -462,9 +462,6 @@ export function VehicleTable({
                     <MapPin className="size-3 text-gray-400" />
                     {vehicle.location}
                   </div>
-                </TableCell>
-                <TableCell className="text-sm">
-                  {vehicle.unit}
                 </TableCell>
                 <TableCell>
                   {formatDate(vehicle.pullOut) ? (

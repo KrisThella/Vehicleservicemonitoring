@@ -3,6 +3,7 @@ import { RootLayout } from "./layouts/RootLayout";
 import { DashboardPage } from "./pages/DashboardPage";
 import { SalesPage } from "./pages/SalesPage";
 import { AvailablePage } from "./pages/AvailablePage";
+import { DemoPage } from "./pages/DemoPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { UserProfilePage } from "./pages/UserProfilePage";
 import { PriceListPage } from "./pages/PriceListPage";
@@ -21,6 +22,7 @@ export const router = createBrowserRouter([
       { index: true, Component: DashboardPage },
       { path: "sales", Component: SalesPage },
       { path: "available", Component: AvailablePage },
+      { path: "demo", Component: DemoPage },
       { path: "in-transit", Component: InTransitPage },
       { path: "pull-out-monitoring", Component: PullOutMonitoringPage },
       { path: "next-cut-off", Component: NextCutOffPage },

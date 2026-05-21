@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { Header } from '../components/Header';
 import { Package, TrendingUp, Plus } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
@@ -9,8 +10,25 @@ import { toast } from 'sonner';
 import { getColorHex } from '../components/utils/colorMapping';
 
 export function AvailablePage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { vehicles, addVehicle } = useVehicles();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [prefillData, setPrefillData] = useState<AvailableVehicleEntry | undefined>(undefined);
+  const prefillHandledRef = useRef(false);
+
+  useEffect(() => {
+    const state = location.state as any;
+    if (!state?.openAddModal || !state?.initialData) return;
+    if (prefillHandledRef.current) return;
+
+    prefillHandledRef.current = true;
+    setPrefillData(state.initialData as AvailableVehicleEntry);
+    setShowAddModal(true);
+
+    // Clear navigation state so refresh/back doesn't re-open
+    navigate('.', { replace: true, state: null });
+  }, [location.state, navigate]);
 
   const onTrackVehicles = vehicles.filter((v: any) => v.status === 'ON TRACK');
   const totalOnTrack = onTrackVehicles.length;
@@ -158,7 +176,16 @@ export function AvailablePage() {
       </main>
 
       {showAddModal && (
-        <AddAvailableVehicleModal onClose={() => setShowAddModal(false)} onSave={handleAddEntry} />
+        <AddAvailableVehicleModal
+          onClose={() => {
+            setShowAddModal(false);
+            setPrefillData(undefined);
+            prefillHandledRef.current = false;
+          }}
+          onSave={handleAddEntry}
+          initialData={prefillData}
+          mode={'add'}
+        />
       )}
     </>
   );

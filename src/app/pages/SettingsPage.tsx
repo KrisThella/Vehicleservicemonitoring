@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { ArrowLeft, User, Palette, ChevronRight, Moon, Sun, Paintbrush, Users } from 'lucide-react';
+import { ArrowLeft, User, Palette, ChevronRight, Moon, Sun, Paintbrush, Users, FileBarChart } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Switch } from '../components/ui/switch';
 import { useEffect, useState } from 'react';

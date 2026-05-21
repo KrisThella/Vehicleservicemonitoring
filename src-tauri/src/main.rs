@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 mod db;
 
 use db::{ensure_default_profile, initialize_db, open_connection};
@@ -1166,4 +1167,11 @@ fn fetch_next_cut_off(connection: &rusqlite::Connection, id: i64) -> Result<Next
       },
     )
     .map_err(|error| error.to_string())
+=======
+// Prevents additional console window on Windows in release, DO NOT REMOVE!!
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
+fn main() {
+  app_lib::run();
+>>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
 }

@@ -126,12 +126,23 @@ const EMPTY: Omit<PaymentRow, "id"> = {
 const RANGE_FIRST_HALF = "1-15";
 const RANGE_SECOND_HALF = "16-";
 
-const toDateOnly = (value: string) => {
+const toDateOnly = (value: string | Date | null | undefined) => {
   if (!value) return null;
-  const date = new Date(value);
+  const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   date.setHours(0, 0, 0, 0);
   return date;
+};
+
+const formatDisplayDate = (value: string | Date | null | undefined) => {
+  const date = toDateOnly(value);
+  return date
+    ? date.toLocaleDateString("en-PH", {
+        month: "short",
+        day: "2-digit",
+        year: "numeric",
+      })
+    : "";
 };
 
 const getMonthLabel = (date: Date) =>
@@ -222,12 +233,14 @@ export function NextCutOffPage() {
 
   const currentMonthRows = rows.filter((row) => {
     const monthIndex = parseDescriptionMonth(row.description);
-    return monthIndex === currentMonth;
+    const date = toDateOnly(row.dateOfPayment);
+    return monthIndex === currentMonth && date?.getFullYear() === currentYear;
   });
 
   const nextMonthRows = rows.filter((row) => {
     const monthIndex = parseDescriptionMonth(row.description);
-    return monthIndex === nextMonthDate.getMonth();
+    const date = toDateOnly(row.dateOfPayment);
+    return monthIndex === nextMonthDate.getMonth() && date?.getFullYear() === currentYear;
   });
 
   const [historyPage, setHistoryPage] = useState(1);
@@ -241,6 +254,8 @@ export function NextCutOffPage() {
       if (monthIndex === null) return false;
       const date = toDateOnly(row.dateOfPayment);
       if (!date || date.getFullYear() !== year) return false;
+      // Only exclude current/next month if viewing current year; show all for past years
+      if (year !== currentYear) return true;
       return (
         monthIndex !== currentMonth &&
         monthIndex !== nextMonthDate.getMonth()
@@ -496,7 +511,7 @@ export function NextCutOffPage() {
                           {formatPhp(totalAmount)}
                         </td>
                         <td className="px-4 py-3 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                          {row.dateOfPayment}
+                          {formatDisplayDate(row.dateOfPayment) || "—"}
                         </td>
                         <td className="px-4 py-3 text-center">
                           <span
@@ -959,11 +974,11 @@ function PaymentFormModal({
   };
 
   const monthRangeOptions = useMemo(() => {
-    const currentRanges = getMonthRanges(new Date());
-    const nextMonthDate = new Date(currentYear, currentMonth + 1, 1);
-    const nextRanges = getMonthRanges(nextMonthDate);
+    const currentDate = new Date(currentYear, currentMonth, 1);
+    const currentRanges = getMonthRanges(currentDate);
+    const nextRanges = getMonthRanges(new Date(currentYear, currentMonth + 1, 1));
     return [...currentRanges, ...nextRanges];
-  }, []);
+  }, [currentYear, currentMonth]);
 
   useEffect(() => {
     if (!monthRangeOptions.includes(form.description)) {
@@ -971,45 +986,25 @@ function PaymentFormModal({
     }
   }, [monthRangeOptions, form.description]);
 
-  // Auto-suggest dateOfPayment based on month range (e.g., if range ends on 15th, suggest 20th of same month)
   useEffect(() => {
     if (!form.dateOfPayment && form.description) {
-      // Extract month from description like "May 1-15" or "May 16-31"
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const currentMonth = today.getMonth();
-      
-      // Determine if this is current month or next month range
-      const isNextMonth = form.description.includes(monthRangeOptions[2] ? monthRangeOptions[2].substring(0, 3) : '');
-      
-      let targetMonth = currentMonth;
-      if (form.description.includes('Jun') || form.description.includes('Jul') || 
-          form.description.includes('Aug') || form.description.includes('Sep') || 
-          form.description.includes('Oct') || form.description.includes('Nov') || 
-          form.description.includes('Dec')) {
-        if (form.description.includes('Jun') && currentMonth > 5) {
-          targetMonth = 5; // Next year's June
-        } else if (form.description.includes('Jun')) {
-          targetMonth = 5;
-        } else {
-          targetMonth = new Date(`${form.description.substring(0, 3)} 1, ${currentYear}`).getMonth();
-        }
-      }
-      
-      // Auto-suggest due date: if first half (1-15), suggest 20th; if second half (16-end), suggest 5th of next month
-      const isFirstHalf = form.description.includes('1-15');
-      let suggestedDate;
-      
-      if (isFirstHalf) {
-        suggestedDate = new Date(currentYear, targetMonth, 20);
-      } else {
-        suggestedDate = new Date(currentYear, targetMonth + 1, 5);
-      }
-      
+      const monthIndex = parseDescriptionMonth(form.description);
+      if (monthIndex === null) return;
+
+      const isFirstHalf = form.description.includes(RANGE_FIRST_HALF);
+      const year = currentYear;
+      const targetMonth = monthIndex;
+      const nextMonth = (targetMonth + 1) % 12;
+      const nextYear = targetMonth === 11 ? year + 1 : year;
+
+      const suggestedDate = isFirstHalf
+        ? new Date(year, targetMonth, 20)
+        : new Date(nextYear, nextMonth, 5);
+
       const dateString = suggestedDate.toISOString().split('T')[0];
       setForm((p) => ({ ...p, dateOfPayment: dateString }));
     }
-  }, [form.description, form.dateOfPayment, monthRangeOptions]);
+  }, [form.description, form.dateOfPayment, currentYear, currentMonth]);
 
   const rangeTotals = useMemo(() => {
     const row: PaymentRow = { ...form, id: 0 };

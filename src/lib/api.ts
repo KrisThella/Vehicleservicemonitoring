@@ -1,5 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
+<<<<<<< HEAD
 import { invoke } from '@tauri-apps/api/tauri';
+=======
+import { DEFAULT_PRICES, DEFAULT_COLORS, DEFAULT_TEAMS } from './defaults';
+>>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -44,6 +48,7 @@ export interface VehicleRecord {
   ltoDocumentsTransmittal?: string;
   poAmount?: string;
   nameOfClient?: string;
+  allocationTable?: string;
   [k: string]: unknown;
 }
 
@@ -82,6 +87,7 @@ export interface SalesConsultantRecord {
 
 // ── Tauri command helpers ────────────────────────────────────────────────
 
+<<<<<<< HEAD
 function normalizeError(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
@@ -91,10 +97,74 @@ async function call<T>(command: string, args?: Record<string, unknown>): Promise
     return await invoke<T>(command, args);
   } catch (error) {
     throw new Error(normalizeError(error, `Command ${command} failed`));
+=======
+const env = typeof import.meta !== 'undefined' ? (import.meta as any).env || {} : {};
+const isDev = !!env.DEV;
+
+const BASE = (() => {
+  if (typeof window === 'undefined') return '/api';
+
+  // In development use the Vite proxy. In production, use relative path so the deployed
+  // app can call the host's API endpoint instead of trying to reach localhost.
+  if (isDev) return '/api';
+  return env.VITE_API_BASE_URL || '/api';
+})();
+
+const BASE_FALLBACKS = (() => {
+  const bases = [BASE];
+  if (isDev) {
+    bases.push('http://127.0.0.1:3001/api');
+  }
+  return Array.from(new Set(bases));
+})();
+
+async function fetchWithFallback(path: string, init?: RequestInit): Promise<Response> {
+  let lastError: unknown;
+  for (const base of BASE_FALLBACKS) {
+    const url = `${base}${path}`;
+    try {
+      const response = await fetch(url, init);
+      // If HTTP error, capture and try next
+      if (!response.ok) {
+        const body = await response.text().catch(() => '');
+        lastError = new Error(`HTTP ${response.status} from ${url} - ${body.slice(0,200)}`);
+        continue;
+      }
+
+      // If response content-type is HTML (index), treat as wrong host and try next
+      const ct = response.headers.get('content-type') || '';
+      if (!ct.includes('application/json') && !ct.includes('application/ld+json') && response.status !== 204) {
+        const body = await response.text().catch(() => '');
+        lastError = new Error(`Non-JSON response from ${url}: ${body.slice(0,200)}`);
+        continue;
+      }
+
+      return response;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError;
+}
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const ct = response.headers.get('content-type') || '';
+  if (!ct.includes('application/json') && !ct.includes('application/ld+json')) {
+    const body = await response.text().catch(() => '');
+    throw new Error(`Expected JSON response but got '${ct || 'unknown'}' from ${response.url}. Response body: ${body.slice(0,200)}`);
+  }
+  const text = await response.text();
+  if (!text) return {} as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch (error: any) {
+    throw new Error(`Failed to parse JSON response from ${response.url}: ${error.message}. Response body: ${text.slice(0, 200)}`);
+>>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
   }
 }
 
 async function get<T>(path: string): Promise<T> {
+<<<<<<< HEAD
   const [route, queryString] = path.split('?');
   const query = new URLSearchParams(queryString ?? '');
 
@@ -126,6 +196,14 @@ async function get<T>(path: string): Promise<T> {
     default:
       throw new Error(`GET ${path} is not supported in the Tauri runtime`);
   }
+=======
+  const r = await fetchWithFallback(path);
+  if (!r.ok) {
+    const body = await r.text();
+    throw new Error(`GET ${path} failed: ${r.status}${body ? ` - ${body}` : ''}`);
+  }
+  return parseJsonResponse<T>(r);
+>>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
 }
 
 function numericId(path: string) {
@@ -136,6 +214,7 @@ function numericId(path: string) {
 }
 
 async function send<T>(path: string, method: string, body?: unknown): Promise<T> {
+<<<<<<< HEAD
   const [route] = path.split('?');
 
   switch (`${method} ${route}`) {
@@ -203,6 +282,18 @@ async function send<T>(path: string, method: string, body?: unknown): Promise<T>
   }
 
   throw new Error(`Unsupported route ${method} ${path}`);
+=======
+  const r = await fetchWithFallback(path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!r.ok) {
+    const body = await r.text();
+    throw new Error(`${method} ${path} failed: ${r.status}${body ? ` - ${body}` : ''}`);
+  }
+  return parseJsonResponse<T>(r);
+>>>>>>> e7ea5df30d1e5a4e1ea3a94e66d01ba76b0201ce
 }
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
@@ -319,26 +410,59 @@ export function usePrices() {
     try { setPrices(await get<PriceRecord[]>('/prices')); }
     finally { setLoading(false); }
   }, []);
+  
+  // If server has no prices, seed from bundled defaults (best-effort)
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await get<PriceRecord[]>('/prices');
+        if (!rows || rows.length === 0) {
+          // Show client-side defaults immediately
+          setPrices(DEFAULT_PRICES.map((p, i) => ({ id: -(i+1), ...p } as any)));
+          // Attempt to persist defaults to server (idempotent-ish)
+          for (const p of DEFAULT_PRICES) {
+            try { await post('/prices', p); } catch (e) { /* ignore errors */ }
+          }
+          // refresh from server to get real IDs
+          setPrices(await get<PriceRecord[]>('/prices'));
+        }
+      } catch (e) {
+        // network error -> keep client defaults; refetch will still run
+      }
+    })();
+  }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handle = () => {
+      refetch();
+    };
+    window.addEventListener('prices:changed', handle);
+    return () => window.removeEventListener('prices:changed', handle);
+  }, [refetch]);
 
   const addPrice = useCallback(async (p: Partial<PriceRecord>) => {
     const created = await send<PriceRecord>('/prices', 'POST', p);
     setPrices((prev) => [...prev, created].sort((a, b) =>
       a.category.localeCompare(b.category) || a.model.localeCompare(b.model)
     ));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('prices:changed'));
     return created;
   }, []);
 
   const updatePrice = useCallback(async (id: number, p: Partial<PriceRecord>) => {
     const updated = await send<PriceRecord>(`/prices/${id}`, 'PUT', p);
     setPrices((prev) => prev.map((x) => (x.id === id ? updated : x)));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('prices:changed'));
     return updated;
   }, []);
 
   const removePrice = useCallback(async (id: number) => {
     await send(`/prices/${id}`, 'DELETE');
     setPrices((prev) => prev.filter((x) => x.id !== id));
+    if (typeof window !== 'undefined') window.dispatchEvent(new Event('prices:changed'));
   }, []);
 
   return { prices, loading, refetch, addPrice, updatePrice, removePrice };
@@ -360,6 +484,27 @@ export function useGeneralManagers() {
     setLoading(true);
     try { setManagers(await get<GeneralManagerRecord[]>('/general-managers')); }
     finally { setLoading(false); }
+  }, []);
+  
+  // If server has no managers, seed from bundled defaults (best-effort)
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await get<GeneralManagerRecord[]>('/general-managers');
+        if (!rows || rows.length === 0) {
+          // show client-side defaults immediately
+          setManagers(DEFAULT_TEAMS.map((t, i) => ({ id: -(i+1), name: t.manager, sort_order: i })));
+          // try to persist to server
+          for (const t of DEFAULT_TEAMS) {
+            try { await send('/general-managers', 'POST', { name: t.manager, consultants: t.consultants }); } catch (e) { /* ignore */ }
+          }
+          // refresh to get real data
+          setManagers(await get<GeneralManagerRecord[]>('/general-managers'));
+        }
+      } catch (e) {
+        // network error -> keep client defaults
+      }
+    })();
   }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
@@ -454,6 +599,7 @@ export interface PullOutRecord {
   description: string;
   sph_allocation: number;
   date_of_confirmation: string;
+  allocation_table_id?: number | null;
   confirmed_units: number;
   pulled_out: number;
   sort_order: number;
@@ -488,7 +634,25 @@ export function usePullOuts() {
     finally { setLoading(false); }
   }, []);
   useEffect(() => { refetch(); }, [refetch]);
-  return { rows, loading, refetch };
+
+  const addRow = useCallback(async (input: Partial<PullOutRecord>) => {
+    const created = await post<PullOutRecord>('/pull-outs', input);
+    setRows((prev) => [...prev, created]);
+    return created;
+  }, []);
+
+  const updateRow = useCallback(async (id: number, input: Partial<PullOutRecord>) => {
+    const updated = await put<PullOutRecord>(`/pull-outs/${id}`, input);
+    setRows((prev) => prev.map((r) => (r.id === id ? updated : r)));
+    return updated;
+  }, []);
+
+  const removeRow = useCallback(async (id: number) => {
+    await del(`/pull-outs/${id}`);
+    setRows((prev) => prev.filter((r) => r.id !== id));
+  }, []);
+
+  return { rows, loading, refetch, addRow, updateRow, removeRow };
 }
 
 export function usePayments() {
@@ -585,6 +749,24 @@ export function useColors() {
     try { setColors(await get<ColorRecord[]>('/colors')); }
     finally { setLoading(false); }
   }, []);
+  
+  // If server has no colors, seed from bundled defaults (best-effort)
+  useEffect(() => {
+    (async () => {
+      try {
+        const rows = await get<ColorRecord[]>('/colors');
+        if (!rows || rows.length === 0) {
+          setColors(DEFAULT_COLORS.map((c, i) => ({ id: -(i+1), name: c.name, hex: c.hex, sort_order: i })));
+          for (const c of DEFAULT_COLORS) {
+            try { await post('/colors', c); } catch (e) { /* ignore */ }
+          }
+          setColors(await get<ColorRecord[]>('/colors'));
+        }
+      } catch (e) {
+        // network error -> keep client defaults
+      }
+    })();
+  }, []);
 
   useEffect(() => { refetch(); }, [refetch]);
 
@@ -606,6 +788,82 @@ export function useColors() {
   }, []);
 
   return { colors, loading, refetch, addColor, updateColor, removeColor };
+}
+
+export interface AllocationTableRecord {
+  id: number;
+  name: string;
+  date_of_confirmation: string;
+  created_at: number;
+  sort_order: number;
+}
+
+export interface ModelColorAssignmentRecord {
+  id: number;
+  price_id: number;
+  color_id: number;
+  model: string;
+  color_name: string;
+  color_hex: string;
+  sort_order: number;
+}
+
+export function useAllocationTables() {
+  const [tables, setTables] = useState<AllocationTableRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try { setTables(await get<AllocationTableRecord[]>('/allocation-tables')); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { refetch(); }, [refetch]);
+
+  const addTable = useCallback(async (input: Omit<AllocationTableRecord, 'id' | 'created_at' | 'sort_order'>) => {
+    const created = await post<AllocationTableRecord>('/allocation-tables', input);
+    setTables((prev) => [...prev, created]);
+    return created;
+  }, []);
+
+  const updateTable = useCallback(async (id: number, input: Omit<AllocationTableRecord, 'id' | 'created_at' | 'sort_order'>) => {
+    const updated = await put<AllocationTableRecord>(`/allocation-tables/${id}`, input);
+    setTables((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    return updated;
+  }, []);
+
+  const removeTable = useCallback(async (id: number) => {
+    await del(`/allocation-tables/${id}`);
+    setTables((prev) => prev.filter((t) => t.id !== id));
+  }, []);
+
+  return { tables, loading, refetch, addTable, updateTable, removeTable };
+}
+
+export function useModelColors() {
+  const [assignments, setAssignments] = useState<ModelColorAssignmentRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const refetch = useCallback(async () => {
+    setLoading(true);
+    try { setAssignments(await get<ModelColorAssignmentRecord[]>('/model-colors')); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { refetch(); }, [refetch]);
+
+  const addAssignment = useCallback(async (price_id: number, color_id: number) => {
+    const created = await post<ModelColorAssignmentRecord>('/model-colors', { price_id, color_id });
+    setAssignments((prev) => [...prev, created]);
+    return created;
+  }, []);
+
+  const removeAssignment = useCallback(async (id: number) => {
+    await del(`/model-colors/${id}`);
+    setAssignments((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
+  return { assignments, loading, refetch, addAssignment, removeAssignment };
 }
 
 export function useProfile() {

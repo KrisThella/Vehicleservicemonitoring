@@ -14,11 +14,12 @@ import { toast } from 'sonner';
 import {
   useColors,
   useGeneralManagers,
+  usePrices,
   useSalesConsultants,
   type ColorRecord,
 } from '../../lib/api';
 import { GeneralManagerSelect, SalesConsultantSelect } from './TeamSelect';
-import { SUZUKI_MODELS, MODEL_CATEGORIES } from '../data/suzukiModels';
+import { SUZUKI_MODELS } from '../data/suzukiModels';
 
 export interface InTransitEntry {
   model: string;
@@ -35,9 +36,7 @@ export interface InTransitEntry {
   poNumber: string;
   poAmount: string;
   pullOutDate: string;
-  colorCode: string;
   declaredMonth: string;
-  currentLocation: string;
   dpReservation: string;
   status: string;
   targetRelease: string;
@@ -72,9 +71,7 @@ const EMPTY_FORM: InTransitEntry = {
   poNumber: '',
   poAmount: '',
   pullOutDate: '',
-  colorCode: '',
   declaredMonth: '',
-  currentLocation: '',
   dpReservation: '',
   status: '',
   targetRelease: '',
@@ -239,8 +236,11 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
   const [errors, setErrors] = useState<Partial<Record<keyof InTransitEntry, string>>>({});
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const { colors } = useColors();
+  const { prices } = usePrices();
   const { managers } = useGeneralManagers();
   const { consultants } = useSalesConsultants();
+
+  const lastAutoFilledPoAmountRef = useRef<string>('');
 
   const set = (field: keyof InTransitEntry, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -275,22 +275,82 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
     return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = () => {
-    if (!validate()) { toast.error('Please fill in all required fields'); return; }
-    onSave(form);
-    toast.success('In Transit unit added successfully!');
-    onClose();
+  const handleSubmit = async () => {
+    if (!validate()) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await onSave(form);
+      toast.success('In Transit unit added successfully!');
+      onClose();
+    } catch (error: any) {
+      toast.error(`Failed to add In Transit unit: ${error?.message ?? error}`);
+    }
   };
 
-  const filteredModels = categoryFilter === 'ALL'
-    ? SUZUKI_MODELS
-    : SUZUKI_MODELS.filter((m) => m.category === categoryFilter);
-  const sortedModelCategories = MODEL_CATEGORIES
-    .slice()
-    .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }));
-  const sortedFilteredModels = filteredModels
-    .slice()
-    .sort((a, b) => a.name.localeCompare(b.name, 'en', { numeric: true, sensitivity: 'base' }));
+  useEffect(() => {
+    if (!form.model) return;
+    const matched = prices.find((p) => p.model === form.model);
+    if (!matched) return;
+    const nextPo = (matched.po_amount ?? '').trim();
+    if (!nextPo || nextPo === '-') return;
+
+    setForm((prev) => {
+      const current = (prev.poAmount ?? '').trim();
+      if (!current || current === lastAutoFilledPoAmountRef.current) {
+        lastAutoFilledPoAmountRef.current = nextPo;
+        return { ...prev, poAmount: nextPo };
+      }
+      return prev;
+    });
+  }, [form.model, prices]);
+
+  const modelOptions = useMemo(() => {
+    if (prices.length > 0) {
+      const byModel = new Map<string, { name: string; category: string; srp: string }>();
+      for (const p of prices) {
+        const modelName = (p.model ?? '').trim();
+        if (!modelName) continue;
+        if (!byModel.has(modelName)) {
+          byModel.set(modelName, {
+            name: modelName,
+            category: (p.category ?? '').trim() || 'OTHER',
+            srp: (p.srp ?? '').trim(),
+          });
+        }
+      }
+      return Array.from(byModel.values());
+    }
+
+    // Fallback for brand new DBs / dev mode before Price List is populated
+    return SUZUKI_MODELS.map((m) => ({
+      name: m.name,
+      category: m.category,
+      srp: String(m.basePrice),
+    }));
+  }, [prices]);
+
+  const sortedModelCategories = useMemo(() => {
+    const cats = Array.from(new Set(modelOptions.map((m) => m.category).filter(Boolean)));
+    return cats.sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }));
+  }, [modelOptions]);
+
+  useEffect(() => {
+    if (categoryFilter !== 'ALL' && !sortedModelCategories.includes(categoryFilter)) {
+      setCategoryFilter('ALL');
+    }
+  }, [categoryFilter, sortedModelCategories]);
+
+  const sortedFilteredModels = useMemo(() => {
+    const filtered = categoryFilter === 'ALL'
+      ? modelOptions
+      : modelOptions.filter((m) => m.category === categoryFilter);
+    return filtered
+      .slice()
+      .sort((a, b) => (a.name ?? '').localeCompare((b.name ?? ''), 'en', { numeric: true, sensitivity: 'base' }));
+  }, [modelOptions, categoryFilter]);
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center">
@@ -344,12 +404,12 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                       <SelectValue placeholder="Select model…" />
                     </SelectTrigger>
                     <SelectContent className="max-h-[280px]">
-                      {sortedFilteredModels.map((m) => (
-                        <SelectItem key={m.name} value={m.name}>
+                        {sortedFilteredModels.map((m) => (
+                          <SelectItem key={m.name} value={m.name}>
                           <span className="flex items-center justify-between gap-4 w-full">
                             <span>{m.name}</span>
                             <span className="text-gray-400 text-xs">
-                              ₱{m.basePrice.toLocaleString('en-PH')}
+                                {m.srp ? `₱${m.srp}` : '—'}
                             </span>
                           </span>
                         </SelectItem>
@@ -364,16 +424,6 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
               <div>
                 <FieldLabel>Color</FieldLabel>
                 <ColorSelectDropdown value={form.color} onChange={(v) => set('color', v)} colors={colors} />
-              </div>
-
-              {/* Color Code */}
-              <div>
-                <FieldLabel>Color Code</FieldLabel>
-                <Input
-                  value={form.colorCode}
-                  onChange={(e) => set('colorCode', e.target.value)}
-                  placeholder="e.g. ZMC"
-                />
               </div>
 
               {/* Year Model */}
@@ -532,16 +582,6 @@ export function AddInTransitModal({ onClose, onSave }: AddInTransitModalProps) {
                   value={form.pullOutLocation}
                   onChange={(e) => set('pullOutLocation', e.target.value)}
                   placeholder="e.g. SPH LAGUNA WAREHOUSE"
-                />
-              </div>
-
-              {/* Current Location */}
-              <div>
-                <FieldLabel>Current Location</FieldLabel>
-                <Input
-                  value={form.currentLocation}
-                  onChange={(e) => set('currentLocation', e.target.value)}
-                  placeholder="e.g. EN ROUTE – SLEX"
                 />
               </div>
 

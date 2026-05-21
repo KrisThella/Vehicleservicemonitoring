@@ -1,9 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft, Plus, Edit2, Save, X, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog';
 import { toast } from 'sonner';
 import { usePrices, PriceRecord } from '../../lib/api';
 
@@ -36,14 +44,28 @@ export function PriceListPage() {
   const navigate = useNavigate();
   const { prices, loading, addPrice, updatePrice, removePrice } = usePrices();
 
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingItem, setEditingItem] = useState<PriceRecord | null>(null);
+  const [editDraft, setEditDraft] = useState<Omit<PriceRecord, 'id'> | null>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newItem, setNewItem] = useState<Omit<PriceRecord, 'id'>>(blankItem());
   const [searchTerm, setSearchTerm] = useState('');
 
-  const categoryOptions = Array.from(
-    new Set([...DEFAULT_CATEGORIES, ...prices.map((p) => p.category)])
-  ).sort();
+  const categoryOptions = useMemo(
+    () => Array.from(new Set([...DEFAULT_CATEGORIES, ...prices.map((p) => p.category)]))
+      .slice()
+      .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' })),
+    [prices],
+  );
+
+  useEffect(() => {
+    if (!editingItem) {
+      setEditDraft(null);
+      return;
+    }
+    const { id: _id, ...rest } = editingItem;
+    setEditDraft(rest);
+  }, [editingItem]);
 
   const handleAdd = async () => {
     if (!newItem.category || !newItem.model || !newItem.srp) {
@@ -62,6 +84,28 @@ export function PriceListPage() {
     const q = searchTerm.toLowerCase();
     return item.model.toLowerCase().includes(q) || item.category.toLowerCase().includes(q);
   });
+
+  const closeEdit = () => {
+    setEditingItem(null);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingItem || !editDraft) return;
+    if (!editDraft.category || !editDraft.model || !editDraft.srp) {
+      toast.error('Category, Model and SRP are required');
+      return;
+    }
+    setIsSavingEdit(true);
+    try {
+      await updatePrice(editingItem.id, editDraft);
+      toast.success('Price updated');
+      closeEdit();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50 dark:bg-gray-950 min-h-0">
@@ -180,17 +224,7 @@ export function PriceListPage() {
                     <PriceRow
                       key={item.id}
                       item={item}
-                      categories={categoryOptions}
-                      isEditing={editingId === item.id}
-                      onEdit={() => setEditingId(item.id)}
-                      onCancel={() => setEditingId(null)}
-                      onSave={async (updated) => {
-                        try {
-                          await updatePrice(item.id, updated);
-                          setEditingId(null);
-                          toast.success('Price updated');
-                        } catch (e: any) { toast.error(e.message); }
-                      }}
+                      onEdit={() => setEditingItem(item)}
                       onDelete={async () => {
                         if (!confirm(`Delete "${item.model}"?`)) return;
                         try {
@@ -209,81 +243,108 @@ export function PriceListPage() {
           </div>
         </div>
       </div>
+
+      <Dialog open={!!editingItem} onOpenChange={(open) => { if (!open) closeEdit(); }}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Price</DialogTitle>
+            <DialogDescription>Update category, model, and pricing fields.</DialogDescription>
+          </DialogHeader>
+
+          {editDraft && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Category <span className="text-red-500">*</span>
+                </label>
+                <Select
+                  value={editDraft.category}
+                  onValueChange={(v) => setEditDraft((p) => (p ? { ...p, category: v } : p))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOptions.map((c) => (
+                      <SelectItem key={c} value={c}>{c}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Model Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  value={editDraft.model}
+                  onChange={(e) => setEditDraft((p) => (p ? { ...p, model: e.target.value } : p))}
+                  placeholder="e.g., SWIFT 1.2 GL CVT"
+                />
+              </div>
+
+              {PRICE_COLUMNS.map((col) => (
+                <div key={col.key}>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    {col.label}{col.key === 'srp' && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  <Input
+                    value={editDraft[col.key]}
+                    onChange={(e) => setEditDraft((p) => (p ? { ...p, [col.key]: e.target.value } : p))}
+                    placeholder="e.g., 1,250,000.00"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={closeEdit} disabled={isSavingEdit} className="gap-2">
+              <X className="size-4" />
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={isSavingEdit || !editDraft} className="gap-2 bg-blue-600 hover:bg-blue-700">
+              <Save className="size-4" />
+              {isSavingEdit ? 'Saving…' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
 function PriceRow({
-  item, categories, isEditing, onEdit, onSave, onCancel, onDelete,
+  item, onEdit, onDelete,
 }: {
   item: PriceRecord;
-  categories: string[];
-  isEditing: boolean;
   onEdit: () => void;
-  onSave: (updated: PriceRecord) => void;
-  onCancel: () => void;
   onDelete: () => void;
 }) {
-  const [draft, setDraft] = useState<PriceRecord>({ ...item });
-  const setField = (key: keyof PriceRecord, val: string) => setDraft((p) => ({ ...p, [key]: val }));
-
   return (
     <tr className="hover:bg-gray-50 dark:hover:bg-gray-800">
       <td className="px-4 py-3">
-        {isEditing ? (
-          <Select value={draft.category} onValueChange={(v) => setField('category', v)}>
-            <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {categories
-                .slice()
-                .sort((a, b) => a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' }))
-                .map((c) => (
-                  <SelectItem key={c} value={c}>{c}</SelectItem>
-                ))}
-            </SelectContent>
-          </Select>
-        ) : (
-          <span className="text-gray-700 dark:text-gray-300 text-xs font-medium uppercase">{item.category}</span>
-        )}
+        <span className="text-gray-700 dark:text-gray-300 text-xs font-medium uppercase">{item.category}</span>
       </td>
       <td className="px-4 py-3">
-        {isEditing ? (
-          <Input value={draft.model} onChange={(e) => setField('model', e.target.value)} className="h-8" />
-        ) : (
-          <span className="text-gray-900 dark:text-gray-100">{item.model}</span>
-        )}
+        <span className="text-gray-900 dark:text-gray-100">{item.model}</span>
       </td>
       {PRICE_COLUMNS.map((col) => (
         <td key={col.key} className="px-4 py-3">
-          {isEditing ? (
-            <Input value={draft[col.key]} onChange={(e) => setField(col.key, e.target.value)} className="h-8" placeholder="—" />
-          ) : (
-            <span className="text-gray-700 dark:text-gray-300">
-              {item[col.key] ? `₱${item[col.key]}` : <span className="text-gray-400">—</span>}
-            </span>
-          )}
+          <span className="text-gray-700 dark:text-gray-300">
+            {item[col.key] ? `₱${item[col.key]}` : <span className="text-gray-400">—</span>}
+          </span>
         </td>
       ))}
       <td className="px-4 py-3 text-right">
-        {isEditing ? (
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" size="sm" onClick={onCancel} className="gap-1">
-              <X className="size-3" /> Cancel
-            </Button>
-            <Button size="sm" onClick={() => onSave(draft)} className="gap-1 bg-blue-600 hover:bg-blue-700">
-              <Save className="size-3" /> Save
-            </Button>
-          </div>
-        ) : (
-          <div className="flex justify-end gap-1">
-            <Button variant="ghost" size="sm" onClick={onEdit} className="gap-1">
-              <Edit2 className="size-3" /> Edit
-            </Button>
-            <Button variant="ghost" size="sm" onClick={onDelete} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
-              <Trash2 className="size-3" />
-            </Button>
-          </div>
-        )}
+        <div className="flex justify-end gap-1">
+          <Button variant="ghost" size="sm" onClick={onEdit} className="gap-1">
+            <Edit2 className="size-3" /> Edit
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onDelete} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+            <Trash2 className="size-3" />
+          </Button>
+        </div>
       </td>
     </tr>
   );
