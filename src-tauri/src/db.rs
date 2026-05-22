@@ -1,12 +1,12 @@
 use rusqlite::Connection;
 use std::{fs, path::{Path, PathBuf}};
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 pub fn initialize_db(app: &AppHandle) -> Result<PathBuf, String> {
   let app_data_dir = app
-    .path_resolver()
+    .path()
     .app_data_dir()
-    .ok_or_else(|| "Unable to resolve app data directory".to_string())?;
+    .map_err(|error| error.to_string())?;
   fs::create_dir_all(&app_data_dir).map_err(|error| error.to_string())?;
   let db_path = app_data_dir.join("vehicleservicemonitoring.db");
 
